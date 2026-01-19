@@ -1,8 +1,8 @@
-import "dotenv/config";
-import express from "express";
-import { registerRoutes } from "./routes.js";
-import fs from "fs";
-import path from "path";
+require("dotenv").config();
+const express = require("express");
+const { registerRoutes } = require("./routes.js");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const log = console.log;
