@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import { registerRoutes } from "./routes.js";
 import fs from "fs";
@@ -6,34 +7,30 @@ import path from "path";
 const app = express();
 const log = console.log;
 
+/* ----------------------------- CORS ----------------------------- */
 function setupCors(app) {
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    // add deployed frontend later
+  ];
+
   app.use((req, res, next) => {
-    const origins = new Set();
+    const origin = req.headers.origin;
 
-    if (process.env.REPLIT_DEV_DOMAIN) {
-      origins.add(`https://${process.env.REPLIT_DEV_DOMAIN}`);
-    }
-
-    if (process.env.REPLIT_DOMAINS) {
-      process.env.REPLIT_DOMAINS.split(",").forEach((d) => {
-        origins.add(`https://${d.trim()}`);
-      });
-    }
-
-    const origin = req.header("origin");
-
-    const isLocalhost =
-      origin?.startsWith("http://localhost:") ||
-      origin?.startsWith("http://127.0.0.1:");
-
-    if (origin && (origins.has(origin) || isLocalhost)) {
-      res.header("Access-Control-Allow-Origin", origin);
-      res.header(
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader(
         "Access-Control-Allow-Methods",
         "GET, POST, PUT, DELETE, OPTIONS"
       );
-      res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-      res.header("Access-Control-Allow-Credentials", "true");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization"
+      );
+      res.setHeader("Access-Control-Allow-Credentials", "true");
     }
 
     if (req.method === "OPTIONS") {
@@ -44,42 +41,36 @@ function setupCors(app) {
   });
 }
 
+/* ------------------------- Body parsing -------------------------- */
 function setupBodyParsing(app) {
-  app.use(
-    express.json({
-      verify: (req, _res, buf) => {
-        req.rawBody = buf;
-      },
-    })
-  );
-
+  app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 }
 
+/* ----------------------- Request logging ------------------------- */
 function setupRequestLogging(app) {
   app.use((req, res, next) => {
-    const start = Date.now();
-    const reqPath = req.path;
-    let capturedJsonResponse;
+    if (!req.path.startsWith("/api")) return next();
 
-    const originalResJson = res.json;
-    res.json = function (bodyJson, ...args) {
-      capturedJsonResponse = bodyJson;
-      return originalResJson.apply(res, [bodyJson, ...args]);
+    const start = Date.now();
+    let responseBody;
+
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+      responseBody = body;
+      return originalJson(body);
     };
 
     res.on("finish", () => {
-      if (!reqPath.startsWith("/api")) return;
-
       const duration = Date.now() - start;
+      let logLine = `${req.method} ${req.path} ${res.statusCode} ${duration}ms`;
 
-      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      if (responseBody) {
+        logLine += ` :: ${JSON.stringify(responseBody)}`;
       }
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+      if (logLine.length > 100) {
+        logLine = logLine.slice(0, 99) + "…";
       }
 
       log(logLine);
@@ -89,14 +80,14 @@ function setupRequestLogging(app) {
   });
 }
 
+/* --------------------------- Expo --------------------------- */
 function getAppName() {
   try {
     const appJsonPath = path.resolve(process.cwd(), "app.json");
-    const appJsonContent = fs.readFileSync(appJsonPath, "utf-8");
-    const appJson = JSON.parse(appJsonContent);
-    return appJson.expo?.name || "App Landing Page";
+    const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf-8"));
+    return appJson.expo?.name || "App";
   } catch {
-    return "App Landing Page";
+    return "App";
   }
 }
 
@@ -109,57 +100,44 @@ function serveExpoManifest(platform, res) {
   );
 
   if (!fs.existsSync(manifestPath)) {
-    return res
-      .status(404)
-      .json({ error: `Manifest not found for platform: ${platform}` });
+    return res.status(404).json({ error: "Manifest not found" });
   }
 
-  res.setHeader("expo-protocol-version", "1");
-  res.setHeader("expo-sfv-version", "0");
   res.setHeader("content-type", "application/json");
-
-  const manifest = fs.readFileSync(manifestPath, "utf-8");
-  res.send(manifest);
+  res.send(fs.readFileSync(manifestPath, "utf-8"));
 }
 
-function serveLandingPage({ req, res, landingPageTemplate, appName }) {
-  const forwardedProto = req.header("x-forwarded-proto");
-  const protocol = forwardedProto || req.protocol || "https";
-  const forwardedHost = req.header("x-forwarded-host");
-  const host = forwardedHost || req.get("host");
-  const baseUrl = `${protocol}://${host}`;
-  const expsUrl = `${host}`;
+function serveLandingPage({ req, res, template, appName }) {
+  const protocol = req.protocol;
+  const host = req.get("host");
 
-  log("baseUrl", baseUrl);
-  log("expsUrl", expsUrl);
-
-  const html = landingPageTemplate
-    .replace(/BASE_URL_PLACEHOLDER/g, baseUrl)
-    .replace(/EXPS_URL_PLACEHOLDER/g, expsUrl)
+  const html = template
+    .replace(/BASE_URL_PLACEHOLDER/g, `${protocol}://${host}`)
+    .replace(/EXPS_URL_PLACEHOLDER/g, host)
     .replace(/APP_NAME_PLACEHOLDER/g, appName);
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.status(200).send(html);
 }
 
-function configureExpoAndLanding(app) {
+function configureExpo(app) {
   const templatePath = path.resolve(
     process.cwd(),
     "server",
     "templates",
     "landing-page.html"
   );
-  const landingPageTemplate = fs.readFileSync(templatePath, "utf-8");
-  const appName = getAppName();
 
-  log("Serving static Expo files with dynamic manifest routing");
+  if (!fs.existsSync(templatePath)) return;
+
+  const template = fs.readFileSync(templatePath, "utf-8");
+  const appName = getAppName();
 
   app.use((req, res, next) => {
     if (req.path.startsWith("/api")) return next();
 
-    if (req.path !== "/" && req.path !== "/manifest") return next();
-
     const platform = req.header("expo-platform");
+
     if (platform === "ios" || platform === "android") {
       return serveExpoManifest(platform, res);
     }
@@ -168,7 +146,7 @@ function configureExpoAndLanding(app) {
       return serveLandingPage({
         req,
         res,
-        landingPageTemplate,
+        template,
         appName,
       });
     }
@@ -176,47 +154,33 @@ function configureExpoAndLanding(app) {
     next();
   });
 
-  app.use("/assets", express.static(path.resolve(process.cwd(), "assets")));
   app.use(express.static(path.resolve(process.cwd(), "static-build")));
-
-  log("Expo routing active");
 }
 
+/* ----------------------- Error handler ----------------------- */
 function setupErrorHandler(app) {
-  app.use((err, _req, res, next) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    console.error("Internal Server Error:", err);
-
-    if (res.headersSent) {
-      return next(err);
-    }
-
-    res.status(status).json({ message });
+  app.use((err, _req, res, _next) => {
+    console.error("Server error:", err);
+    res.status(err.status || 500).json({
+      message: err.message || "Internal Server Error",
+    });
   });
 }
 
+/* --------------------------- Boot --------------------------- */
 (async () => {
   setupCors(app);
   setupBodyParsing(app);
   setupRequestLogging(app);
 
-  configureExpoAndLanding(app);
+  configureExpo(app);
 
   const server = await registerRoutes(app);
 
   setupErrorHandler(app);
 
   const port = Number(process.env.PORT) || 5000;
-  server.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`Express server running on port ${port}`);
-    }
-  );
+  server.listen(port, "0.0.0.0", () => {
+    log(`🚀 Server running on http://localhost:${port}`);
+  });
 })();
