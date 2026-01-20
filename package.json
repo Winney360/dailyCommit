@@ -1,16 +1,17 @@
 {
-  "name": "DailyCommit",
+  "name": "daily-commit",
   "version": "1.0.0",
   "private": true,
+   "workspaces": ["client"],
   "main": "index.js",
  
   "scripts": {
     "dev": "concurrently \"pnpm run server\" \"pnpm run client\"",
     "server": "node server/index.js",
-    "client": "pnpm --filter client expo start",
-    "web": "pnpm --filter client expo start --web",
-    "android": "pnpm --filter client expo run:android",
-    "ios": "pnpm --filter client expo run:ios"
+    "client": "cd client && pnpm expo start",
+    "web": "cd client && pnpm expo start --web",
+    "android": "cd client && pnpm expo run:android",
+    "ios": "cd client && pnpm expo run:ios"
   },
   "keywords": [],
   "author": "",

@@ -55,8 +55,8 @@ DailyCommit is built with React Native (Expo) for the mobile frontend and Expres
 │       ├── StatsScreen.jsx
 │       └── SettingsScreen.jsx
 ├── server/                   # Express.js backend
-│   ├── index.ts             # Server entry point
-│   └── routes.ts            # API routes
+│   ├── index.js             # Server entry point
+│   └── routes.js            # API routes
 └── assets/                   # Images and icons
 ```
 

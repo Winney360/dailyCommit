@@ -1,0 +1,8 @@
+{
+  "expo": {
+    "name": "Daily Commit",
+    "slug": "daily-commit",
+    "version": "1.0.0",
+    "scheme": "dailycommit"
+  }
+}
