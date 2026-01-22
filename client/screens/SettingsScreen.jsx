@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
+import { useNavigation } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -20,6 +21,7 @@ export default function SettingsScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { user, logout } = useAuth();
+  const navigation = useNavigation();
 
   const [settings, setLocalSettings] = useState({
     reminderTime: "20:00",
@@ -54,6 +56,10 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             await logout();
+            navigation.reset({
+            index: 0,
+            routes: [{ name: "Login" }],
+            });
           },
         },
       ]
@@ -73,6 +79,10 @@ export default function SettingsScreen() {
           onPress: async () => {
             await clearAllData();
             await logout();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
           },
         },
       ]
