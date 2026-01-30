@@ -78,17 +78,16 @@ async function registerRoutes(app) {
 
       const userData = await userResponse.json();
 
-      // Build user object
+      // Build user object (without token for regular storage)
       const user = {
         id: String(userData.id),
         username: userData.login,
         email: userData.email,
         avatarUrl: userData.avatar_url,
-        accessToken: tokenData.access_token,
         createdAt: new Date().toISOString(),
       };
 
-      // ✅ Save user to Firebase
+      // ✅ Save user to Firebase (without access token)
       const existingUser = await getUserById(user.id);
       if (!existingUser) {
         await createUser(user);
@@ -97,9 +96,12 @@ async function registerRoutes(app) {
         console.log(`User already exists: ${user.username}`);
       }
 
-      // Redirect back to app
+      // Redirect back to app with token in separate parameter
       const userParam = encodeURIComponent(JSON.stringify(user));
-      res.redirect(`dailycommit://auth/callback?user=${userParam}`);
+      const tokenParam = encodeURIComponent(tokenData.access_token);
+      res.redirect(
+        `dailycommit://auth/callback?user=${userParam}&token=${tokenParam}`
+      );
     } catch (error) {
       console.error("GitHub OAuth error:", error);
       res.status(500).json({ error: "Authentication failed" });

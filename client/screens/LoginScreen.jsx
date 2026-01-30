@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Image, Pressable, Linking, Platform } from "react-native";
+import { View, StyleSheet, Image, Pressable, Linking, Platform, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
@@ -25,9 +25,11 @@ export default function LoginScreen() {
   const { theme } = useTheme();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleGitHubLogin = async () => {
     setIsLoading(true);
+    setError(null);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
@@ -45,14 +47,33 @@ export default function LoginScreen() {
         if (result.type === "success" && result.url) {
           const url = new URL(result.url);
           const userParam = url.searchParams.get("user");
-          if (userParam) {
-            const userData = JSON.parse(decodeURIComponent(userParam));
-            await login(userData);
+          const tokenParam = url.searchParams.get("token");
+          
+          if (!userParam) {
+            throw new Error("No user data received from authentication");
           }
+
+          const userData = JSON.parse(decodeURIComponent(userParam));
+          
+          // Validate user data
+          if (!userData.id || !userData.username) {
+            throw new Error("Invalid user data: missing required fields");
+          }
+
+          // Add token to user data for login function
+          if (tokenParam) {
+            userData.accessToken = decodeURIComponent(tokenParam);
+          }
+
+          await login(userData);
+        } else if (result.type === "cancel") {
+          setError("Authentication cancelled");
         }
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("GitHub login error:", error);
+      setError(error.message || "Failed to login with GitHub. Please try again.");
+      Alert.alert("Login Error", error.message || "An error occurred during login.");
     } finally {
       setIsLoading(false);
     }
@@ -61,19 +82,27 @@ export default function LoginScreen() {
   const handleDemoLogin = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
+    setError(null);
     
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    const demoUser = {
-      id: "demo-user-123",
-      username: "developer",
-      email: "developer@example.com",
-      avatarUrl: null,
-      createdAt: new Date().toISOString(),
-    };
-    
-    await login(demoUser);
-    setIsLoading(false);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      const demoUser = {
+        id: "demo-user-123",
+        username: "developer",
+        email: "developer@example.com",
+        avatarUrl: null,
+        createdAt: new Date().toISOString(),
+      };
+      
+      await login(demoUser);
+    } catch (error) {
+      console.error("Demo login error:", error);
+      setError(error.message || "Failed to login");
+      Alert.alert("Login Error", error.message || "An error occurred during login.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -130,6 +159,20 @@ export default function LoginScreen() {
             theme={theme}
           />
         </Animated.View>
+
+        {error && (
+          <Animated.View
+            entering={FadeInUp.delay(350).duration(400)}
+            style={[
+              styles.errorContainer,
+              { backgroundColor: theme.error + "20", borderColor: theme.error },
+            ]}
+          >
+            <ThemedText type="small" style={{ color: theme.error }}>
+              {error}
+            </ThemedText>
+          </Animated.View>
+        )}
 
         <Animated.View
           entering={FadeInUp.delay(400).duration(600)}
@@ -218,6 +261,13 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 300,
     gap: Spacing.md,
+  },
+  errorContainer: {
+    width: "100%",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginVertical: Spacing.lg,
   },
   featureItem: {
     flexDirection: "row",

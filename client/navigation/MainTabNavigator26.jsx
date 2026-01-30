@@ -4,12 +4,7 @@ import { createNativeBottomTabNavigator } from "@react-navigation/bottom-tabs/un
 import HomeStackNavigator from "@/navigation/HomeStackNavigator";
 import ProfileStackNavigator from "@/navigation/ProfileStackNavigator";
 
-export type MainTabParamList = {
-  HomeTab: undefined;
-  ProfileTab: undefined;
-};
-
-const Tab = createNativeBottomTabNavigator<MainTabParamList>();
+const Tab = createNativeBottomTabNavigator();
 
 export default function MainTabNavigator26() {
   return (
