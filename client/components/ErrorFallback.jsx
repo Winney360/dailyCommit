@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { reloadAppAsync } from "expo";
 import {
   StyleSheet,
@@ -6,17 +6,20 @@ import {
   Pressable,
   ScrollView,
   Text,
-  Modal,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
 
 export function ErrorFallback({ error, resetError }) {
-  const { theme } = useTheme();
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  // Use default light theme to avoid hook calls
+  const theme = {
+    backgroundDefault: "#FFFFFF",
+    text: "#000000",
+    textSecondary: "#666666",
+    error: "#FF3B30",
+    buttonText: "#FFFFFF",
+    primary: "#007AFF",
+  };
 
   const handleRestart = async () => {
     try {
@@ -27,43 +30,38 @@ export function ErrorFallback({ error, resetError }) {
     }
   };
 
-  const formatErrorDetails = () => {
-    let details = `Error: ${error.message}\n\n`;
-    if (error.stack) {
-      details += `Stack Trace:\n${error.stack}`;
-    }
-    return details;
-  };
-
   return (
-    <ThemedView style={styles.container}>
-      {__DEV__ ? (
-        <Pressable
-          onPress={() => setIsModalVisible(true)}
-          style={({ pressed }) => [
-            styles.topButton,
-            {
-              backgroundColor: theme.backgroundDefault,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}
-        >
-          <Feather name="alert-circle" size={20} color={theme.text} />
-        </Pressable>
-      ) : null}
-
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.backgroundDefault }
+      ]}
+    >
       <View style={styles.content}>
         <View style={[styles.iconContainer, { backgroundColor: theme.error + "20" }]}>
           <Feather name="alert-triangle" size={48} color={theme.error} />
         </View>
-        
-        <ThemedText type="h2" style={styles.title}>
-          Something went wrong
-        </ThemedText>
 
-        <ThemedText type="body" style={[styles.message, { color: theme.textSecondary }]}>
+        <Text style={[styles.title, { color: theme.text }]}>
+          Something went wrong
+        </Text>
+
+        <Text style={[styles.message, { color: theme.textSecondary }]}>
           DailyCommit encountered an error. Please restart the app to continue tracking your coding streak.
-        </ThemedText>
+        </Text>
+
+        {__DEV__ && (
+          <ScrollView style={styles.devErrorContainer}>
+            <Text style={[styles.devErrorText, { color: theme.error }]}>
+              {error.message}
+            </Text>
+            {error.stack && (
+              <Text style={[styles.devStackTrace, { color: theme.textSecondary }]}>
+                {error.stack}
+              </Text>
+            )}
+          </ScrollView>
+        )}
 
         <Pressable
           onPress={handleRestart}
@@ -72,74 +70,18 @@ export function ErrorFallback({ error, resetError }) {
             {
               backgroundColor: theme.primary,
               opacity: pressed ? 0.9 : 1,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
             },
           ]}
         >
-          <Feather name="refresh-cw" size={20} color={theme.buttonText} style={{ marginRight: Spacing.sm }} />
-          <ThemedText
-            type="body"
-            style={[styles.buttonText, { color: theme.buttonText }]}
-          >
-            Restart App
-          </ThemedText>
+          <View style={styles.buttonContent}>
+            <Feather name="refresh-cw" size={20} color={theme.buttonText} />
+            <Text style={[styles.buttonText, { color: theme.buttonText, marginLeft: Spacing.sm }]}>
+              Restart App
+            </Text>
+          </View>
         </Pressable>
       </View>
-
-      {__DEV__ ? (
-        <Modal
-          visible={isModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setIsModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <ThemedView style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <ThemedText type="h3" style={styles.modalTitle}>
-                  Error Details
-                </ThemedText>
-                <Pressable
-                  onPress={() => setIsModalVisible(false)}
-                  style={({ pressed }) => [
-                    styles.closeButton,
-                    { opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <Feather name="x" size={24} color={theme.text} />
-                </Pressable>
-              </View>
-
-              <ScrollView
-                style={styles.modalScrollView}
-                contentContainerStyle={styles.modalScrollContent}
-                showsVerticalScrollIndicator
-              >
-                <View
-                  style={[
-                    styles.errorContainer,
-                    { backgroundColor: theme.backgroundDefault },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.errorText,
-                      {
-                        color: theme.text,
-                        fontFamily: Fonts?.mono || "monospace",
-                      },
-                    ]}
-                    selectable
-                  >
-                    {formatErrorDetails()}
-                  </Text>
-                </View>
-              </ScrollView>
-            </ThemedView>
-          </View>
-        </Modal>
-      ) : null}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -168,25 +110,36 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   title: {
+    fontSize: 24,
+    fontWeight: "600",
     textAlign: "center",
-    lineHeight: 40,
+    lineHeight: 32,
   },
   message: {
+    fontSize: 16,
     textAlign: "center",
     lineHeight: 24,
+    marginBottom: Spacing.sm,
     paddingHorizontal: Spacing.lg,
   },
-  topButton: {
-    position: "absolute",
-    top: Spacing["2xl"] + Spacing.lg,
-    right: Spacing.lg,
-    width: 44,
-    height: 44,
+  devErrorContainer: {
+    maxHeight: 200,
+    width: "100%",
+    marginVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
+    backgroundColor: "rgba(255, 59, 48, 0.1)",
+  },
+  devErrorText: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: Spacing.sm,
+  },
+  devStackTrace: {
+    fontSize: 10,
+    lineHeight: 14,
+    fontFamily: "monospace",
   },
   button: {
     paddingVertical: Spacing.lg,
@@ -198,53 +151,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: Spacing.lg,
   },
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   buttonText: {
     fontWeight: "600",
     textAlign: "center",
     fontSize: 16,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
-    width: "100%",
-    height: "90%",
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(128, 128, 128, 0.2)",
-  },
-  modalTitle: {
-    fontWeight: "600",
-  },
-  closeButton: {
-    padding: Spacing.xs,
-  },
-  modalScrollView: {
-    flex: 1,
-  },
-  modalScrollContent: {
-    padding: Spacing.lg,
-  },
-  errorContainer: {
-    width: "100%",
-    borderRadius: BorderRadius.sm,
-    overflow: "hidden",
-    padding: Spacing.lg,
-  },
-  errorText: {
-    fontSize: 12,
-    lineHeight: 18,
-    width: "100%",
   },
 });
