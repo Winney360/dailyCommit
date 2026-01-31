@@ -55,13 +55,21 @@ export default function SettingsScreen() {
           text: "Log Out",
           style: "destructive",
           onPress: async () => {
-            await logout();
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: "Login" }],
-              })
-            );
+            try {
+              await logout();
+              // Add a small delay to ensure state updates
+              setTimeout(() => {
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "Login" }],
+                  })
+                );
+              }, 100);
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Error", "Failed to log out. Please try again.");
+            }
           },
         },
       ]
@@ -121,7 +129,9 @@ export default function SettingsScreen() {
             Shadows.card,
           ]}
         >
-          <View style={[styles.avatarContainer, { backgroundColor: theme.primary + "20" }]}>
+          <View
+            style={[styles.avatarContainer, { backgroundColor: theme.primary + "20" }]}
+          >
             {user?.avatarUrl ? (
               <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
             ) : (
