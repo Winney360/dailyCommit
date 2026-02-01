@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getUser, setUser as saveUser, removeUser } from "@/lib/storage";
 
 const AuthContext = createContext(undefined);
 
-// Secure token key
-const TOKEN_KEY = "@dailycommit_github_token";
+// Token key for AsyncStorage
+const TOKEN_KEY = "dailycommit_github_token";
 
 export function AuthProvider({ children }) {
   const [user, setUserState] = useState(null);
@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
   async function loadUser() {
     try {
       const savedUser = await getUser();
-      const savedToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      const savedToken = await AsyncStorage.getItem(TOKEN_KEY);
       setUserState(savedUser);
       setToken(savedToken);
     } catch (error) {
@@ -30,28 +30,24 @@ export function AuthProvider({ children }) {
   }
 
   async function login(userData) {
-    // Validate user data
     if (!userData?.id || !userData?.username) {
       throw new Error("Invalid user data: missing id or username");
     }
 
-    // Remove token from user object before storing in regular storage
     const { accessToken, ...userWithoutToken } = userData;
 
-    // Store user data in AsyncStorage
     await saveUser(userWithoutToken);
     setUserState(userWithoutToken);
 
-    // Store sensitive token in secure storage
     if (accessToken) {
-      await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
+      await AsyncStorage.setItem(TOKEN_KEY, accessToken);
       setToken(accessToken);
     }
   }
 
   async function logout() {
     await removeUser();
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await AsyncStorage.removeItem(TOKEN_KEY);
     setUserState(null);
     setToken(null);
   }
@@ -65,7 +61,7 @@ export function AuthProvider({ children }) {
   async function getToken() {
     if (token) return token;
     try {
-      const storedToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
       setToken(storedToken);
       return storedToken;
     } catch (error) {

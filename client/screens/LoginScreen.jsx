@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Image, Pressable, Linking, Platform, Alert } from "react-native";
+import { View, StyleSheet, Image, Platform, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as Haptics from "expo-haptics";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withSpring,
-  withDelay,
   FadeInUp,
 } from "react-native-reanimated";
 
@@ -17,7 +14,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
 import { getApiUrl } from "@/lib/query-client";
 
 export default function LoginScreen() {
@@ -55,12 +52,10 @@ export default function LoginScreen() {
 
           const userData = JSON.parse(decodeURIComponent(userParam));
           
-          // Validate user data
           if (!userData.id || !userData.username) {
             throw new Error("Invalid user data: missing required fields");
           }
 
-          // Add token to user data for login function
           if (tokenParam) {
             userData.accessToken = decodeURIComponent(tokenParam);
           }
@@ -73,32 +68,6 @@ export default function LoginScreen() {
     } catch (error) {
       console.error("GitHub login error:", error);
       setError(error.message || "Failed to login with GitHub. Please try again.");
-      Alert.alert("Login Error", error.message || "An error occurred during login.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      const demoUser = {
-        id: "demo-user-123",
-        username: "developer",
-        email: "developer@example.com",
-        avatarUrl: null,
-        createdAt: new Date().toISOString(),
-      };
-      
-      await login(demoUser);
-    } catch (error) {
-      console.error("Demo login error:", error);
-      setError(error.message || "Failed to login");
       Alert.alert("Login Error", error.message || "An error occurred during login.");
     } finally {
       setIsLoading(false);
@@ -186,18 +155,6 @@ export default function LoginScreen() {
           >
             Continue with GitHub
           </Button>
-
-          <Pressable
-            onPress={handleDemoLogin}
-            style={({ pressed }) => [
-              styles.demoButton,
-              { opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <ThemedText type="body" style={{ color: theme.primary }}>
-              Try Demo Mode
-            </ThemedText>
-          </Pressable>
         </Animated.View>
 
         <Animated.View
@@ -284,14 +241,10 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: "100%",
     maxWidth: 320,
-    gap: Spacing.lg,
     alignItems: "center",
   },
   githubButton: {
     width: "100%",
-  },
-  demoButton: {
-    paddingVertical: Spacing.md,
   },
   footer: {
     paddingHorizontal: Spacing.xl,
