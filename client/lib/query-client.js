@@ -6,12 +6,19 @@ export function getApiUrl() {
   if (!host) {
     throw new Error("EXPO_PUBLIC_DOMAIN is not set");
   }
-  const protocol = host.includes("localhost") ? "http" : "https";
 
-  const url = new URL(`${protocol}://${host}`);
+  // If host already starts with http or https, use it directly
+  const url = host.startsWith("http://") || host.startsWith("https://")
+    ? new URL(host)
+    : new URL(`${host.includes("localhost") ? "http" : "https"}://${host}`);
+
+  // Ensure trailing slash
+  if (!url.href.endsWith("/")) {
+    url.href += "/";
+  }
+
   return url.href;
 }
-
 
 async function throwIfResNotOk(res) {
   if (!res.ok) {
