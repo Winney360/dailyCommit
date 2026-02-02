@@ -56,8 +56,13 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
+              console.log("Starting logout from SettingsScreen...");
+              // Call logout from AuthContext
               await logout();
-              // Add a small delay to ensure state updates
+              console.log("Logout successful, navigating to Login...");
+              
+              // Navigate to login screen after logout
+              // Using a small timeout to ensure state updates are processed
               setTimeout(() => {
                 navigation.dispatch(
                   CommonActions.reset({
@@ -66,8 +71,9 @@ export default function SettingsScreen() {
                   })
                 );
               }, 100);
+              
             } catch (error) {
-              console.error("Logout error:", error);
+              console.error("Logout error in SettingsScreen:", error);
               Alert.alert("Error", "Failed to log out. Please try again.");
             }
           },
@@ -87,14 +93,22 @@ export default function SettingsScreen() {
           text: "Clear Data",
           style: "destructive",
           onPress: async () => {
-            await clearAllData();
-            await logout();
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: "Login" }],
-              })
-            );
+            try {
+              await clearAllData();
+              // Also logout after clearing data
+              await logout();
+              setTimeout(() => {
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "Login" }],
+                  })
+                );
+              }, 100);
+            } catch (error) {
+              console.error("Clear data error:", error);
+              Alert.alert("Error", "Failed to clear data. Please try again.");
+            }
           },
         },
       ]

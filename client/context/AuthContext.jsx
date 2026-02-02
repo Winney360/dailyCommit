@@ -46,10 +46,12 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
+    console.log("Logging out...");
     await removeUser();
     await AsyncStorage.removeItem(TOKEN_KEY);
     setUserState(null);
     setToken(null);
+    console.log("Logout complete");
   }
 
   async function updateUser(userData) {
