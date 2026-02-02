@@ -6,11 +6,12 @@ export function getApiUrl() {
   if (!host) {
     throw new Error("EXPO_PUBLIC_DOMAIN is not set");
   }
+  const protocol = host.includes("localhost") ? "http" : "https";
 
-  let url = new URL(`https://${host}`);
-
+  const url = new URL(`${protocol}://${host}`);
   return url.href;
 }
+
 
 async function throwIfResNotOk(res) {
   if (!res.ok) {
