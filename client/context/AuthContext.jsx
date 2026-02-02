@@ -20,6 +20,13 @@ export function AuthProvider({ children }) {
     try {
       const savedUser = await getUser();
       const savedToken = await AsyncStorage.getItem(TOKEN_KEY);
+      if (!savedUser || !savedToken) {
+      await removeUser();
+      await AsyncStorage.removeItem(TOKEN_KEY);
+      setUserState(null);
+      setToken(null);
+      return;
+    }
       setUserState(savedUser);
       setToken(savedToken);
     } catch (error) {
@@ -77,7 +84,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         isLoading,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user && !!token,
         token,
         getToken,
         login,
