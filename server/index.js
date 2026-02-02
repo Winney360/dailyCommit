@@ -1,86 +1,120 @@
+const fetch = require("node-fetch");
 require("dotenv").config();
+const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const { registerRoutes } = require("./routes.js");
-const fs = require("fs");
-const path = require("path");
 
+
+// ------------------------ dotenv ------------------------
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+
+// ------------------------ Express App ------------------------
 const app = express();
 const log = console.log;
 
-/* ----------------------------- CORS ----------------------------- */
-function setupCors(app) {
-  const allowedOrigins = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    // add deployed frontend later
-  ];
+// ------------------------ CORS ------------------------
+const allowedOrigins = [
+  "http://localhost:5000",
+  "http://localhost:8183",
+  "http://127.0.0.1:5000",
+  "http://127.0.0.1:8183",
+];
 
-  app.use((req, res, next) => {
-    const origin = req.headers.origin;
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
 
-    if (origin && allowedOrigins.includes(origin)) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS"
-      );
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization"
-      );
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-    }
+// ------------------------ Body Parsing ------------------------
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(200);
-    }
+// ------------------------ Request Logging ------------------------
+app.use((req, res, next) => {
+  if (!req.path.startsWith("/api")) return next();
 
-    next();
+  const start = Date.now();
+  let responseBody;
+
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    responseBody = body;
+    return originalJson(body);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    let logLine = `${req.method} ${req.path} ${res.statusCode} ${duration}ms`;
+    if (responseBody) logLine += ` :: ${JSON.stringify(responseBody)}`;
+    if (logLine.length > 100) logLine = logLine.slice(0, 99) + "…";
+    log(logLine);
   });
-}
 
-/* ------------------------- Body parsing -------------------------- */
-function setupBodyParsing(app) {
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: false }));
-}
+  next();
+});
 
-/* ----------------------- Request logging ------------------------- */
-function setupRequestLogging(app) {
-  app.use((req, res, next) => {
-    if (!req.path.startsWith("/api")) return next();
+// ------------------------ GitHub OAuth ------------------------
+app.get("/api/auth/github", (req, res) => {
+  const clientId = process.env.GITHUB_CLIENT_ID;
+  const redirectUri = `http://${process.env.EXPO_PUBLIC_DOMAIN}/api/auth/github/callback`;
 
-    const start = Date.now();
-    let responseBody;
+  if (!clientId) return res.status(500).send("GITHUB_CLIENT_ID not set");
 
-    const originalJson = res.json.bind(res);
-    res.json = (body) => {
-      responseBody = body;
-      return originalJson(body);
-    };
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&scope=read:user`;
 
-    res.on("finish", () => {
-      const duration = Date.now() - start;
-      let logLine = `${req.method} ${req.path} ${res.statusCode} ${duration}ms`;
+  res.redirect(githubAuthUrl);
+});
 
-      if (responseBody) {
-        logLine += ` :: ${JSON.stringify(responseBody)}`;
-      }
+app.get("/api/auth/github/callback", async (req, res, next) => {
+  try {
+    const code = req.query.code;
+    if (!code) return res.status(400).send("Missing code from GitHub");
 
-      if (logLine.length > 100) {
-        logLine = logLine.slice(0, 99) + "…";
-      }
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
 
-      log(logLine);
+    if (!clientId || !clientSecret) return res.status(500).send("GitHub client ID/secret not set");
+
+    // Exchange code for access token
+    const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code }),
     });
 
-    next();
-  });
-}
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) return res.status(500).send("Failed to get access token");
 
-/* --------------------------- Expo --------------------------- */
+    const accessToken = tokenData.access_token;
+
+    // Fetch user info
+    const userRes = await fetch("https://api.github.com/user", {
+      headers: { Authorization: `token ${accessToken}` },
+    });
+    const userData = await userRes.json();
+
+    // Redirect back to your client with user info
+    const redirectUrl = `http://${process.env.EXPO_PUBLIC_DOMAIN}/?user=${encodeURIComponent(
+      JSON.stringify(userData)
+    )}&token=${accessToken}`;
+
+    res.redirect(redirectUrl);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ------------------------ Expo & Landing Page ------------------------
 function getAppName() {
   try {
     const appJsonPath = path.resolve(process.cwd(), "app.json");
@@ -92,17 +126,8 @@ function getAppName() {
 }
 
 function serveExpoManifest(platform, res) {
-  const manifestPath = path.resolve(
-    process.cwd(),
-    "static-build",
-    platform,
-    "manifest.json"
-  );
-
-  if (!fs.existsSync(manifestPath)) {
-    return res.status(404).json({ error: "Manifest not found" });
-  }
-
+  const manifestPath = path.resolve(process.cwd(), "static-build", platform, "manifest.json");
+  if (!fs.existsSync(manifestPath)) return res.status(404).json({ error: "Manifest not found" });
   res.setHeader("content-type", "application/json");
   res.send(fs.readFileSync(manifestPath, "utf-8"));
 }
@@ -110,7 +135,6 @@ function serveExpoManifest(platform, res) {
 function serveLandingPage({ req, res, template, appName }) {
   const protocol = req.protocol;
   const host = req.get("host");
-
   const html = template
     .replace(/BASE_URL_PLACEHOLDER/g, `${protocol}://${host}`)
     .replace(/EXPS_URL_PLACEHOLDER/g, host)
@@ -121,13 +145,7 @@ function serveLandingPage({ req, res, template, appName }) {
 }
 
 function configureExpo(app) {
-  const templatePath = path.resolve(
-    process.cwd(),
-    "server",
-    "templates",
-    "landing-page.html"
-  );
-
+  const templatePath = path.resolve(__dirname, "templates", "landing-page.html");
   if (!fs.existsSync(templatePath)) return;
 
   const template = fs.readFileSync(templatePath, "utf-8");
@@ -137,19 +155,8 @@ function configureExpo(app) {
     if (req.path.startsWith("/api")) return next();
 
     const platform = req.header("expo-platform");
-
-    if (platform === "ios" || platform === "android") {
-      return serveExpoManifest(platform, res);
-    }
-
-    if (req.path === "/") {
-      return serveLandingPage({
-        req,
-        res,
-        template,
-        appName,
-      });
-    }
+    if (platform === "ios" || platform === "android") return serveExpoManifest(platform, res);
+    if (req.path === "/") return serveLandingPage({ req, res, template, appName });
 
     next();
   });
@@ -157,27 +164,17 @@ function configureExpo(app) {
   app.use(express.static(path.resolve(process.cwd(), "static-build")));
 }
 
-/* ----------------------- Error handler ----------------------- */
-function setupErrorHandler(app) {
-  app.use((err, _req, res, _next) => {
-    console.error("Server error:", err);
-    res.status(err.status || 500).json({
-      message: err.message || "Internal Server Error",
-    });
-  });
-}
+configureExpo(app);
 
-/* --------------------------- Boot --------------------------- */
+// ------------------------ Register your routes ------------------------
 (async () => {
-  setupCors(app);
-  setupBodyParsing(app);
-  setupRequestLogging(app);
-
-  configureExpo(app);
-
   const server = await registerRoutes(app);
 
-  setupErrorHandler(app);
+  // ------------------------ Error handler ------------------------
+  app.use((err, _req, res, _next) => {
+    console.error("Server error:", err);
+    res.status(err.status || 500).json({ message: err.message || "Internal Server Error" });
+  });
 
   const port = Number(process.env.PORT) || 5000;
   server.listen(port, "0.0.0.0", () => {
