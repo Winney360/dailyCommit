@@ -1,13 +1,13 @@
-const fetch = require("node-fetch");
-const path = require("path");
-const fs = require("fs");
-const express = require("express");
-const { registerRoutes } = require("./routes.js");
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import fs from "fs";
+import { registerRoutes } from "./routes.js";
 
-// ------------------------ dotenv ------------------------
-require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
-// ------------------------ Express App ------------------------
 const app = express();
 const log = console.log;
 

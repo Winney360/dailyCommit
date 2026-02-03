@@ -73,27 +73,13 @@ export default function LoginScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
-      const baseUrl = getApiUrl(); // Should be http://localhost:5000/
+      const baseUrl = getApiUrl();
       
-      // Determine redirect URI based on platform
-      let redirectUri;
-      if (Platform.OS === "web") {
-        // For web - use your frontend URL for callback
-        redirectUri = window.location.origin + "/";
-        // This will redirect back to the root (LoginScreen)
-        // The useEffect above will catch the callback parameters
-      } else {
-        // For mobile - use custom scheme
-        redirectUri = "dailycommit://auth/callback";
-      }
-      
-      // Pass the redirect_uri to your backend
-      const authUrl = `${baseUrl}api/auth/github?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      // Don't pass custom redirect_uri - let backend use GITHUB_REDIRECT_URI
+      const authUrl = `${baseUrl}api/auth/github`;
       
       console.log("=== GITHUB LOGIN DEBUG ===");
       console.log("Platform:", Platform.OS);
-      console.log("Base URL:", baseUrl);
-      console.log("Redirect URI:", redirectUri);
       console.log("Auth URL:", authUrl);
       
       if (Platform.OS === "web") {
@@ -104,7 +90,7 @@ export default function LoginScreen() {
         console.log("Opening WebBrowser session...");
         const result = await WebBrowser.openAuthSessionAsync(
           authUrl,
-          redirectUri
+          "dailycommit://auth/callback"
         );
 
         console.log("WebBrowser result:", result);

@@ -1,10 +1,10 @@
-const { createServer } = require("node:http");
-const { createUser, getUserById, getUserByUsername } = require("./storage.js");
+import { createServer } from "node:http";
+import { createUser, getUserById, getUserByUsername } from "./storage.js";
 
 /**
  * @param {import("express").Express} app
  */
-async function registerRoutes(app) {
+export async function registerRoutes(app) {
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({
@@ -16,7 +16,7 @@ async function registerRoutes(app) {
   // GitHub OAuth redirect
   app.get("/api/auth/github", (req, res) => {
     const clientId = process.env.GITHUB_CLIENT_ID;
-    const redirectUri = req.query.redirect_uri || process.env.GITHUB_REDIRECT_URI;
+    const redirectUri = process.env.GITHUB_REDIRECT_URI;
 
     if (!clientId || !redirectUri) {
       return res.status(500).json({ error: "GitHub OAuth not configured" });
@@ -28,7 +28,6 @@ async function registerRoutes(app) {
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&scope=user:email,read:user`;
 
-    console.log("GitHub OAuth redirect to:", authUrl);
     res.redirect(authUrl);
   });
 
@@ -37,7 +36,7 @@ async function registerRoutes(app) {
     const code = req.query.code;
     const clientId = process.env.GITHUB_CLIENT_ID;
     const clientSecret = process.env.GITHUB_CLIENT_SECRET;
-    const requestedRedirectUri = req.query.redirect_uri || process.env.GITHUB_REDIRECT_URI;
+    const requestedRedirectUri = process.env.GITHUB_REDIRECT_URI;
 
     if (!code) {
       return res.status(400).json({ error: "Authorization code missing" });
@@ -48,7 +47,6 @@ async function registerRoutes(app) {
     }
 
     try {
-      // Exchange code for access token
       const tokenResponse = await fetch(
         "https://github.com/login/oauth/access_token",
         {
@@ -61,7 +59,7 @@ async function registerRoutes(app) {
             client_id: clientId,
             client_secret: clientSecret,
             code,
-            redirect_uri: requestedRedirectUri, // Must match the redirect_uri from the initial request
+            redirect_uri: requestedRedirectUri,
           }),
         }
       );
@@ -77,7 +75,6 @@ async function registerRoutes(app) {
         return res.status(400).json({ error: "No access token received" });
       }
 
-      // Get user info from GitHub
       const userResponse = await fetch("https://api.github.com/user", {
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
@@ -91,7 +88,6 @@ async function registerRoutes(app) {
 
       const userData = await userResponse.json();
 
-      // Get user email (need additional request for private email)
       let email = userData.email;
       if (!email) {
         try {
@@ -105,18 +101,13 @@ async function registerRoutes(app) {
           if (emailResponse.ok) {
             const emails = await emailResponse.json();
             const primaryEmail = emails.find(e => e.primary);
-            if (primaryEmail) {
-              email = primaryEmail.email;
-            } else if (emails.length > 0) {
-              email = emails[0].email;
-            }
+            email = primaryEmail?.email || emails[0]?.email;
           }
         } catch (emailError) {
           console.error("Failed to fetch user email:", emailError);
         }
       }
 
-      // Build user object
       const user = {
         id: String(userData.id),
         username: userData.login,
@@ -125,35 +116,25 @@ async function registerRoutes(app) {
         createdAt: new Date().toISOString(),
       };
 
-      // ✅ Save user to database
-      const existingUser = await getUserById(user.id);
-      if (!existingUser) {
-        await createUser(user);
-        console.log(`New user created: ${user.username}`);
-      } else {
-        console.log(`User already exists: ${user.username}`);
+      try {
+        const existingUser = await getUserById(user.id);
+        if (!existingUser) {
+          await createUser(user);
+          console.log(`New user created: ${user.username}`);
+        } else {
+          console.log(`User already exists: ${user.username}`);
+        }
+      } catch (dbError) {
+        console.error("Database error (non-critical):", dbError.message);
       }
 
-      // Prepare query parameters
       const userParam = encodeURIComponent(JSON.stringify(user));
       const tokenParam = encodeURIComponent(tokenData.access_token);
+      const webFrontendUrl = process.env.WEB_FRONTEND_URL || "http://localhost:8183";
+      const redirectUrl = `${webFrontendUrl}?user=${userParam}&token=${tokenParam}`;
       
-      // Determine final redirect URL
-      let finalRedirectUrl;
-      
-      if (requestedRedirectUri.includes('://localhost') || 
-          requestedRedirectUri.startsWith('http://') || 
-          requestedRedirectUri.startsWith('https://')) {
-        // Web redirect - use the requested redirect URI
-        const separator = requestedRedirectUri.includes('?') ? '&' : '?';
-        finalRedirectUrl = `${requestedRedirectUri}${separator}user=${userParam}&token=${tokenParam}`;
-      } else {
-        // Mobile redirect - use custom scheme
-        finalRedirectUrl = `dailycommit://auth/callback?user=${userParam}&token=${tokenParam}`;
-      }
-      
-      console.log("Redirecting to:", finalRedirectUrl);
-      res.redirect(finalRedirectUrl);
+      console.log("Redirecting to:", redirectUrl);
+      res.redirect(redirectUrl);
       
     } catch (error) {
       console.error("GitHub OAuth error:", error);
@@ -236,5 +217,3 @@ async function registerRoutes(app) {
   const httpServer = createServer(app);
   return httpServer;
 }
-
-module.exports = { registerRoutes };
