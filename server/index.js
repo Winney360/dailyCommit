@@ -1,10 +1,8 @@
 const fetch = require("node-fetch");
-require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const { registerRoutes } = require("./routes.js");
-
 
 // ------------------------ dotenv ------------------------
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
@@ -59,59 +57,6 @@ app.use((req, res, next) => {
   });
 
   next();
-});
-
-// ------------------------ GitHub OAuth ------------------------
-app.get("/api/auth/github", (req, res) => {
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  const redirectUri = `http://${process.env.EXPO_PUBLIC_DOMAIN}/api/auth/github/callback`;
-
-  if (!clientId) return res.status(500).send("GITHUB_CLIENT_ID not set");
-
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-    redirectUri
-  )}&scope=read:user`;
-
-  res.redirect(githubAuthUrl);
-});
-
-app.get("/api/auth/github/callback", async (req, res, next) => {
-  try {
-    const code = req.query.code;
-    if (!code) return res.status(400).send("Missing code from GitHub");
-
-    const clientId = process.env.GITHUB_CLIENT_ID;
-    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
-
-    if (!clientId || !clientSecret) return res.status(500).send("GitHub client ID/secret not set");
-
-    // Exchange code for access token
-    const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
-      method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code }),
-    });
-
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) return res.status(500).send("Failed to get access token");
-
-    const accessToken = tokenData.access_token;
-
-    // Fetch user info
-    const userRes = await fetch("https://api.github.com/user", {
-      headers: { Authorization: `token ${accessToken}` },
-    });
-    const userData = await userRes.json();
-
-    // Redirect back to your client with user info
-    const redirectUrl = `http://${process.env.EXPO_PUBLIC_DOMAIN}/?user=${encodeURIComponent(
-      JSON.stringify(userData)
-    )}&token=${accessToken}`;
-
-    res.redirect(redirectUrl);
-  } catch (err) {
-    next(err);
-  }
 });
 
 // ------------------------ Expo & Landing Page ------------------------
