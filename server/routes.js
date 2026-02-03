@@ -14,22 +14,24 @@ async function registerRoutes(app) {
   });
 
   // GitHub OAuth redirect
-  app.get("/api/auth/github", (req, res) => {
-    const clientId = process.env.GITHUB_CLIENT_ID;
-    const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/github/callback`;
+  // GitHub OAuth redirect
+app.get("/api/auth/github", (req, res) => {
+  const clientId = process.env.GITHUB_CLIENT_ID;
+  const redirectUri = process.env.GITHUB_REDIRECT_URI;
 
-    if (!clientId) {
-      return res.status(500).json({ error: "GitHub OAuth not configured" });
-    }
+  if (!clientId || !redirectUri) {
+    return res.status(500).json({ error: "GitHub OAuth not configured" });
+  }
 
-    const authUrl =
-      `https://github.com/login/oauth/authorize` +
-      `?client_id=${clientId}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&scope=user:email,read:user`;
+  const authUrl =
+    `https://github.com/login/oauth/authorize` +
+    `?client_id=${clientId}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&scope=user:email,read:user`;
 
-    res.redirect(authUrl);
-  });
+  res.redirect(authUrl);
+});
+
 
   // GitHub OAuth callback
   app.get("/api/auth/github/callback", async (req, res) => {
