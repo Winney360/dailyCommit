@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Alert, Image } from "react-native";
+import { View, StyleSheet, ScrollView, Alert, Image, Platform, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useNavigation, CommonActions } from "@react-navigation/native";
@@ -7,6 +7,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeInUp } from "react-native-reanimated";
+import * as Notifications from "expo-notifications";
 
 import { ThemedText } from "@/components/ThemedText";
 import { SettingsItem, SettingsSection } from "@/components/SettingsItem";
@@ -42,10 +43,115 @@ export default function SettingsScreen() {
     const newSettings = { ...settings, [key]: value };
     setLocalSettings(newSettings);
     await setSettings(newSettings);
+    
+    // Handle notifications permission
+    if (key === "notificationsEnabled" && value) {
+      await requestNotificationPermission();
+      await scheduleDailyReminder();
+    } else if (key === "notificationsEnabled" && !value) {
+      await cancelDailyReminder();
+    }
   };
 
-  const handleLogout = () => {
+  const requestNotificationPermission = async () => {
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== "granted") {
+      const { status: newStatus } = await Notifications.requestPermissionsAsync();
+      return newStatus === "granted";
+    }
+    return true;
+  };
+
+  const scheduleDailyReminder = async () => {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      
+      const [hours, minutes] = settings.reminderTime.split(":").map(Number);
+      
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "DailyCommit Reminder",
+          body: "Don't forget to make your daily GitHub commit!",
+          data: { screen: "Dashboard" },
+        },
+        trigger: {
+          hour: hours,
+          minute: minutes,
+          repeats: true,
+        },
+      });
+      
+      console.log("Daily reminder scheduled for", settings.reminderTime);
+    } catch (error) {
+      console.error("Failed to schedule reminder:", error);
+    }
+  };
+
+  const cancelDailyReminder = async () => {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      console.log("Daily reminders cancelled");
+    } catch (error) {
+      console.error("Failed to cancel reminders:", error);
+    }
+  };
+
+  const handleReminderTimePress = async () => {
+    if (Platform.OS === "ios" || Platform.OS === "android") {
+      // For mobile, you'd use a DateTimePicker component
+      Alert.alert(
+        "Reminder Time",
+        "Time picker would open here. For now, you can manually edit in settings.",
+        [{ text: "OK" }]
+      );
+    } else {
+      // For web, show an alert with instructions
+      Alert.alert(
+        "Set Reminder Time",
+        "Enter time in 24-hour format (HH:MM):",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Set",
+            onPress: () => {
+              Alert.prompt(
+                "Reminder Time",
+                "Enter time (HH:MM):",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Save",
+                    onPress: async (time) => {
+                      if (time && /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
+                        await updateSetting("reminderTime", time);
+                        Alert.alert("Success", `Reminder time set to ${time}`);
+                      } else {
+                        Alert.alert("Error", "Please enter a valid time in HH:MM format");
+                      }
+                    },
+                  },
+                ],
+                "plain-text",
+                settings.reminderTime
+              );
+            },
+          },
+        ]
+      );
+    }
+  };
+
+  const handleGitHubPress = () => {
+    Linking.openURL("https://github.com/yourusername/dailycommit");
+  };
+
+  const handleFeedbackPress = () => {
+    Linking.openURL("mailto:support@example.com?subject=DailyCommit Feedback");
+  };
+
+  const handleLogout = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
     Alert.alert(
       "Log Out",
       "Are you sure you want to log out?",
@@ -56,24 +162,21 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              console.log("Starting logout from SettingsScreen...");
-              // Call logout from AuthContext
-              await logout();
-              console.log("Logout successful, navigating to Login...");
+              console.log("Starting logout...");
               
-              // Navigate to login screen after logout
-              // Using a small timeout to ensure state updates are processed
-              setTimeout(() => {
-                navigation.dispatch(
-                  CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: "Login" }],
-                  })
-                );
-              }, 100);
+              // Cancel notifications on logout
+              await cancelDailyReminder();
+              
+              // Call logout
+              await logout();
+              
+              console.log("Logout successful");
+              
+              // Use replace instead of reset for more reliable navigation
+              navigation.replace("Login");
               
             } catch (error) {
-              console.error("Logout error in SettingsScreen:", error);
+              console.error("Logout error:", error);
               Alert.alert("Error", "Failed to log out. Please try again.");
             }
           },
@@ -82,8 +185,9 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleClearData = () => {
+  const handleClearData = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    
     Alert.alert(
       "Clear All Data",
       "This will delete all your streak data and settings. This action cannot be undone.",
@@ -94,17 +198,34 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
+              // Cancel notifications first
+              await cancelDailyReminder();
+              
+              // Clear data
               await clearAllData();
-              // Also logout after clearing data
+              
+              // Logout
               await logout();
-              setTimeout(() => {
-                navigation.dispatch(
-                  CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: "Login" }],
-                  })
-                );
-              }, 100);
+              
+              Alert.alert(
+                "Data Cleared",
+                "All data has been cleared. You will be redirected to login.",
+                [
+                  {
+                    text: "OK",
+                    onPress: () => {
+                      // Use reset navigation
+                      navigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{ name: "Login" }],
+                        })
+                      );
+                    },
+                  },
+                ]
+              );
+              
             } catch (error) {
               console.error("Clear data error:", error);
               Alert.alert("Error", "Failed to clear data. Please try again.");
@@ -174,9 +295,9 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="clock"
             title="Reminder Time"
-            value={formatTime(settings.reminderTime)}
+            subtitle={formatTime(settings.reminderTime)}
             showChevron
-            onPress={() => {}}
+            onPress={handleReminderTimePress}
           />
         </SettingsSection>
       </Animated.View>
@@ -199,19 +320,21 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="info"
             title="Version"
-            value="1.0.0"
+            subtitle="1.0.0"
           />
           <SettingsItem
             icon="github"
             title="Source Code"
+            subtitle="View on GitHub"
             showChevron
-            onPress={() => {}}
+            onPress={handleGitHubPress}
           />
           <SettingsItem
             icon="mail"
             title="Send Feedback"
+            subtitle="Help us improve"
             showChevron
-            onPress={() => {}}
+            onPress={handleFeedbackPress}
           />
         </SettingsSection>
       </Animated.View>
@@ -221,11 +344,13 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="log-out"
             title="Log Out"
+            subtitle="Sign out of your account"
             onPress={handleLogout}
           />
           <SettingsItem
             icon="trash-2"
             title="Clear All Data"
+            subtitle="Delete all app data"
             destructive
             onPress={handleClearData}
           />
