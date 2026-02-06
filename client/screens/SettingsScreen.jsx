@@ -24,6 +24,18 @@ export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
 
+  const resetToLogin = () => {
+    const parent = navigation.getParent();
+    if (parent) {
+      parent.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        })
+      );
+    }
+  };
+
   const [settings, setLocalSettings] = useState({
     reminderTime: "20:00",
     notificationsEnabled: true,
@@ -43,7 +55,7 @@ export default function SettingsScreen() {
     const newSettings = { ...settings, [key]: value };
     setLocalSettings(newSettings);
     await setSettings(newSettings);
-    
+
     // Handle notifications permission
     if (key === "notificationsEnabled" && value) {
       await requestNotificationPermission();
@@ -65,9 +77,9 @@ export default function SettingsScreen() {
   const scheduleDailyReminder = async () => {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
-      
+
       const [hours, minutes] = settings.reminderTime.split(":").map(Number);
-      
+
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "DailyCommit Reminder",
@@ -80,7 +92,7 @@ export default function SettingsScreen() {
           repeats: true,
         },
       });
-      
+
       console.log("Daily reminder scheduled for", settings.reminderTime);
     } catch (error) {
       console.error("Failed to schedule reminder:", error);
@@ -151,7 +163,7 @@ export default function SettingsScreen() {
 
   const handleLogout = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
+
     Alert.alert(
       "Log Out",
       "Are you sure you want to log out?",
@@ -163,18 +175,13 @@ export default function SettingsScreen() {
           onPress: async () => {
             try {
               console.log("Starting logout...");
-              
-              // Cancel notifications on logout
+
               await cancelDailyReminder();
-              
-              // Call logout
               await logout();
-              
+
               console.log("Logout successful");
-              
-              // Use replace instead of reset for more reliable navigation
-              navigation.replace("Login");
-              
+
+              resetToLogin();
             } catch (error) {
               console.error("Logout error:", error);
               Alert.alert("Error", "Failed to log out. Please try again.");
@@ -187,7 +194,7 @@ export default function SettingsScreen() {
 
   const handleClearData = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    
+
     Alert.alert(
       "Clear All Data",
       "This will delete all your streak data and settings. This action cannot be undone.",
@@ -198,15 +205,10 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              // Cancel notifications first
               await cancelDailyReminder();
-              
-              // Clear data
               await clearAllData();
-              
-              // Logout
               await logout();
-              
+
               Alert.alert(
                 "Data Cleared",
                 "All data has been cleared. You will be redirected to login.",
@@ -214,18 +216,11 @@ export default function SettingsScreen() {
                   {
                     text: "OK",
                     onPress: () => {
-                      // Use reset navigation
-                      navigation.dispatch(
-                        CommonActions.reset({
-                          index: 0,
-                          routes: [{ name: "Login" }],
-                        })
-                      );
+                      resetToLogin();
                     },
                   },
                 ]
               );
-              
             } catch (error) {
               console.error("Clear data error:", error);
               Alert.alert("Error", "Failed to clear data. Please try again.");
