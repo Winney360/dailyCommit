@@ -33,7 +33,16 @@ export default function SettingsScreen() {
           routes: [{ name: "Login" }],
         })
       );
+      return;
     }
+
+    // Fallback: reset current navigator
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      })
+    );
   };
 
   const [settings, setLocalSettings] = useState({
@@ -260,7 +269,7 @@ export default function SettingsScreen() {
           ]}
         >
           <View
-            style={[styles.avatarContainer, { backgroundColor: theme.primary + "20" }]}
+            style={[styles.avatarContainer, { backgroundColor: theme.primary + "20"} ]}
           >
             {user?.avatarUrl ? (
               <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
