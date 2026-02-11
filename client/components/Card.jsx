@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Pressable, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -44,6 +45,11 @@ export function Card({
     }
   };
 
+  const getGradientColors = () => {
+    const baseColor = getBackgroundColor();
+    return [baseColor, theme.backgroundSecondary];
+  };
+
   const cardBackgroundColor = getBackgroundColor();
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -63,9 +69,17 @@ export function Card({
   };
 
   const CardContent = (
-    <>
+    <LinearGradient
+      colors={getGradientColors()}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.gradient, { 
+        borderWidth: 1,
+        borderColor: theme.border,
+      }]}
+    >
       {title ? (
-        <ThemedText type="h4" style={styles.cardTitle}>
+        <ThemedText type="h4" style={[styles.cardTitle, { fontWeight: '700' }]}>
           {title}
         </ThemedText>
       ) : null}
@@ -74,25 +88,7 @@ export function Card({
           {description}
         </ThemedText>
       ) : null}
-      {children}
-    </>
-  );
-
-  if (onPress) {
-    return (
-      <AnimatedPressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={[
-          styles.card,
-          Shadows.card,
-          {
-            backgroundColor: cardBackgroundColor,
-            borderWidth: 1,
-            borderColor: theme.border,
-          },
-          animatedStyle,
+      {chianimatedStyle,
           style,
         ]}
       >
@@ -106,16 +102,28 @@ export function Card({
       style={[
         styles.card,
         Shadows.card,
-        {
-          backgroundColor: cardBackgroundColor,
-          borderWidth: 1,
-          borderColor: theme.border,
-        },
         style,
       ]}
     >
       {CardContent}
     </Animated.View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  gradient: {
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+  },
+  cardTitle: {
+    marginBottom: Spacing.sm,
+  },
+  cardDescription: {
+    opacity: 0.8iew>
   );
 }
 

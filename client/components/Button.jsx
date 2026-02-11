@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Pressable } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,7 +10,7 @@ import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import { BorderRadius, Spacing, Shadows } from "@/constants/theme";
 
 const springConfig = {
   damping: 15,
@@ -55,18 +56,18 @@ export function Button({
     }
   };
 
-  const getBackgroundColor = () => {
+  const getGradientColors = () => {
     switch (variant) {
       case "primary":
-        return theme.primary;
+        return [theme.primary, theme.primaryDark];
       case "secondary":
-        return theme.secondary;
+        return [theme.secondary, theme.backgroundSecondary];
       case "accent":
-        return theme.accent;
+        return [theme.accent, theme.primary];
       case "outline":
-        return "transparent";
+        return ["transparent", "transparent"];
       default:
-        return theme.primary;
+        return [theme.primary, theme.primaryDark];
     }
   };
 
@@ -96,25 +97,47 @@ export function Button({
       style={[
         styles.button,
         {
-          backgroundColor: getBackgroundColor(),
           opacity: disabled ? 0.5 : 1,
         },
-        getBorderStyle(),
+        variant === "outline" ? getBorderStyle() : Shadows.card,
         style,
         animatedStyle,
       ]}
     >
-      {icon ? icon : null}
-      <ThemedText
-        type="body"
-        style={[
-          styles.buttonText,
-          { color: getTextColor() },
-          icon ? { marginLeft: Spacing.sm } : null,
-        ]}
-      >
-        {children}
-      </ThemedText>
+      {variant === "outline" ? (
+        <>
+          {icon ? icon : null}
+          <ThemedText
+            type="body"
+            style={[
+              styles.buttonText,
+              { color: getTextColor(), fontWeight: '700' },
+              icon ? { marginLeft: Spacing.sm } : null,
+            ]}
+          >
+            {children}
+          </ThemedText>
+        </>
+      ) : (
+        <LinearGradient
+          colors={getGradientColors()}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.gradient, getBorderStyle()]}
+        >
+          {icon ? icon : null}
+          <ThemedText
+            type="body"
+            style={[
+              styles.buttonText,
+              { color: getTextColor(), fontWeight: '700' },
+              icon ? { marginLeft: Spacing.sm } : null,
+            ]}
+          >
+            {children}
+          </ThemedText>
+        </LinearGradient>
+      )}
     </AnimatedPressable>
   );
 }
@@ -122,13 +145,18 @@ export function Button({
 const styles = StyleSheet.create({
   button: {
     height: Spacing.buttonHeight,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  gradient: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     paddingHorizontal: Spacing.xl,
   },
   buttonText: {
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 16,
   },
 });

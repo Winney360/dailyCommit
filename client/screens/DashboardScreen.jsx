@@ -202,16 +202,17 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   greeting: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing["2xl"],
+    fontWeight: '700',
   },
   content: {
-    gap: Spacing.lg,
+    gap: Spacing.xl,
   },
   reminderCard: {
-    padding: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: 16,
-    gap: Spacing.xs,
+    padding: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    gap: Spacing.sm,
     borderLeftWidth: 4,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   reminderHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   reminderDot: {
     width: 8,

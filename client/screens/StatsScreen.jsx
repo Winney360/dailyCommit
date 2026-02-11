@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -153,30 +154,40 @@ export default function StatsScreen() {
           <View
             style={[
               styles.nextBadgeCard,
-              { 
-                backgroundColor: theme.backgroundDefault,
-                borderWidth: 1,
-                borderColor: theme.border,
-              },
               Shadows.card,
             ]}
           >
-            <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-              NEXT MILESTONE
-            </ThemedText>
-            <View style={styles.nextBadgeContent}>
-              <View style={[styles.badgeIconSmall, { backgroundColor: nextBadge.color + "20" }]}>
-                <Feather name={nextBadge.icon} size={20} color={nextBadge.color} />
+            <LinearGradient
+              colors={[theme.backgroundDefault, theme.backgroundSecondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.nextBadgeGradient, { 
+                borderWidth: 1,
+                borderColor: theme.border,
+              }]}
+            >
+              <ThemedText type="caption" style={{ color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 1, fontSize: 11, fontWeight: '700' }}>
+                NEXT MILESTONE
+              </ThemedText>
+              <View style={styles.nextBadgeContent}>
+                <LinearGradient
+                  colors={[nextBadge.color + "30", nextBadge.color + "20"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.badgeIconSmall}
+                >
+                  <Feather name={nextBadge.icon} size={22} color={nextBadge.color} />
+                </LinearGradient>
+                <View style={styles.nextBadgeText}>
+                  <ThemedText type="body" style={{ fontWeight: "700" }}>
+                    {nextBadge.name}
+                  </ThemedText>
+                  <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: 2 }}>
+                    {nextBadge.requirement - Math.max(streakData.longestStreak, streakData.totalCommits)} more to go
+                  </ThemedText>
+                </View>
               </View>
-              <View style={styles.nextBadgeText}>
-                <ThemedText type="body" style={{ fontWeight: "600" }}>
-                  {nextBadge.name}
-                </ThemedText>
-                <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  {nextBadge.requirement - Math.max(streakData.longestStreak, streakData.totalCommits)} more to go
-                </ThemedText>
-              </View>
-            </View>
+            </LinearGradient>
           </View>
         </Animated.View>
       ) : null}
@@ -189,35 +200,50 @@ function StatCard({ icon, value, label, theme, highlight = false }) {
     <View
       style={[
         styles.statCard,
-        { 
-          backgroundColor: theme.backgroundDefault,
-          borderWidth: 1,
-          borderColor: theme.border,
-        },
         Shadows.card,
       ]}
     >
-      <View
-        style={[
-          styles.statIcon,
-          { backgroundColor: highlight ? theme.primary + "20" : theme.backgroundSecondary },
-        ]}
+      <LinearGradient
+        colors={highlight 
+          ? [theme.primary + "20", theme.primary + "10"]
+          : [theme.backgroundDefault, theme.backgroundSecondary]
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.statGradient, { 
+          borderWidth: 1.5,
+          borderColor: highlight ? theme.borderAccent : theme.border,
+        }]}
       >
-        <Feather
-          name={icon}
-          size={20}
-          color={highlight ? theme.primary : theme.textSecondary}
-        />
-      </View>
-      <ThemedText
-        type="h2"
-        style={[styles.statValue, highlight && { color: theme.primary }]}
-      >
-        {value}
-      </ThemedText>
-      <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-        {label}
-      </ThemedText>
+        <LinearGradient
+          colors={highlight 
+            ? [theme.primary + "30", theme.primary + "20"]
+            : [theme.backgroundSecondary + "80", theme.backgroundSecondary]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.statIcon}
+        >
+          <Feather
+            name={icon}
+            size={24}
+            color={highlight ? theme.primary : theme.accent}
+          />
+        </LinearGradient>
+        <ThemedText
+          type="h2"
+          style={[styles.statValue, { 
+            color: highlight ? theme.primary : theme.text,
+            fontWeight: '800',
+            fontSize: 36,
+          }]}
+        >
+          {value}
+        </ThemedText>
+        <ThemedText type="caption" style={[styles.statLabel, { color: theme.textSecondary }]}>
+          {label}
+        </ThemedText>
+      </LinearGradient>
     </View>
   );
 }
@@ -227,34 +253,46 @@ function BadgeCard({ badge, isEarned, theme }) {
     <View
       style={[
         styles.badgeCard,
-        {
-          backgroundColor: theme.backgroundDefault,
-          borderWidth: 1,
-          borderColor: isEarned ? badge.color + "40" : theme.borderSubtle,
-          opacity: isEarned ? 1 : 0.6,
-        },
+        isEarned && Shadows.card,
       ]}
     >
-      <View
-        style={[
-          styles.badgeIcon,
-          { backgroundColor: isEarned ? badge.color + "20" : theme.backgroundSecondary },
-        ]}
+      <LinearGradient
+        colors={isEarned 
+          ? [badge.color + "25", badge.color + "15"]
+          : [theme.backgroundDefault, theme.backgroundSecondary]
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.badgeGradient, {
+          borderWidth: 1.5,
+          borderColor: isEarned ? badge.color + "60" : theme.borderSubtle,
+          opacity: isEarned ? 1 : 0.5,
+        }]}
       >
-        <Feather
-          name={badge.icon}
-          size={24}
-          color={isEarned ? badge.color : theme.textSecondary}
-        />
-      </View>
-      <ThemedText type="small" style={[styles.badgeName, { color: theme.text }]}>
-        {badge.name}
-      </ThemedText>
-      {isEarned ? (
-        <View style={[styles.earnedBadge, { backgroundColor: theme.success }]}>
-          <Feather name="check" size={10} color={theme.buttonText} />
-        </View>
-      ) : null}
+        <LinearGradient
+          colors={isEarned 
+            ? [badge.color + "40", badge.color + "25"]
+            : [theme.backgroundSecondary, theme.backgroundSecondary]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.badgeIcon}
+        >
+          <Feather
+            name={badge.icon}
+            size={28}
+            color={isEarned ? badge.color : theme.textSecondary}
+          />
+        </LinearGradient>
+        <ThemedText type="small" style={[styles.badgeName, { color: isEarned ? theme.text : theme.textSecondary, fontWeight: isEarned ? '600' : '400' }]}>
+          {badge.name}
+        </ThemedText>
+        {isEarned ? (
+          <View style={[styles.earnedBadge, { backgroundColor: theme.success, ...Shadows.glow }]}>
+            <Feather name="check" size={12} color={theme.buttonText} />
+          </View>
+        ) : null}
+      </LinearGradient>
     </View>
   );
 }
@@ -262,7 +300,7 @@ function BadgeCard({ badge, isEarned, theme }) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.xl,
+    gap: Spacing["2xl"],
   },
   emptyContainer: {
     flex: 1,
@@ -277,15 +315,19 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: "45%",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  statGradient: {
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
     alignItems: "center",
     gap: Spacing.sm,
   },
   statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.sm,
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -293,7 +335,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   sectionTitle: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
+    fontWeight: '700',
   },
   badgesContainer: {
     flexDirection: "row",
@@ -303,16 +346,20 @@ const styles = StyleSheet.create({
   badgeCard: {
     width: "30%",
     aspectRatio: 1,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  badgeGradient: {
+    flex: 1,
+    borderRadius: BorderRadius.xl,
     alignItems: "center",
     justifyContent: "center",
     padding: Spacing.md,
-    position: "relative",
   },
   badgeIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.sm,
@@ -325,31 +372,35 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: Spacing.sm,
     right: Spacing.sm,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: "center",
     justifyContent: "center",
   },
   nextBadgeCard: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  nextBadgeGradient: {
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.lg,
   },
   nextBadgeContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.md,
+    gap: Spacing.lg,
   },
   badgeIconSmall: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.sm,
+    width: 52,
+    height: 52,
+    borderRadius: BorderRadius.lg,
     alignItems: "center",
     justifyContent: "center",
   },
   nextBadgeText: {
     flex: 1,
-    gap: 2,
+    gap: 4,
   },
 });

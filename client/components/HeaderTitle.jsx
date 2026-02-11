@@ -27,13 +27,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   icon: {
-    width: 28,
-    height: 28,
-    marginRight: Spacing.sm,
-    borderRadius: 6,
+    width: 32,
+    height: 32,
+    marginRight: Spacing.md,
+    borderRadius: 8,
   },
   title: {
-    fontSize: 17,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
 });

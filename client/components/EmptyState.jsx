@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -18,13 +19,18 @@ export function EmptyState({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}>
-        <Feather name={icon} size={48} color={theme.primary} />
-      </View>
-      <ThemedText type="h4" style={[styles.title, { color: theme.text }]}>
+      <LinearGradient
+        colors={[theme.primary + "25", theme.primary + "10"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.iconContainer}
+      >
+        <Feather name={icon} size={56} color={theme.primary} />
+      </LinearGradient>
+      <ThemedText type="h4" style={[styles.title, { color: theme.text, fontWeight: '700' }]}>
         {title}
       </ThemedText>
-      <ThemedText type="body" style={[styles.message, { color: theme.textSecondary }]}>
+      <ThemedText type="body" style={[styles.message, { color: theme.textSecondary, lineHeight: 24 }]}>
         {message}
       </ThemedText>
       {actionLabel && onAction ? (
@@ -44,23 +50,23 @@ const styles = StyleSheet.create({
     padding: Spacing["3xl"],
   },
   iconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing["2xl"],
   },
   title: {
     textAlign: "center",
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   message: {
     textAlign: "center",
-    maxWidth: 280,
+    maxWidth: 300,
   },
   button: {
-    marginTop: Spacing.xl,
-    minWidth: 180,
+    marginTop: Spacing["2xl"],
+    minWidth: 200,
   },
 });

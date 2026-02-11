@@ -1,10 +1,11 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 const MOTIVATIONAL_MESSAGES = [
   { message: "Every commit counts. Keep building.", icon: "code" },
@@ -51,36 +52,56 @@ export function MotivationCard({ currentStreak = 0, hasCommittedToday = false })
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.primary + "10" },
+        Shadows.card,
       ]}
     >
-      <View style={[styles.iconContainer, { backgroundColor: theme.primary + "20" }]}>
-        <Feather name={displayMessage.icon} size={20} color={theme.primary} />
-      </View>
-      <ThemedText type="body" style={[styles.message, { color: theme.text }]}>
-        {displayMessage.message}
-      </ThemedText>
+      <LinearGradient
+        colors={[theme.primary + "20", theme.primary + "10"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradient, { 
+          borderWidth: 1,
+          borderColor: theme.primary + "40",
+        }]}
+      >
+        <LinearGradient
+          colors={[theme.primary + "35", theme.primary + "20"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.iconContainer}
+        >
+          <Feather name={displayMessage.icon} size={22} color={theme.primary} />
+        </LinearGradient>
+        <ThemedText type="body" style={[styles.message, { color: theme.text, fontWeight: '500' }]}>
+          {displayMessage.message}
+        </ThemedText>
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  gradient: {
     flexDirection: "row",
     alignItems: "center",
     padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.sm,
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",
   },
   message: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: Spacing.lg,
     fontStyle: "italic",
+    lineHeight: 22,
   },
 });
