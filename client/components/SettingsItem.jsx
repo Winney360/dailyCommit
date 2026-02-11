@@ -96,7 +96,11 @@ export function SettingsSection({ title, children }) {
       <View
         style={[
           styles.sectionContent,
-          { backgroundColor: theme.backgroundDefault },
+          { 
+            backgroundColor: theme.backgroundDefault,
+            borderWidth: 1,
+            borderColor: theme.border,
+          },
         ]}
       >
         {children}

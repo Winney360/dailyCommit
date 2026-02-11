@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -13,6 +13,19 @@ import RootStackNavigator from "@/navigation/RootStackNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
 
+const customDarkTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: "#7C3AED",
+    background: "#0A071B",
+    card: "#1A142C",
+    text: "#E9E2F5",
+    border: "#2D2440",
+    notification: "#7C3AED",
+  },
+};
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -21,10 +34,10 @@ export default function App() {
           <SafeAreaProvider>
             <GestureHandlerRootView style={styles.root}>
               <KeyboardProvider>
-                <NavigationContainer>
+                <NavigationContainer theme={customDarkTheme}>
                   <RootStackNavigator />
                 </NavigationContainer>
-                <StatusBar style="auto" />
+                <StatusBar style="light" backgroundColor="#0A071B" />
               </KeyboardProvider>
             </GestureHandlerRootView>
           </SafeAreaProvider>
@@ -37,5 +50,6 @@ export default function App() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: "#0A071B",
   },
 });

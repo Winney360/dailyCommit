@@ -3,6 +3,8 @@
     "name": "Daily Commit",
     "slug": "daily-commit",
     "version": "1.0.0",
-    "scheme": "dailycommit"
+    "scheme": "dailycommit",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0A071B"
   }
 }
