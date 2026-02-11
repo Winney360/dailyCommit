@@ -118,11 +118,13 @@ export default function DashboardScreen() {
           refreshing={isRefreshing}
           onRefresh={onRefresh}
           tintColor={theme.primary}
+          colors={[theme.primary]}
+          progressBackgroundColor={theme.backgroundSecondary}
         />
       }
     >
       <Animated.View entering={FadeInUp.delay(100).duration(500)}>
-        <ThemedText type="h3" style={styles.greeting}>
+        <ThemedText type="h3" style={[styles.greeting, { color: theme.textPrimary }]}>
           {getGreeting()}, {user?.username || "Developer"}
         </ThemedText>
       </Animated.View>
@@ -166,11 +168,23 @@ export default function DashboardScreen() {
 
           {!hasCommittedToday ? (
             <Animated.View entering={FadeInUp.delay(600).duration(500)}>
-              <View style={[styles.reminderCard, { backgroundColor: theme.warning + "15" }]}>
-                <ThemedText type="small" style={{ color: theme.warning, fontWeight: "600" }}>
-                  Streak at risk!
-                </ThemedText>
-                <ThemedText type="caption" style={{ color: theme.textSecondary }}>
+              <View 
+                style={[
+                  styles.reminderCard, 
+                  { 
+                    backgroundColor: `${theme.warning}10`,
+                    borderLeftColor: theme.warning,
+                    shadowColor: theme.warning,
+                  }
+                ]}
+              >
+                <View style={styles.reminderHeader}>
+                  <View style={[styles.reminderDot, { backgroundColor: theme.warning }]} />
+                  <ThemedText type="small" style={{ color: theme.warning, fontWeight: "600" }}>
+                    Streak at risk!
+                  </ThemedText>
+                </View>
+                <ThemedText type="caption" style={{ color: theme.textMuted, marginLeft: 12 }}>
                   Push a commit before midnight to maintain your streak.
                 </ThemedText>
               </View>
@@ -195,7 +209,23 @@ const styles = StyleSheet.create({
   },
   reminderCard: {
     padding: Spacing.lg,
-    borderRadius: 12,
+    paddingVertical: Spacing.md,
+    borderRadius: 16,
     gap: Spacing.xs,
+    borderLeftWidth: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  reminderHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+  },
+  reminderDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });
