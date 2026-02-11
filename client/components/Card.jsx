@@ -88,7 +88,20 @@ export function Card({
           {description}
         </ThemedText>
       ) : null}
-      {chianimatedStyle,
+      {children}
+    </LinearGradient>
+  );
+
+  if (onPress) {
+    return (
+      <AnimatedPressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[
+          styles.card,
+          Shadows.card,
+          animatedStyle,
           style,
         ]}
       >
@@ -123,19 +136,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   cardDescription: {
-    opacity: 0.8iew>
-  );
-}
-
-const styles = StyleSheet.create({
-  card: {
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-  },
-  cardTitle: {
-    marginBottom: Spacing.xs,
-  },
-  cardDescription: {
-    opacity: 0.7,
+    opacity: 0.8,
   },
 });
