@@ -8,6 +8,8 @@ export const Colors = {
   tabIconSelected: "#7C3AED",
   link: "#7C3AED",
   primary: "#7C3AED",
+  primaryDark: "#6D28D9",
+  primaryLight: "#8B5CF6",
   secondary: "#1A142C",
   accent: "#9F7AEA",
   success: "#34D399",
@@ -19,7 +21,9 @@ export const Colors = {
   backgroundTertiary: "#2D2440",
   border: "#2D2440",
   borderSubtle: "#1F1830",
+  borderAccent: "rgba(124, 58, 237, 0.3)",
   cardShadow: "rgba(124, 58, 237, 0.08)",
+  glow: "rgba(124, 58, 237, 0.4)",
 };
 
 export const Spacing = {
@@ -34,7 +38,7 @@ export const Spacing = {
   "5xl": 48,
   "6xl": 64,
   inputHeight: 48,
-  buttonHeight: 52,
+  buttonHeight: 54,
 };
 
 export const BorderRadius = {
@@ -94,26 +98,38 @@ export const Typography = {
 export const Shadows = {
   card: Platform.select({
     web: {
-      boxShadow: '0 2px 8px rgba(124, 58, 237, 0.12), 0 0 0 1px rgba(159, 122, 234, 0.08)',
-    },
-    default: {
-      shadowColor: "#7C3AED",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 3,
-    },
-  }),
-  cardLarge: Platform.select({
-    web: {
-      boxShadow: '0 4px 12px rgba(124, 58, 237, 0.18), 0 0 0 1px rgba(159, 122, 234, 0.12)',
+      boxShadow: '0 4px 16px rgba(124, 58, 237, 0.12), 0 2px 4px rgba(10, 7, 27, 0.4), 0 0 0 1px rgba(159, 122, 234, 0.1)',
     },
     default: {
       shadowColor: "#7C3AED",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
+      shadowOpacity: 0.18,
       shadowRadius: 12,
-      elevation: 6,
+      elevation: 4,
+    },
+  }),
+  cardLarge: Platform.select({
+    web: {
+      boxShadow: '0 8px 24px rgba(124, 58, 237, 0.2), 0 4px 8px rgba(10, 7, 27, 0.5), 0 0 0 1px rgba(159, 122, 234, 0.15)',
+    },
+    default: {
+      shadowColor: "#7C3AED",
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+  }),
+  glow: Platform.select({
+    web: {
+      boxShadow: '0 0 20px rgba(124, 58, 237, 0.3), 0 0 40px rgba(124, 58, 237, 0.1)',
+    },
+    default: {
+      shadowColor: "#7C3AED",
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.5,
+      shadowRadius: 20,
+      elevation: 10,
     },
   }),
 };

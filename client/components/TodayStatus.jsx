@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -15,6 +16,7 @@ export function TodayStatus({ hasCommittedToday, todayCommits, timeRemaining }) 
         icon: "check-circle",
         iconColor: theme.success,
         bgColor: theme.success + "15",
+        gradientColors: [theme.success + "20", theme.success + "10"],
         title: "You're all set!",
         subtitle: `${todayCommits} ${todayCommits === 1 ? "commit" : "commits"} today`,
       };
@@ -23,6 +25,7 @@ export function TodayStatus({ hasCommittedToday, todayCommits, timeRemaining }) 
       icon: "alert-circle",
       iconColor: theme.warning,
       bgColor: theme.warning + "15",
+      gradientColors: [theme.warning + "20", theme.warning + "10"],
       title: "No commits yet",
       subtitle: `${timeRemaining} left today`,
     };
@@ -34,45 +37,56 @@ export function TodayStatus({ hasCommittedToday, todayCommits, timeRemaining }) 
     <View
       style={[
         styles.container,
-        { 
-          backgroundColor: theme.backgroundDefault,
-          borderWidth: 1,
-          borderColor: theme.border,
-        },
         Shadows.card,
       ]}
     >
-      <View style={[styles.iconContainer, { backgroundColor: config.bgColor }]}>
-        <Feather name={config.icon} size={28} color={config.iconColor} />
-      </View>
-      <View style={styles.textContainer}>
-        <ThemedText type="h4" style={{ color: theme.text }}>
-          {config.title}
-        </ThemedText>
-        <ThemedText type="small" style={{ color: theme.textSecondary }}>
-          {config.subtitle}
-        </ThemedText>
-      </View>
-      {hasCommittedToday ? (
-        <View style={[styles.badge, { backgroundColor: theme.success }]}>
-          <Feather name="check" size={16} color={theme.buttonText} />
+      <LinearGradient
+        colors={[theme.backgroundDefault, theme.backgroundSecondary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradient, { borderWidth: 1, borderColor: theme.border }]}
+      >
+        <LinearGradient
+          colors={config.gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.iconContainer}
+        >
+          <Feather name={config.icon} size={28} color={config.iconColor} />
+        </LinearGradient>
+        <View style={styles.textContainer}>
+          <ThemedText type="h4" style={{ color: theme.text, fontWeight: '700' }}>
+            {config.title}
+          </ThemedText>
+          <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: 2 }}>
+            {config.subtitle}
+          </ThemedText>
         </View>
-      ) : null}
+        {hasCommittedToday ? (
+          <View style={[styles.badge, { backgroundColor: theme.success, ...Shadows.glow }]}>
+            <Feather name="check" size={18} color={theme.buttonText} />
+          </View>
+        ) : null}
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  gradient: {
     flexDirection: "row",
     alignItems: "center",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: BorderRadius.md,
+    width: 64,
+    height: 64,
+    borderRadius: BorderRadius.lg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -81,9 +95,9 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.lg,
   },
   badge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
