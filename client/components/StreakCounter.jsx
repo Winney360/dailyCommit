@@ -41,7 +41,11 @@ export function StreakCounter({ currentStreak, longestStreak, animate = true }) 
     <Animated.View
       style={[
         styles.container,
-        { backgroundColor: theme.backgroundDefault },
+        { 
+          backgroundColor: theme.backgroundDefault,
+          borderWidth: 1,
+          borderColor: theme.border,
+        },
         Shadows.cardLarge,
         animatedStyle,
       ]}

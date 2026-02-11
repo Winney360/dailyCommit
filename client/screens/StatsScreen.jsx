@@ -15,11 +15,11 @@ import { getStreakData } from "@/lib/storage";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 const BADGES = [
-  { id: "first-commit", name: "First Steps", icon: "play", requirement: 1, color: "#10B981" },
-  { id: "week-streak", name: "Week Warrior", icon: "calendar", requirement: 7, color: "#F97316" },
-  { id: "two-weeks", name: "Fortnight Force", icon: "zap", requirement: 14, color: "#8B5CF6" },
-  { id: "month-streak", name: "Monthly Master", icon: "award", requirement: 30, color: "#EF4444" },
-  { id: "hundred-commits", name: "Centurion", icon: "target", requirement: 100, color: "#3B82F6" },
+  { id: "first-commit", name: "First Steps", icon: "play", requirement: 1, color: "#34D399" },
+  { id: "week-streak", name: "Week Warrior", icon: "calendar", requirement: 7, color: "#F59E0B" },
+  { id: "two-weeks", name: "Fortnight Force", icon: "zap", requirement: 14, color: "#7C3AED" },
+  { id: "month-streak", name: "Monthly Master", icon: "award", requirement: 30, color: "#9F7AEA" },
+  { id: "hundred-commits", name: "Centurion", icon: "target", requirement: 100, color: "#34D399" },
 ];
 
 export default function StatsScreen() {
@@ -153,7 +153,11 @@ export default function StatsScreen() {
           <View
             style={[
               styles.nextBadgeCard,
-              { backgroundColor: theme.backgroundDefault },
+              { 
+                backgroundColor: theme.backgroundDefault,
+                borderWidth: 1,
+                borderColor: theme.border,
+              },
               Shadows.card,
             ]}
           >
@@ -185,7 +189,11 @@ function StatCard({ icon, value, label, theme, highlight = false }) {
     <View
       style={[
         styles.statCard,
-        { backgroundColor: theme.backgroundDefault },
+        { 
+          backgroundColor: theme.backgroundDefault,
+          borderWidth: 1,
+          borderColor: theme.border,
+        },
         Shadows.card,
       ]}
     >
@@ -221,7 +229,9 @@ function BadgeCard({ badge, isEarned, theme }) {
         styles.badgeCard,
         {
           backgroundColor: theme.backgroundDefault,
-          opacity: isEarned ? 1 : 0.5,
+          borderWidth: 1,
+          borderColor: isEarned ? badge.color + "40" : theme.borderSubtle,
+          opacity: isEarned ? 1 : 0.6,
         },
       ]}
     >

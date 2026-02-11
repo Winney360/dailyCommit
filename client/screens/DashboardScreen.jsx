@@ -124,7 +124,7 @@ export default function DashboardScreen() {
       }
     >
       <Animated.View entering={FadeInUp.delay(100).duration(500)}>
-        <ThemedText type="h3" style={[styles.greeting, { color: theme.textPrimary }]}>
+        <ThemedText type="h3" style={[styles.greeting, { color: theme.text }]}>
           {getGreeting()}, {user?.username || "Developer"}
         </ThemedText>
       </Animated.View>
@@ -184,7 +184,7 @@ export default function DashboardScreen() {
                     Streak at risk!
                   </ThemedText>
                 </View>
-                <ThemedText type="caption" style={{ color: theme.textMuted, marginLeft: 12 }}>
+                <ThemedText type="caption" style={{ color: theme.textSecondary, marginLeft: 12 }}>
                   Push a commit before midnight to maintain your streak.
                 </ThemedText>
               </View>

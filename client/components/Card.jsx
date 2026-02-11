@@ -89,6 +89,8 @@ export function Card({
           Shadows.card,
           {
             backgroundColor: cardBackgroundColor,
+            borderWidth: 1,
+            borderColor: theme.border,
           },
           animatedStyle,
           style,
@@ -106,6 +108,8 @@ export function Card({
         Shadows.card,
         {
           backgroundColor: cardBackgroundColor,
+          borderWidth: 1,
+          borderColor: theme.border,
         },
         style,
       ]}

@@ -18,7 +18,11 @@ export function WeeklyChart({ weeklyCommits = [0, 0, 0, 0, 0, 0, 0], title = "Th
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.backgroundDefault },
+        { 
+          backgroundColor: theme.backgroundDefault,
+          borderWidth: 1,
+          borderColor: theme.border,
+        },
         Shadows.card,
       ]}
     >
@@ -75,7 +79,7 @@ export function WeeklyChart({ weeklyCommits = [0, 0, 0, 0, 0, 0, 0], title = "Th
         })}
       </View>
       
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: theme.borderSubtle }]}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: theme.primary }]} />
           <ThemedText type="caption" style={{ color: theme.textSecondary }}>
@@ -138,7 +142,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: "rgba(128, 128, 128, 0.1)",
   },
   legendItem: {
     flexDirection: "row",

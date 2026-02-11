@@ -34,7 +34,11 @@ export function TodayStatus({ hasCommittedToday, todayCommits, timeRemaining }) 
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.backgroundDefault },
+        { 
+          backgroundColor: theme.backgroundDefault,
+          borderWidth: 1,
+          borderColor: theme.border,
+        },
         Shadows.card,
       ]}
     >

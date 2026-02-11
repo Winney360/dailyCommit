@@ -14,11 +14,12 @@ export const Colors = {
   warning: "#F59E0B",
   error: "#EF4444",
   backgroundRoot: "#0A071B",
-  backgroundDefault: "#0A071B",
-  backgroundSecondary: "#1A142C",
-  backgroundTertiary: "#1A142C",
-  border: "#1A142C",
-  cardShadow: "rgba(10, 7, 27, 0.5)",
+  backgroundDefault: "#1A142C",
+  backgroundSecondary: "#241C35",
+  backgroundTertiary: "#2D2440",
+  border: "#2D2440",
+  borderSubtle: "#1F1830",
+  cardShadow: "rgba(124, 58, 237, 0.08)",
 };
 
 export const Spacing = {
@@ -93,26 +94,26 @@ export const Typography = {
 export const Shadows = {
   card: Platform.select({
     web: {
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
+      boxShadow: '0 2px 8px rgba(124, 58, 237, 0.12), 0 0 0 1px rgba(159, 122, 234, 0.08)',
     },
     default: {
-      shadowColor: "#000",
+      shadowColor: "#7C3AED",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 4,
-      elevation: 2,
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 3,
     },
   }),
   cardLarge: Platform.select({
     web: {
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.12)',
+      boxShadow: '0 4px 12px rgba(124, 58, 237, 0.18), 0 0 0 1px rgba(159, 122, 234, 0.12)',
     },
     default: {
-      shadowColor: "#000",
+      shadowColor: "#7C3AED",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.12,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      elevation: 6,
     },
   }),
 };
