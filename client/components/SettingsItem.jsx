@@ -161,5 +161,3 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
   },
 });
-  },
-});
