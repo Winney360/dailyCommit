@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
 import { getStreakData, setStreakData } from "@/lib/storage";
-import { Spacing } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
