@@ -12,6 +12,7 @@ import { Card } from "@/components/Card";
 import { WeeklyChart } from "@/components/WeeklyChart";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/context/AuthContext";
 import { getStreakData } from "@/lib/storage";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
@@ -39,11 +40,14 @@ export default function StatsScreen() {
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user?.id) {
+      loadData();
+    }
+  }, [user?.id]);
 
   const loadData = async () => {
-    const data = await getStreakData();
+    if (!user?.id) return;
+    const data = await getStreakData(user.id);
     setStreakData(data);
   };
 

@@ -2,9 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const STORAGE_KEYS = {
   USER: "@dailycommit_user",
-  STREAK_DATA: "@dailycommit_streak",
-  SETTINGS: "@dailycommit_settings",
-  COMMITS: "@dailycommit_commits",
+  STREAK_DATA: (userId) => `@dailycommit_streak_${userId}`,
+  SETTINGS: (userId) => `@dailycommit_settings_${userId}`,
+  COMMITS: (userId) => `@dailycommit_commits_${userId}`,
 };
 
 export async function getUser() {
@@ -33,9 +33,20 @@ export async function removeUser() {
   }
 }
 
-export async function getStreakData() {
+export async function getStreakData(userId) {
+  if (!userId) {
+    console.warn("getStreakData called without userId");
+    return {
+      currentStreak: 0,
+      longestStreak: 0,
+      lastCommitDate: null,
+      todayCommits: 0,
+      weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
+      totalCommits: 0,
+    };
+  }
   try {
-    const data = await AsyncStorage.getItem(STORAGE_KEYS.STREAK_DATA);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.STREAK_DATA(userId));
     return data ? JSON.parse(data) : {
       currentStreak: 0,
       longestStreak: 0,
@@ -57,17 +68,29 @@ export async function getStreakData() {
   }
 }
 
-export async function setStreakData(data) {
+export async function setStreakData(userId, data) {
+  if (!userId) {
+    console.warn("setStreakData called without userId");
+    return;
+  }
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.STREAK_DATA, JSON.stringify(data));
+    await AsyncStorage.setItem(STORAGE_KEYS.STREAK_DATA(userId), JSON.stringify(data));
   } catch (error) {
     console.error("Error setting streak data:", error);
   }
 }
 
-export async function getSettings() {
+export async function getSettings(userId) {
+  if (!userId) {
+    console.warn("getSettings called without userId");
+    return {
+      reminderTime: "20:00",
+      notificationsEnabled: true,
+      darkModeAuto: true,
+    };
+  }
   try {
-    const data = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS(userId));
     return data ? JSON.parse(data) : {
       reminderTime: "20:00",
       notificationsEnabled: true,
@@ -83,9 +106,13 @@ export async function getSettings() {
   }
 }
 
-export async function setSettings(settings) {
+export async function setSettings(userId, settings) {
+  if (!userId) {
+    console.warn("setSettings called without userId");
+    return;
+  }
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS(userId), JSON.stringify(settings));
   } catch (error) {
     console.error("Error setting settings:", error);
   }
@@ -93,8 +120,21 @@ export async function setSettings(settings) {
 
 export async function clearAllData() {
   try {
-    await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
+    await AsyncStorage.clear();
   } catch (error) {
     console.error("Error clearing data:", error);
+  }
+}
+
+export async function clearUserData(userId) {
+  if (!userId) return;
+  try {
+    await AsyncStorage.multiRemove([
+      STORAGE_KEYS.STREAK_DATA(userId),
+      STORAGE_KEYS.SETTINGS(userId),
+      STORAGE_KEYS.COMMITS(userId),
+    ]);
+  } catch (error) {
+    console.error("Error clearing user data:", error);
   }
 }

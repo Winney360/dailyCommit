@@ -35,11 +35,14 @@ export default function DashboardScreen() {
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
-    loadStreakData();
-  }, []);
+    if (user?.id) {
+      loadStreakData();
+    }
+  }, [user?.id]);
 
   const loadStreakData = async () => {
-    const data = await getStreakData();
+    if (!user?.id) return;
+    const data = await getStreakData(user.id);
     setLocalStreakData(data);
     setIsFirstLoad(false);
   };
@@ -48,9 +51,10 @@ export default function DashboardScreen() {
     setIsRefreshing(true);
     await loadStreakData();
     setIsRefreshing(false);
-  }, []);
+  }, [user?.id]);
 
   const simulateCommit = async () => {
+    if (!user?.id) return;
     const today = new Date().toISOString().split("T")[0];
     const dayOfWeek = new Date().getDay();
     const adjustedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -78,7 +82,7 @@ export default function DashboardScreen() {
     };
 
     setLocalStreakData(newData);
-    await setStreakData(newData);
+    await setStreakData(user.id, newData);
   };
 
   const getTimeRemaining = () => {

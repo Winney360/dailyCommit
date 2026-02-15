@@ -52,18 +52,22 @@ export default function SettingsScreen() {
   });
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    if (user?.id) {
+      loadSettings();
+    }
+  }, [user?.id]);
 
   const loadSettings = async () => {
-    const savedSettings = await getSettings();
+    if (!user?.id) return;
+    const savedSettings = await getSettings(user.id);
     setLocalSettings(savedSettings);
   };
 
   const updateSetting = async (key, value) => {
+    if (!user?.id) return;
     const newSettings = { ...settings, [key]: value };
     setLocalSettings(newSettings);
-    await setSettings(newSettings);
+    await setSettings(user.id, newSettings);
 
     // Handle notifications permission
     if (key === "notificationsEnabled" && value) {
