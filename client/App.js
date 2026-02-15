@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import * as Notifications from "expo-notifications";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
@@ -12,6 +13,15 @@ import { queryClient } from "@/lib/query-client";
 import RootStackNavigator from "@/navigation/RootStackNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
+
+// Configure notification behavior
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const customDarkTheme = {
   ...DarkTheme,
@@ -27,6 +37,16 @@ const customDarkTheme = {
 };
 
 export default function App() {
+  useEffect(() => {
+    // Handle notification response when user taps on notification
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      // You can navigate to specific screens based on notification data
+      console.log("Notification tapped:", response);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

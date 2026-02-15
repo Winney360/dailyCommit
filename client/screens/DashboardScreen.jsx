@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, ScrollView, RefreshControl, Platform } from "react-native";
+import { View, StyleSheet, ScrollView, RefreshControl, Platform, AppState, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
 import { getStreakData, setStreakData } from "@/lib/storage";
+import { getGitHubCommits } from "@/lib/api";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
 export default function DashboardScreen() {
@@ -24,6 +25,7 @@ export default function DashboardScreen() {
   const { user } = useAuth();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [streakData, setLocalStreakData] = useState({
     currentStreak: 0,
     longestStreak: 0,
@@ -37,7 +39,21 @@ export default function DashboardScreen() {
   useEffect(() => {
     if (user?.id) {
       loadStreakData();
+      syncCommitsFromGitHub();
     }
+  }, [user?.id]);
+
+  // Auto-sync when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active" && user?.id) {
+        syncCommitsFromGitHub();
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
   }, [user?.id]);
 
   const loadStreakData = async () => {
@@ -47,43 +63,79 @@ export default function DashboardScreen() {
     setIsFirstLoad(false);
   };
 
+  const syncCommitsFromGitHub = async () => {
+    if (!user?.id || isSyncing) return;
+    
+    setIsSyncing(true);
+    try {
+      const response = await getGitHubCommits();
+      const { commitsByDay, totalCommits } = response;
+
+      // Calculate stats from GitHub data
+      const today = new Date().toISOString().split("T")[0];
+      const todayCommits = commitsByDay[today] || 0;
+
+      // Calculate weekly commits (last 7 days)
+      const weeklyCommits = [0, 0, 0, 0, 0, 0, 0];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        const dateStr = date.toISOString().split("T")[0];
+        const dayOfWeek = date.getDay();
+        const adjustedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        weeklyCommits[adjustedDayIndex] = commitsByDay[dateStr] || 0;
+      }
+
+      // Calculate current streak
+      let currentStreak = 0;
+      let checkDate = new Date();
+      while (true) {
+        const dateStr = checkDate.toISOString().split("T")[0];
+        if (commitsByDay[dateStr] && commitsByDay[dateStr] > 0) {
+          currentStreak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else if (dateStr === today) {
+          // Allow for today to not have commits yet
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+
+      // Get last commit date
+      const dates = Object.keys(commitsByDay).filter(date => commitsByDay[date] > 0);
+      const lastCommitDate = dates.length > 0 ? dates.sort().reverse()[0] : null;
+
+      // Load existing data to preserve longestStreak
+      const existingData = await getStreakData(user.id);
+      const longestStreak = Math.max(existingData.longestStreak, currentStreak);
+
+      const newData = {
+        currentStreak,
+        longestStreak,
+        lastCommitDate,
+        todayCommits,
+        weeklyCommits,
+        totalCommits,
+      };
+
+      setLocalStreakData(newData);
+      await setStreakData(user.id, newData);
+      setIsFirstLoad(false);
+    } catch (error) {
+      console.error("Failed to sync commits:", error);
+      // On error, still load local data
+      await loadStreakData();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await loadStreakData();
+    await syncCommitsFromGitHub();
     setIsRefreshing(false);
   }, [user?.id]);
-
-  const simulateCommit = async () => {
-    if (!user?.id) return;
-    const today = new Date().toISOString().split("T")[0];
-    const dayOfWeek = new Date().getDay();
-    const adjustedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-    const newWeeklyCommits = [...streakData.weeklyCommits];
-    newWeeklyCommits[adjustedDayIndex] += 1;
-
-    const wasAlreadyCommittedToday = streakData.lastCommitDate === today;
-    
-    const newData = {
-      ...streakData,
-      todayCommits: streakData.todayCommits + 1,
-      lastCommitDate: today,
-      weeklyCommits: newWeeklyCommits,
-      totalCommits: streakData.totalCommits + 1,
-      currentStreak: wasAlreadyCommittedToday
-        ? streakData.currentStreak
-        : streakData.currentStreak + 1,
-      longestStreak: Math.max(
-        streakData.longestStreak,
-        wasAlreadyCommittedToday
-          ? streakData.currentStreak
-          : streakData.currentStreak + 1
-      ),
-    };
-
-    setLocalStreakData(newData);
-    await setStreakData(user.id, newData);
-  };
 
   const getTimeRemaining = () => {
     const now = new Date();
@@ -137,9 +189,9 @@ export default function DashboardScreen() {
         <EmptyState
           icon="git-commit"
           title="Start Your Journey"
-          message="Make your first commit to begin building your coding streak. Every day counts!"
-          actionLabel="Simulate Commit"
-          onAction={simulateCommit}
+          message="Make your first commit to GitHub to begin building your coding streak. Every day counts!"
+          actionLabel={isSyncing ? "Syncing..." : "Sync GitHub Commits"}
+          onAction={syncCommitsFromGitHub}
         />
       ) : (
         <View style={styles.content}>

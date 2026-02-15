@@ -142,7 +142,7 @@ export async function registerRoutes(app) {
     }
   });
 
-  // Get last 7 days of commits
+  // Get commits for streak calculation
   app.get("/api/github/commits", async (req, res) => {
     const authHeader = req.headers.authorization;
 
@@ -168,10 +168,10 @@ export async function registerRoutes(app) {
       const username = userData.login;
 
       const today = new Date();
-      const weekAgo = new Date(today);
-      weekAgo.setDate(weekAgo.getDate() - 7);
+      const daysAgo = new Date(today);
+      daysAgo.setDate(daysAgo.getDate() - 30); // Fetch last 30 days for better streak calculation
 
-      // Use the correct GitHub API endpoint
+      // Use the correct GitHub API endpoint - fetch multiple pages if needed
       const eventsResponse = await fetch(
         `https://api.github.com/users/${username}/events?per_page=100`,
         {
@@ -191,7 +191,7 @@ export async function registerRoutes(app) {
       const pushEvents = events.filter(
         (event) =>
           event.type === "PushEvent" &&
-          new Date(event.created_at) >= weekAgo
+          new Date(event.created_at) >= daysAgo
       );
 
       const commitsByDay = {};
@@ -201,6 +201,7 @@ export async function registerRoutes(app) {
         commitsByDay[date] = (commitsByDay[date] || 0) + commits;
       });
 
+      // Calculate total commits for the fetched period
       const totalCommits = Object.values(commitsByDay).reduce((a, b) => a + b, 0);
 
       res.json({ 
