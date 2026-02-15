@@ -29,6 +29,7 @@ export default function StatsScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   const [streakData, setStreakData] = useState({
     currentStreak: 0,

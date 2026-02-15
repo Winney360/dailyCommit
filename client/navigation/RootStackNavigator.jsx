@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ActivityIndicator, View } from "react-native";
 
@@ -12,17 +12,8 @@ const Stack = createNativeStackNavigator();
 
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
-  const { user, isLoading } = useAuth(); // Use user directly, not isAuthenticated
+  const { user, isLoading } = useAuth();
   const { theme } = useTheme();
-
-  // Debug
-  useEffect(() => {
-    console.log("=== ROOT STACK NAVIGATOR DEBUG ===");
-    console.log("isLoading:", isLoading);
-    console.log("user:", user);
-    console.log("user exists:", !!user);
-    console.log("user has id:", !!user?.id);
-  }, [isLoading, user]);
 
   // Show loading while checking authentication
   if (isLoading) {

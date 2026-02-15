@@ -13,8 +13,24 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
+    cleanupOldStorage();
     loadUser();
   }, []);
+
+  // One-time cleanup of old non-user-specific storage keys
+  async function cleanupOldStorage() {
+    try {
+      const oldKeys = [
+        "@dailycommit_streak",
+        "@dailycommit_settings", 
+        "@dailycommit_commits"
+      ];
+      await AsyncStorage.multiRemove(oldKeys);
+      console.log("Cleaned up old storage keys");
+    } catch (error) {
+      console.error("Error cleaning up old storage:", error);
+    }
+  }
 
   async function loadUser() {
     try {
