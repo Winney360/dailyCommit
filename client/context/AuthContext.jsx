@@ -1,12 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
 import { getUser, setUser as saveUser, removeUser } from "@/lib/storage";
+import { getToken as getStoredToken, setToken as saveToken, deleteToken } from "@/lib/token-storage";
 
 const AuthContext = createContext(undefined);
-
-// Token key for SecureStore
-const TOKEN_KEY = "dailycommit_github_token";
 
 export function AuthProvider({ children }) {
   const [user, setUserState] = useState(null);
@@ -35,19 +32,11 @@ export function AuthProvider({ children }) {
 
   async function loadUser() {
     try {
-      // Migrate token from AsyncStorage to SecureStore if needed
-      const oldToken = await AsyncStorage.getItem(TOKEN_KEY);
-      if (oldToken) {
-        await SecureStore.setItemAsync(TOKEN_KEY, oldToken);
-        await AsyncStorage.removeItem(TOKEN_KEY);
-        console.log("Migrated token from AsyncStorage to SecureStore");
-      }
-
       const savedUser = await getUser();
-      const savedToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      const savedToken = await getStoredToken();
       if (!savedUser || !savedToken) {
       await removeUser();
-      await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+      await deleteToken();
       setUserState(null);
       setToken(null);
       return;
@@ -72,7 +61,7 @@ export function AuthProvider({ children }) {
     setUserState(userWithoutToken);
 
     if (accessToken) {
-      await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
+      await saveToken(accessToken);
       setToken(accessToken);
     }
   }
@@ -80,7 +69,7 @@ export function AuthProvider({ children }) {
   async function logout() {
     console.log("Logging out...");
     await removeUser();
-    await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+    await deleteToken();
     setUserState(null);
     setToken(null);
     console.log("Logout complete");
@@ -95,7 +84,7 @@ export function AuthProvider({ children }) {
   async function getToken() {
     if (token) return token;
     try {
-      const storedToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      const storedToken = await getStoredToken();
       setToken(storedToken);
       return storedToken;
     } catch (error) {

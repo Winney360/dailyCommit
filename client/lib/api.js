@@ -1,7 +1,5 @@
-import * as SecureStore from "expo-secure-store";
 import { getApiUrl } from "./query-client";
-
-const TOKEN_KEY = "dailycommit_github_token";
+import { getToken, setToken } from "./token-storage";
 
 /**
  * Make an authenticated API request
@@ -12,8 +10,8 @@ export async function fetchAuthenticated(endpoint, options = {}) {
   const url = `${baseUrl}${endpoint}`;
 
   try {
-    // Get token from secure storage
-    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    // Get token from storage
+    const token = await getToken();
 
     const headers = {
       "Content-Type": "application/json",
@@ -32,8 +30,7 @@ export async function fetchAuthenticated(endpoint, options = {}) {
 
     // Handle authentication errors
     if (response.status === 401) {
-      // Token expired or invalid
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      // Token expired or invalid - handled by token-storage
       throw new Error("Authentication expired. Please log in again.");
     }
 
@@ -74,7 +71,7 @@ export async function refreshToken() {
     });
     
     if (data.accessToken) {
-      await SecureStore.setItemAsync(TOKEN_KEY, data.accessToken);
+      await setToken(data.accessToken);
       return data.accessToken;
     }
   } catch (error) {
@@ -88,7 +85,7 @@ export async function refreshToken() {
  */
 export async function hasValidToken() {
   try {
-    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    const token = await getToken();
     return !!token;
   } catch (error) {
     console.error("Error checking token:", error);
