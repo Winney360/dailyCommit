@@ -174,7 +174,6 @@ export default function DashboardScreen() {
                   { 
                     backgroundColor: `${theme.warning}10`,
                     borderLeftColor: theme.warning,
-                    shadowColor: theme.warning,
                   }
                 ]}
               >
