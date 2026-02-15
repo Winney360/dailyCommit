@@ -142,7 +142,7 @@ export async function registerRoutes(app) {
     }
   });
 
-  // Get commits for streak calculation
+  // Get commits for streak calculation - Enhanced version
   app.get("/api/github/commits", async (req, res) => {
     const authHeader = req.headers.authorization;
 
@@ -169,11 +169,14 @@ export async function registerRoutes(app) {
 
       const today = new Date();
       const daysAgo = new Date(today);
-      daysAgo.setDate(daysAgo.getDate() - 30); // Fetch last 30 days for better streak calculation
+      daysAgo.setDate(daysAgo.getDate() - 30);
+      const sinceDate = daysAgo.toISOString();
 
-      // Use the correct GitHub API endpoint - fetch multiple pages if needed
-      const eventsResponse = await fetch(
-        `https://api.github.com/users/${username}/events?per_page=100`,
+      console.log(`\n=== Fetching commits for ${username} since ${sinceDate} ===`);
+
+      // ENHANCED: Fetch user's repositories
+      const reposResponse = await fetch(
+        `https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -182,32 +185,57 @@ export async function registerRoutes(app) {
         }
       );
 
-      if (!eventsResponse.ok) {
-        throw new Error(`Failed to fetch GitHub events: ${eventsResponse.status}`);
+      if (!reposResponse.ok) {
+        throw new Error(`Failed to fetch repositories: ${reposResponse.status}`);
       }
 
-      const events = await eventsResponse.json();
-
-      const pushEvents = events.filter(
-        (event) =>
-          event.type === "PushEvent" &&
-          new Date(event.created_at) >= daysAgo
-      );
+      const repos = await reposResponse.json();
+      console.log(`Found ${repos.length} repositories`);
 
       const commitsByDay = {};
-      pushEvents.forEach((event) => {
-        const date = event.created_at.split("T")[0];
-        const commits = event.payload?.commits?.length || 0;
-        commitsByDay[date] = (commitsByDay[date] || 0) + commits;
-      });
+      let totalCommitsFetched = 0;
 
-      // Calculate total commits for the fetched period
-      const totalCommits = Object.values(commitsByDay).reduce((a, b) => a + b, 0);
+      // Fetch commits from each repository
+      for (const repo of repos) {
+        try {
+          const commitsResponse = await fetch(
+            `https://api.github.com/repos/${repo.full_name}/commits?author=${username}&since=${sinceDate}&per_page=100`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/vnd.github.v3+json",
+              },
+            }
+          );
+
+          if (commitsResponse.ok) {
+            const commits = await commitsResponse.json();
+            
+            console.log(`Repo: ${repo.name} - ${commits.length} commits`);
+
+            commits.forEach((commit) => {
+              const date = commit.commit.author.date.split("T")[0];
+              commitsByDay[date] = (commitsByDay[date] || 0) + 1;
+              totalCommitsFetched++;
+            });
+          }
+        } catch (repoError) {
+          console.error(`Error fetching commits for ${repo.name}:`, repoError.message);
+          // Continue with other repos even if one fails
+        }
+      }
+
+      console.log("\n=== Commits by day ===");
+      Object.keys(commitsByDay).sort().forEach(date => {
+        console.log(`${date}: ${commitsByDay[date]} commits`);
+      });
+      console.log(`Total commits: ${totalCommitsFetched}\n`);
 
       res.json({ 
         commitsByDay, 
-        totalCommits,
-        username: username
+        totalCommits: totalCommitsFetched,
+        username: username,
+        reposChecked: repos.length
       });
     } catch (error) {
       console.error("GitHub API error:", error);

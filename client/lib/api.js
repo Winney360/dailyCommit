@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import { getApiUrl } from "./query-client";
 
-const TOKEN_KEY = "@dailycommit_github_token";
+const TOKEN_KEY = "dailycommit_github_token";
 
 /**
  * Make an authenticated API request
