@@ -48,7 +48,6 @@ export default function SettingsScreen() {
   const [settings, setLocalSettings] = useState({
     reminderTime: "20:00",
     notificationsEnabled: true,
-    darkModeAuto: true,
   });
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempHour, setTempHour] = useState(20);
@@ -297,19 +296,6 @@ export default function SettingsScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInUp.delay(300).duration(500)}>
-        <SettingsSection title="Appearance">
-          <SettingsItem
-            icon="moon"
-            title="System Theme"
-            subtitle="Follow device settings"
-            isSwitch
-            value={settings.darkModeAuto}
-            onValueChange={(value) => updateSetting("darkModeAuto", value)}
-          />
-        </SettingsSection>
-      </Animated.View>
-
-      <Animated.View entering={FadeInUp.delay(400).duration(500)}>
         <SettingsSection title="About">
           <SettingsItem
             icon="info"
@@ -333,7 +319,7 @@ export default function SettingsScreen() {
         </SettingsSection>
       </Animated.View>
 
-      <Animated.View entering={FadeInUp.delay(500).duration(500)}>
+      <Animated.View entering={FadeInUp.delay(400).duration(500)}>
         <SettingsSection title="Account">
           <SettingsItem
             icon="log-out"
