@@ -210,6 +210,9 @@ export default function StatsScreen() {
           <ThemedText type="small" style={[styles.infoFooter, { color: theme.textSecondary }]}>
             Each level requires more commits. Keep building your streak!
           </ThemedText>
+          <ThemedText type="small" style={[styles.infoNote, { color: theme.textSecondary }]}>
+            💡 Levels are based on Git commits only. Other GitHub activities (repo creation, PRs, issues) are not counted.
+          </ThemedText>
         </View>
       </Animated.View>
       <Animated.View entering={FadeInUp.delay(300).duration(500)}>
@@ -624,5 +627,12 @@ const styles = StyleSheet.create({
   infoFooter: {
     marginTop: Spacing.sm,
     fontStyle: "italic",
+  },
+  infoNote: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    fontStyle: "italic",
+    lineHeight: 18,
   },
 });
