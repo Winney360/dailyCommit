@@ -190,6 +190,30 @@ export default function StatsScreen() {
         </View>
       </Animated.View>
 
+      {streakData.currentStreak === 0 && streakData.longestStreak > 0 ? (
+        <Animated.View entering={FadeInUp.delay(140).duration(500)}>
+          <View style={[styles.streakBrokenCard, { 
+            backgroundColor: `${theme.warning}15`,
+            borderColor: theme.warning,
+          }]}>
+            <View style={styles.streakBrokenHeader}>
+              <ThemedText style={{ fontSize: 40 }}>😢</ThemedText>
+              <View style={{ flex: 1 }}>
+                <ThemedText type="h5" style={[styles.streakBrokenTitle, { color: theme.text }]}>
+                  Oh No! Streak Broken
+                </ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: 4 }}>
+                  You had a {streakData.longestStreak}-day streak. Time to start over!
+                </ThemedText>
+              </View>
+            </View>
+            <ThemedText type="caption" style={[{ color: theme.textSecondary, marginTop: Spacing.lg }]}>
+              💪 Don't give up! Make a commit today to start a new streak. You've got this!
+            </ThemedText>
+          </View>
+        </Animated.View>
+      ) : null}
+
       <Animated.View entering={FadeInUp.delay(150).duration(500)}>
         <Card
           icon="award"
@@ -283,9 +307,10 @@ export default function StatsScreen() {
                   </ThemedText>
                   <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: 2 }}>
                     {(() => {
-                      const current = nextBadge.type === "streak" ? streakData.longestStreak : streakData.totalCommits;
+                      // Show progress toward next badge based on CURRENT streak
+                      const current = streakData.currentStreak;
                       const remaining = Math.max(0, nextBadge.requirement - current);
-                      return `${remaining} more to go`;
+                      return `${current}/${nextBadge.requirement} (${remaining} more)`;
                     })()}
                   </ThemedText>
                 </View>
@@ -526,6 +551,21 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: Spacing.lg,
     fontWeight: '700',
+  },
+  streakBrokenCard: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  streakBrokenHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.md,
+  },
+  streakBrokenTitle: {
+    fontWeight: "700",
   },
   badgesContainer: {
     flexDirection: "row",

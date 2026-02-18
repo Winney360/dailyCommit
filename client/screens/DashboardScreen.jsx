@@ -181,8 +181,9 @@ export default function DashboardScreen() {
       setLocalStreakData(newData);
       await setStreakData(user.id, newData);
       
-      // Check and award badges based on the longest streak ever achieved
-      await checkAndAwardBadges(user.id, longestStreak);
+      // Award badges based on LONGEST streak achieved (not current streak)
+      // This way badges stay earned even after streak breaks
+      await checkAndAwardBadges(user.id, longestStreakValue);
       
       setIsFirstLoad(false);
     } catch (error) {
@@ -199,11 +200,13 @@ export default function DashboardScreen() {
       const previouslyEarned = await getEarnedBadges(userId);
       const newlyEarned = [];
       
+      // Award badges based on longest streak achieved in the year
       BADGES.forEach(badge => {
-        const isNowEarned = longestStreak >= badge.requirement;
+        const isEarnedNow = longestStreak >= badge.requirement;
         const wasEarned = previouslyEarned.includes(badge.id);
         
-        if (isNowEarned && !wasEarned) {
+        // Award badge if user achieved this milestone at any point
+        if (isEarnedNow && !wasEarned) {
           newlyEarned.push(badge);
         }
       });
@@ -213,7 +216,7 @@ export default function DashboardScreen() {
         const updatedEarned = [...previouslyEarned, ...newlyEarned.map(b => b.id)];
         await setEarnedBadges(userId, updatedEarned);
         
-        // Show notification for first newly earned badge
+        // Show notification for newly earned badges
         if (newlyEarned.length === 1) {
           const badge = newlyEarned[0];
           Alert.alert(
