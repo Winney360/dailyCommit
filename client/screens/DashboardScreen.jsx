@@ -33,6 +33,7 @@ export default function DashboardScreen() {
     todayCommits: 0,
     weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
     totalCommits: 0,
+    yearlyCommits: 0,
   });
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
@@ -106,6 +107,16 @@ export default function DashboardScreen() {
       const dates = Object.keys(commitsByDay).filter(date => commitsByDay[date] > 0);
       const lastCommitDate = dates.length > 0 ? dates.sort().reverse()[0] : null;
 
+      // Calculate yearly commits (from Jan 1 of current year)
+      const currentYear = new Date().getFullYear();
+      const yearStart = new Date(currentYear, 0, 1).toISOString().split("T")[0];
+      let yearlyCommits = 0;
+      Object.keys(commitsByDay).forEach(date => {
+        if (date >= yearStart) {
+          yearlyCommits += commitsByDay[date];
+        }
+      });
+
       // Load existing data to preserve longestStreak
       const existingData = await getStreakData(user.id);
       const longestStreak = Math.max(existingData.longestStreak, currentStreak);
@@ -117,6 +128,7 @@ export default function DashboardScreen() {
         todayCommits,
         weeklyCommits,
         totalCommits,
+        yearlyCommits,
       };
 
       setLocalStreakData(newData);

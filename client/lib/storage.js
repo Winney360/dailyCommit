@@ -43,6 +43,7 @@ export async function getStreakData(userId) {
       todayCommits: 0,
       weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
       totalCommits: 0,
+      yearlyCommits: 0,
     };
   }
   try {
@@ -54,6 +55,7 @@ export async function getStreakData(userId) {
       todayCommits: 0,
       weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
       totalCommits: 0,
+      yearlyCommits: 0,
     };
   } catch (error) {
     console.error("Error getting streak data:", error);
@@ -64,6 +66,7 @@ export async function getStreakData(userId) {
       todayCommits: 0,
       weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
       totalCommits: 0,
+      yearlyCommits: 0,
     };
   }
 }
