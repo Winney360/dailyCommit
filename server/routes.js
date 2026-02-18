@@ -217,23 +217,32 @@ export async function registerRoutes(app) {
             let pageCommitCount = 0;
             
             commits.forEach((commit) => {
-              const authorLogin = commit.author?.login || "N/A";
-              const message = commit.commit.message.substring(0, 50);
-              
-              // Only count commits authored by the authenticated user
-              if (commit.author?.login === username) {
-                // Keep the UTC date string as-is; client will convert to local timezone
-                const commitDate = commit.commit.author.date.split("T")[0];
-                
-                commitsByDay[commitDate] = (commitsByDay[commitDate] || 0) + 1;
-                totalCommitsFetched++;
-                repoCommitCount++;
-                pageCommitCount++;
-              } else {
-                const commitDate = commit.commit.author.date.split("T")[0];
-                console.log(`  SKIP: ${commitDate} author=${authorLogin} msg="${message}"`);
-              }
-            });
+  const message = commit.commit.message.substring(0, 50);
+
+  const commitEmail = commit.commit.author?.email;
+  const commitUsername = commit.author?.login;
+
+  // Accept commits authored by the user EVEN if GitHub didn't link the author
+  const isUserCommit =
+    commitUsername === username ||
+    commitEmail === userData.email ||
+    commitEmail === `${username}@users.noreply.github.com`;
+
+  if (isUserCommit) {
+    const commitDate = commit.commit.author.date.split("T")[0];
+
+    commitsByDay[commitDate] = (commitsByDay[commitDate] || 0) + 1;
+    totalCommitsFetched++;
+    repoCommitCount++;
+    pageCommitCount++;
+  } else {
+    const skippedDate = commit.commit.committer.date.split("T")[0];
+    console.log(
+      `  SKIP: ${skippedDate} author=${commitUsername || "N/A"} email=${commitEmail || "N/A"} msg="${message}"`
+    );
+  }
+});
+
             
             if (pageCommitCount > 0) {
               console.log(`  Page: ${pageCommitCount} commits (total so far: ${totalCommitsFetched})`);
