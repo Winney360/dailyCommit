@@ -229,7 +229,7 @@ export async function registerRoutes(app) {
     commitEmail === `${username}@users.noreply.github.com`;
 
   if (isUserCommit) {
-    const commitDate = commit.commit.author.date.split("T")[0];
+    const commitDate = commit.commit.committer.date.split("T")[0];
 
     commitsByDay[commitDate] = (commitsByDay[commitDate] || 0) + 1;
     totalCommitsFetched++;
