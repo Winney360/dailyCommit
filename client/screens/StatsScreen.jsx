@@ -83,6 +83,7 @@ export default function StatsScreen() {
     todayCommits: 0,
     weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
     totalCommits: 0,
+    yearlyCommits: 0,
   });
 
   useEffect(() => {
@@ -153,6 +154,12 @@ export default function StatsScreen() {
             theme={theme}
           />
           <StatCard
+            icon="calendar"
+            value={streakData.yearlyCommits}
+            label="This Year"
+            theme={theme}
+          />
+          <StatCard
             icon="zap"
             value={streakData.currentStreak}
             label="Current Streak"
@@ -186,6 +193,25 @@ export default function StatsScreen() {
         <WeeklyChart weeklyCommits={streakData.weeklyCommits} title="Weekly Activity" />
       </Animated.View>
 
+      <Animated.View entering={FadeInUp.delay(250).duration(500)}>
+        <View style={[styles.infoCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+          <View style={styles.infoHeader}>
+            <Feather name="info" size={20} color={theme.primary} />
+            <ThemedText type="h5" style={[styles.infoTitle, { color: theme.text }]}>
+              How Levels Work
+            </ThemedText>
+          </View>
+          <View style={styles.infoContent}>
+            <InfoRow level="1-5" commits="10" theme={theme} />
+            <InfoRow level="6-10" commits="20" theme={theme} />
+            <InfoRow level="11-15" commits="30" theme={theme} />
+            <InfoRow level="16+" commits="+10 per tier" theme={theme} />
+          </View>
+          <ThemedText type="small" style={[styles.infoFooter, { color: theme.textSecondary }]}>
+            Each level requires more commits. Keep building your streak!
+          </ThemedText>
+        </View>
+      </Animated.View>
       <Animated.View entering={FadeInUp.delay(300).duration(500)}>
         <ThemedText type="h4" style={styles.sectionTitle}>
           Badges
@@ -428,6 +454,19 @@ function BadgeCard({ badge, isEarned, theme }) {
   );
 }
 
+function InfoRow({ level, commits, theme }) {
+  return (
+    <View style={styles.infoRow}>
+      <ThemedText type="small" style={[styles.infoRowLabel, { color: theme.text, fontWeight: '600' }]}>
+        Level {level}
+      </ThemedText>
+      <ThemedText type="small" style={[styles.infoRowValue, { color: theme.primary }]}>
+        {commits} commits
+      </ThemedText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.lg,
@@ -551,5 +590,39 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 10,
     textAlign: "center",
+  },
+  infoCard: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  infoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+  infoTitle: {
+    fontWeight: "700",
+  },
+  infoContent: {
+    gap: Spacing.sm,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Spacing.xs,
+  },
+  infoRowLabel: {
+    flex: 1,
+  },
+  infoRowValue: {
+    fontWeight: "600",
+    textAlign: "right",
+  },
+  infoFooter: {
+    marginTop: Spacing.sm,
+    fontStyle: "italic",
   },
 });
