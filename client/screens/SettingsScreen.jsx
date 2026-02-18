@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert, Image, Platform, Linking, Modal, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { useNavigation, CommonActions } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -22,28 +21,6 @@ export default function SettingsScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { user, logout } = useAuth();
-  const navigation = useNavigation();
-
-  const resetToLogin = () => {
-    const parent = navigation.getParent();
-    if (parent) {
-      parent.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: "Login" }],
-        })
-      );
-      return;
-    }
-
-    // Fallback: reset current navigator
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      })
-    );
-  };
 
   const [settings, setLocalSettings] = useState({
     reminderTime: "20:00",
@@ -156,7 +133,7 @@ export default function SettingsScreen() {
   };
 
   const handleFeedbackPress = () => {
-    Linking.openURL("mailto:support@example.com?subject=DailyCommit Feedback");
+    Linking.openURL("mailto:nkathawinnie94@gmail.com?subject=DailyCommit Feedback");
   };
 
   const handleLogout = async () => {
@@ -178,8 +155,7 @@ export default function SettingsScreen() {
               await logout();
 
               console.log("Logout successful");
-
-              resetToLogin();
+              // Navigation will happen automatically via AuthContext state change
             } catch (error) {
               console.error("Logout error:", error);
               Alert.alert("Error", "Failed to log out. Please try again.");
@@ -207,17 +183,10 @@ export default function SettingsScreen() {
               await clearAllData();
               await logout();
 
+              // Navigation will happen automatically via AuthContext state change
               Alert.alert(
                 "Data Cleared",
-                "All data has been cleared. You will be redirected to login.",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => {
-                      resetToLogin();
-                    },
-                  },
-                ]
+                "All data has been cleared successfully."
               );
             } catch (error) {
               console.error("Clear data error:", error);
