@@ -173,9 +173,9 @@ export async function registerRoutes(app) {
 
       console.log(`\n=== Fetching commits for ${username} since ${sinceDate} ===`);
 
-      // ENHANCED: Fetch user's repositories
+      // ENHANCED: Fetch all user's repositories (owned + forked + collaborations)
       const reposResponse = await fetch(
-        `https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner`,
+        `https://api.github.com/user/repos?per_page=100&sort=updated&type=all`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -217,23 +217,21 @@ export async function registerRoutes(app) {
             let pageCommitCount = 0;
             
             commits.forEach((commit) => {
-              let isMatch = false;
+              const authorLogin = commit.author?.login || "N/A";
+              const message = commit.commit.message.substring(0, 50);
               
-              // Check 1: If author object exists, match by login
+              // Only count commits authored by the authenticated user
               if (commit.author?.login === username) {
-                isMatch = true;
-              }
-              // Check 2: If author object missing, count it (assumes commits in owned repos are by owner)
-              else if (!commit.author) {
-                isMatch = true;
-              }
-              
-              if (isMatch) {
-                const date = commit.commit.author.date.split("T")[0];
-                commitsByDay[date] = (commitsByDay[date] || 0) + 1;
+                // Keep the UTC date string as-is; client will convert to local timezone
+                const commitDate = commit.commit.author.date.split("T")[0];
+                
+                commitsByDay[commitDate] = (commitsByDay[commitDate] || 0) + 1;
                 totalCommitsFetched++;
                 repoCommitCount++;
                 pageCommitCount++;
+              } else {
+                const commitDate = commit.commit.author.date.split("T")[0];
+                console.log(`  SKIP: ${commitDate} author=${authorLogin} msg="${message}"`);
               }
             });
             

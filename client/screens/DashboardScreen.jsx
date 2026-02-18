@@ -72,27 +72,44 @@ export default function DashboardScreen() {
       const response = await getGitHubCommits();
       const { commitsByDay, totalCommits } = response;
 
+      // Helper function to get local date string (YYYY-MM-DD) in device timezone
+      const getLocalDateString = (isoDateString) => {
+        const date = new Date(isoDateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      // Re-key commitsByDay with local timezone dates
+      const localCommitsByDay = {};
+      Object.entries(commitsByDay).forEach(([dateKey, count]) => {
+        // dateKey is already in UTC format from server, convert to local
+        const localDate = getLocalDateString(dateKey + "T00:00:00Z");
+        localCommitsByDay[localDate] = (localCommitsByDay[localDate] || 0) + count;
+      });
+
       // Calculate stats from GitHub data
-      const today = new Date().toISOString().split("T")[0];
-      const todayCommits = commitsByDay[today] || 0;
+      const today = getLocalDateString(new Date().toISOString());
+      const todayCommits = localCommitsByDay[today] || 0;
 
       // Calculate weekly commits (last 7 days)
       const weeklyCommits = [0, 0, 0, 0, 0, 0, 0];
       for (let i = 0; i < 7; i++) {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));
-        const dateStr = date.toISOString().split("T")[0];
+        const dateStr = getLocalDateString(date.toISOString());
         const dayOfWeek = date.getDay();
         const adjustedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        weeklyCommits[adjustedDayIndex] = commitsByDay[dateStr] || 0;
+        weeklyCommits[adjustedDayIndex] = localCommitsByDay[dateStr] || 0;
       }
 
       // Calculate current streak
       let currentStreak = 0;
       let checkDate = new Date();
       while (true) {
-        const dateStr = checkDate.toISOString().split("T")[0];
-        if (commitsByDay[dateStr] && commitsByDay[dateStr] > 0) {
+        const dateStr = getLocalDateString(checkDate.toISOString());
+        if (localCommitsByDay[dateStr] && localCommitsByDay[dateStr] > 0) {
           currentStreak++;
           checkDate.setDate(checkDate.getDate() - 1);
         } else if (dateStr === today) {
@@ -104,16 +121,16 @@ export default function DashboardScreen() {
       }
 
       // Get last commit date
-      const dates = Object.keys(commitsByDay).filter(date => commitsByDay[date] > 0);
+      const dates = Object.keys(localCommitsByDay).filter(date => localCommitsByDay[date] > 0);
       const lastCommitDate = dates.length > 0 ? dates.sort().reverse()[0] : null;
 
       // Calculate yearly commits (from Jan 1 of current year)
       const currentYear = new Date().getFullYear();
-      const yearStart = new Date(currentYear, 0, 1).toISOString().split("T")[0];
+      const yearStart = getLocalDateString(new Date(currentYear, 0, 1).toISOString());
       let yearlyCommits = 0;
-      Object.keys(commitsByDay).forEach(date => {
+      Object.keys(localCommitsByDay).forEach(date => {
         if (date >= yearStart) {
-          yearlyCommits += commitsByDay[date];
+          yearlyCommits += localCommitsByDay[date];
         }
       });
 
