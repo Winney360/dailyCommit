@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   STREAK_DATA: (userId) => `@dailycommit_streak_${userId}`,
   SETTINGS: (userId) => `@dailycommit_settings_${userId}`,
   COMMITS: (userId) => `@dailycommit_commits_${userId}`,
+  EARNED_BADGES: (userId) => `@dailycommit_earned_badges_${userId}`,
 };
 
 export async function getUser() {
@@ -136,8 +137,29 @@ export async function clearUserData(userId) {
       STORAGE_KEYS.STREAK_DATA(userId),
       STORAGE_KEYS.SETTINGS(userId),
       STORAGE_KEYS.COMMITS(userId),
+      STORAGE_KEYS.EARNED_BADGES(userId),
     ]);
   } catch (error) {
     console.error("Error clearing user data:", error);
+  }
+}
+
+export async function getEarnedBadges(userId) {
+  if (!userId) return [];
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.EARNED_BADGES(userId));
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error("Error getting earned badges:", error);
+    return [];
+  }
+}
+
+export async function setEarnedBadges(userId, badgeIds) {
+  if (!userId) return;
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.EARNED_BADGES(userId), JSON.stringify(badgeIds));
+  } catch (error) {
+    console.error("Error setting earned badges:", error);
   }
 }

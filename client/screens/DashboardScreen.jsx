@@ -13,9 +13,20 @@ import { WeeklyChart } from "@/components/WeeklyChart";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
-import { getStreakData, setStreakData } from "@/lib/storage";
+import { getStreakData, setStreakData, getEarnedBadges, setEarnedBadges } from "@/lib/storage";
 import { getGitHubCommits } from "@/lib/api";
 import { Spacing, BorderRadius } from "@/constants/theme";
+
+const BADGES = [
+  { id: "first-commit", name: "Getting Started", requirement: 1 },
+  { id: "week-streak", name: "Week Warrior", requirement: 7 },
+  { id: "two-weeks", name: "Fortnight Force", requirement: 14 },
+  { id: "month-streak", name: "Monthly Master", requirement: 30 },
+  { id: "hundred-days", name: "Centurion", requirement: 100 },
+  { id: "six-months", name: "Half-Year Hero", requirement: 180 },
+  { id: "nine-months", name: "Nine-Month Ninja", requirement: 270 },
+  { id: "full-year", name: "Year Warrior", requirement: 365 },
+];
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -150,6 +161,10 @@ export default function DashboardScreen() {
 
       setLocalStreakData(newData);
       await setStreakData(user.id, newData);
+      
+      // Check and award badges based on new streak
+      await checkAndAwardBadges(user.id, newData.longestStreak);
+      
       setIsFirstLoad(false);
     } catch (error) {
       console.error("Failed to sync commits:", error);
@@ -157,6 +172,44 @@ export default function DashboardScreen() {
       await loadStreakData();
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const checkAndAwardBadges = async (userId, longestStreak) => {
+    try {
+      const previouslyEarned = await getEarnedBadges(userId);
+      const newlyEarned = [];
+      
+      BADGES.forEach(badge => {
+        const isNowEarned = longestStreak >= badge.requirement;
+        const wasEarned = previouslyEarned.includes(badge.id);
+        
+        if (isNowEarned && !wasEarned) {
+          newlyEarned.push(badge);
+        }
+      });
+      
+      if (newlyEarned.length > 0) {
+        // Update the earned badges list
+        const updatedEarned = [...previouslyEarned, ...newlyEarned.map(b => b.id)];
+        await setEarnedBadges(userId, updatedEarned);
+        
+        // Show notification for first newly earned badge
+        if (newlyEarned.length === 1) {
+          const badge = newlyEarned[0];
+          Alert.alert(
+            "🎉 Badge Earned!",
+            `Congratulations! You unlocked "${badge.name}" with a ${longestStreak}-day streak!`
+          );
+        } else {
+          Alert.alert(
+            "🎉 Multiple Badges Earned!",
+            `Amazing! You unlocked ${newlyEarned.length} badges:\n${newlyEarned.map(b => `• ${b.name}`).join('\n')}`
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error checking badges:", error);
     }
   };
 
