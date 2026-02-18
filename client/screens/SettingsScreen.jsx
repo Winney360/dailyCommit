@@ -152,7 +152,7 @@ export default function SettingsScreen() {
   };
 
   const handleGitHubPress = () => {
-    Linking.openURL("https://github.com/yourusername/dailycommit");
+    Linking.openURL("https://github.com/Winney360/dailyCommit.git");
   };
 
   const handleFeedbackPress = () => {
