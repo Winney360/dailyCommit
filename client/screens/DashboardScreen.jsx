@@ -115,8 +115,26 @@ export default function DashboardScreen() {
         weeklyCommits[adjustedDayIndex] = localCommitsByDay[dateStr] || 0;
       }
 
-      // Calculate current streak
+      // Calculate longest streak from entire year and current streak
+      const allDates = Object.keys(localCommitsByDay).filter(date => localCommitsByDay[date] > 0).sort();
+      
+      let longestStreakValue = 0;
       let currentStreak = 0;
+      let tempStreak = 0;
+      
+      // Find longest streak in the entire year
+      const streakYearStart = new Date(new Date().getFullYear(), 0, 1);
+      for (let d = new Date(streakYearStart); d <= new Date(); d.setDate(d.getDate() + 1)) {
+        const dateStr = getLocalDateString(d.toISOString());
+        if (localCommitsByDay[dateStr] && localCommitsByDay[dateStr] > 0) {
+          tempStreak++;
+          longestStreakValue = Math.max(longestStreakValue, tempStreak);
+        } else {
+          tempStreak = 0;
+        }
+      }
+      
+      // Calculate current streak (from today backwards)
       let checkDate = new Date();
       while (true) {
         const dateStr = getLocalDateString(checkDate.toISOString());
@@ -145,9 +163,10 @@ export default function DashboardScreen() {
         }
       });
 
-      // Load existing data to preserve longestStreak
+      // Load existing data to preserve historical longestStreak 
       const existingData = await getStreakData(user.id);
-      const longestStreak = Math.max(existingData.longestStreak, currentStreak);
+      // Use the longest streak found in the year, or keep the historical best if it's higher
+      const longestStreak = Math.max(existingData.longestStreak, longestStreakValue);
 
       const newData = {
         currentStreak,
@@ -162,8 +181,8 @@ export default function DashboardScreen() {
       setLocalStreakData(newData);
       await setStreakData(user.id, newData);
       
-      // Check and award badges based on new streak
-      await checkAndAwardBadges(user.id, newData.longestStreak);
+      // Check and award badges based on the longest streak ever achieved
+      await checkAndAwardBadges(user.id, longestStreak);
       
       setIsFirstLoad(false);
     } catch (error) {
