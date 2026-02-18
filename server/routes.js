@@ -167,10 +167,9 @@ export async function registerRoutes(app) {
       const userData = await userResponse.json();
       const username = userData.login;
 
-      const today = new Date();
-      const daysAgo = new Date(today);
-      daysAgo.setDate(daysAgo.getDate() - 30);
-      const sinceDate = daysAgo.toISOString();
+      const currentYear = new Date().getFullYear();
+      const yearStart = new Date(Date.UTC(currentYear, 0, 1));
+      const sinceDate = yearStart.toISOString();
 
       console.log(`\n=== Fetching commits for ${username} since ${sinceDate} ===`);
 
@@ -198,27 +197,62 @@ export async function registerRoutes(app) {
       // Fetch commits from each repository
       for (const repo of repos) {
         try {
-          const commitsResponse = await fetch(
-            `https://api.github.com/repos/${repo.full_name}/commits?author=${username}&since=${sinceDate}&per_page=100`,
-            {
+          let pageUrl = `https://api.github.com/repos/${repo.full_name}/commits?since=${sinceDate}&per_page=100`;
+          let repoCommitCount = 0;
+          
+          // Handle pagination
+          while (pageUrl) {
+            const commitsResponse = await fetch(pageUrl, {
               headers: {
                 Authorization: `Bearer ${token}`,
                 Accept: "application/vnd.github.v3+json",
               },
-            }
-          );
-
-          if (commitsResponse.ok) {
-            const commits = await commitsResponse.json();
-            
-            console.log(`Repo: ${repo.name} - ${commits.length} commits`);
-
-            commits.forEach((commit) => {
-              const date = commit.commit.author.date.split("T")[0];
-              commitsByDay[date] = (commitsByDay[date] || 0) + 1;
-              totalCommitsFetched++;
             });
+
+            if (!commitsResponse.ok) {
+              break;
+            }
+
+            const commits = await commitsResponse.json();
+            let pageCommitCount = 0;
+            
+            commits.forEach((commit) => {
+              let isMatch = false;
+              
+              // Check 1: If author object exists, match by login
+              if (commit.author?.login === username) {
+                isMatch = true;
+              }
+              // Check 2: If author object missing, count it (assumes commits in owned repos are by owner)
+              else if (!commit.author) {
+                isMatch = true;
+              }
+              
+              if (isMatch) {
+                const date = commit.commit.author.date.split("T")[0];
+                commitsByDay[date] = (commitsByDay[date] || 0) + 1;
+                totalCommitsFetched++;
+                repoCommitCount++;
+                pageCommitCount++;
+              }
+            });
+            
+            if (pageCommitCount > 0) {
+              console.log(`  Page: ${pageCommitCount} commits (total so far: ${totalCommitsFetched})`);
+            }
+
+            // Check for next page
+            const linkHeader = commitsResponse.headers.get("link");
+            pageUrl = null;
+            if (linkHeader) {
+              const nextMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
+              if (nextMatch) {
+                pageUrl = nextMatch[1];
+              }
+            }
           }
+          
+          console.log(`Repo: ${repo.name} - ${repoCommitCount} commits`);
         } catch (repoError) {
           console.error(`Error fetching commits for ${repo.name}:`, repoError.message);
           // Continue with other repos even if one fails
