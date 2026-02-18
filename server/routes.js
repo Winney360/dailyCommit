@@ -229,9 +229,13 @@ export async function registerRoutes(app) {
     commitEmail === `${username}@users.noreply.github.com`;
 
   if (isUserCommit) {
-    const commitDate = commit.commit.committer.date.split("T")[0];
-
-    commitsByDay[commitDate] = (commitsByDay[commitDate] || 0) + 1;
+    // Send full ISO timestamp to client for timezone conversion
+    const commitTimestamp = commit.commit.author.date;
+    
+    if (!commitsByDay[commitTimestamp]) {
+      commitsByDay[commitTimestamp] = 0;
+    }
+    commitsByDay[commitTimestamp]++;
     totalCommitsFetched++;
     repoCommitCount++;
     pageCommitCount++;

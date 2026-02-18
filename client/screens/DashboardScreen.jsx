@@ -81,11 +81,11 @@ export default function DashboardScreen() {
         return `${year}-${month}-${day}`;
       };
 
-      // Re-key commitsByDay with local timezone dates
+      // Group commits by local date (commitsByDay has ISO timestamps as keys)
       const localCommitsByDay = {};
-      Object.entries(commitsByDay).forEach(([dateKey, count]) => {
-        // dateKey is already in UTC format from server, convert to local
-        const localDate = getLocalDateString(dateKey + "T00:00:00Z");
+      Object.entries(commitsByDay).forEach(([timestamp, count]) => {
+        // Convert each timestamp to local date
+        const localDate = getLocalDateString(timestamp);
         localCommitsByDay[localDate] = (localCommitsByDay[localDate] || 0) + count;
       });
 
