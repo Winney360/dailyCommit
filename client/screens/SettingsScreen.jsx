@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Alert, Image, Platform, Linking } from "react-native";
+import { View, StyleSheet, ScrollView, Alert, Image, Platform, Linking, Modal, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useNavigation, CommonActions } from "@react-navigation/native";
@@ -50,6 +50,9 @@ export default function SettingsScreen() {
     notificationsEnabled: true,
     darkModeAuto: true,
   });
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [tempHour, setTempHour] = useState(20);
+  const [tempMinute, setTempMinute] = useState(0);
 
   useEffect(() => {
     if (user?.id) {
@@ -69,16 +72,20 @@ export default function SettingsScreen() {
     setLocalSettings(newSettings);
     await setSettings(user.id, newSettings);
 
-    // Handle notifications permission
-    if (key === "notificationsEnabled" && value) {
-      await requestNotificationPermission();
-      await scheduleDailyReminder();
-    } else if (key === "notificationsEnabled" && !value) {
-      await cancelDailyReminder();
+    // Handle notifications permission (skip on web)
+    if (Platform.OS !== "web") {
+      if (key === "notificationsEnabled" && value) {
+        await requestNotificationPermission();
+        await scheduleDailyReminder();
+      } else if (key === "notificationsEnabled" && !value) {
+        await cancelDailyReminder();
+      }
     }
   };
 
   const requestNotificationPermission = async () => {
+    if (Platform.OS === "web") return true; // Notifications not supported on web
+    
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== "granted") {
       const { status: newStatus } = await Notifications.requestPermissionsAsync();
@@ -88,6 +95,8 @@ export default function SettingsScreen() {
   };
 
   const scheduleDailyReminder = async () => {
+    if (Platform.OS === "web") return; // Notifications not supported on web
+    
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
 
@@ -113,6 +122,8 @@ export default function SettingsScreen() {
   };
 
   const cancelDailyReminder = async () => {
+    if (Platform.OS === "web") return; // Notifications not supported on web
+    
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
       console.log("Daily reminders cancelled");
@@ -121,48 +132,23 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleReminderTimePress = async () => {
-    if (Platform.OS === "ios" || Platform.OS === "android") {
-      // For mobile, you'd use a DateTimePicker component
-      Alert.alert(
-        "Reminder Time",
-        "Time picker would open here. For now, you can manually edit in settings.",
-        [{ text: "OK" }]
-      );
-    } else {
-      // For web, show an alert with instructions
-      Alert.alert(
-        "Set Reminder Time",
-        "Enter time in 24-hour format (HH:MM):",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Set",
-            onPress: () => {
-              Alert.prompt(
-                "Reminder Time",
-                "Enter time (HH:MM):",
-                [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    text: "Save",
-                    onPress: async (time) => {
-                      if (time && /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
-                        await updateSetting("reminderTime", time);
-                        Alert.alert("Success", `Reminder time set to ${time}`);
-                      } else {
-                        Alert.alert("Error", "Please enter a valid time in HH:MM format");
-                      }
-                    },
-                  },
-                ],
-                "plain-text",
-                settings.reminderTime
-              );
-            },
-          },
-        ]
-      );
+  const handleReminderTimePress = () => {
+    const [hours, minutes] = settings.reminderTime.split(":").map(Number);
+    setTempHour(hours);
+    setTempMinute(minutes);
+    setShowTimePicker(true);
+  };
+
+  const handleTimePickerSave = async () => {
+    const timeString = `${String(tempHour).padStart(2, "0")}:${String(tempMinute).padStart(2, "0")}`;
+    await updateSetting("reminderTime", timeString);
+    setShowTimePicker(false);
+    
+    if (settings.notificationsEnabled && Platform.OS !== "web") {
+      await scheduleDailyReminder();
+      Alert.alert("Success", `Reminder time set to ${formatTime(timeString)}`);
+    } else if (Platform.OS === "web") {
+      Alert.alert("Web Reminder", `Reminder time saved to ${formatTime(timeString)}. Notifications are only available on mobile devices.`);
     }
   };
 
@@ -364,6 +350,105 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
       </Animated.View>
+
+      {/* Time Picker Modal */}
+      <Modal
+        visible={showTimePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTimePicker(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
+            <View style={styles.modalHeader}>
+              <ThemedText type="h4" style={{ color: theme.text }}>
+                Set Reminder Time
+              </ThemedText>
+              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                <Feather name="x" size={24} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Time Display */}
+            <View style={[styles.timeDisplay, { backgroundColor: theme.primary + "10", borderColor: theme.primary }]}>
+              <ThemedText type="h1" style={{ color: theme.primary, fontWeight: "900" }}>
+                {String(tempHour).padStart(2, "0")}:{String(tempMinute).padStart(2, "0")}
+              </ThemedText>
+              <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.sm }}>
+                {formatTime(`${String(tempHour).padStart(2, "0")}:${String(tempMinute).padStart(2, "0")}`)}
+              </ThemedText>
+            </View>
+
+            {/* Hour Picker */}
+            <View style={styles.pickerSection}>
+              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+                Hours
+              </ThemedText>
+              <View style={styles.numberPicker}>
+                <TouchableOpacity
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  onPress={() => setTempHour(tempHour === 0 ? 23 : tempHour - 1)}
+                >
+                  <Feather name="minus" size={20} color={theme.primary} />
+                </TouchableOpacity>
+                <View style={[styles.pickerValue, { borderColor: theme.border }]}>
+                  <ThemedText type="h5">{String(tempHour).padStart(2, "0")}</ThemedText>
+                </View>
+                <TouchableOpacity
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  onPress={() => setTempHour(tempHour === 23 ? 0 : tempHour + 1)}
+                >
+                  <Feather name="plus" size={20} color={theme.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Minute Picker */}
+            <View style={styles.pickerSection}>
+              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+                Minutes
+              </ThemedText>
+              <View style={styles.numberPicker}>
+                <TouchableOpacity
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  onPress={() => setTempMinute(tempMinute === 0 ? 59 : tempMinute - 1)}
+                >
+                  <Feather name="minus" size={20} color={theme.primary} />
+                </TouchableOpacity>
+                <View style={[styles.pickerValue, { borderColor: theme.border }]}>
+                  <ThemedText type="h5">{String(tempMinute).padStart(2, "0")}</ThemedText>
+                </View>
+                <TouchableOpacity
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  onPress={() => setTempMinute(tempMinute === 59 ? 0 : tempMinute + 1)}
+                >
+                  <Feather name="plus" size={20} color={theme.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.cancelButton, { borderColor: theme.border }]}
+                onPress={() => setShowTimePicker(false)}
+              >
+                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}>
+                  Cancel
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: theme.primary }]}
+                onPress={handleTimePickerSave}
+              >
+                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}>
+                  Save
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -395,5 +480,72 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: Spacing.lg,
     gap: 2,
+  },
+  // Time Picker Modal Styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.xl,
+  },
+  timeDisplay: {
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.xxl,
+    borderWidth: 2,
+  },
+  pickerSection: {
+    marginBottom: Spacing.xl,
+  },
+  numberPicker: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.lg,
+  },
+  pickerButton: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  pickerValue: {
+    width: 80,
+    height: 60,
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginTop: Spacing.xxl,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+  },
+  saveButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
   },
 });
