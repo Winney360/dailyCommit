@@ -17,11 +17,11 @@ import { getStreakData } from "@/lib/storage";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 const BADGES = [
-  { id: "first-commit", name: "First Steps", icon: "play", requirement: 1, color: "#34D399" },
-  { id: "week-streak", name: "Week Warrior", icon: "calendar", requirement: 7, color: "#F59E0B" },
-  { id: "two-weeks", name: "Fortnight Force", icon: "zap", requirement: 14, color: "#7C3AED" },
-  { id: "month-streak", name: "Monthly Master", icon: "award", requirement: 30, color: "#9F7AEA" },
-  { id: "hundred-commits", name: "Centurion", icon: "target", requirement: 100, color: "#34D399" },
+  { id: "first-commit", name: "First Steps", description: "1 commit", icon: "play", requirement: 1, color: "#34D399" },
+  { id: "week-streak", name: "Week Warrior", description: "7 days straight", icon: "calendar", requirement: 7, color: "#F59E0B" },
+  { id: "two-weeks", name: "Fortnight Force", description: "14 days straight", icon: "zap", requirement: 14, color: "#7C3AED" },
+  { id: "month-streak", name: "Monthly Master", description: "30 days straight", icon: "award", requirement: 30, color: "#9F7AEA" },
+  { id: "hundred-commits", name: "Centurion", description: "100 commits total", icon: "target", requirement: 100, color: "#34D399" },
 ];
 
 export default function StatsScreen() {
@@ -292,6 +292,9 @@ function BadgeCard({ badge, isEarned, theme }) {
         <ThemedText type="small" style={[styles.badgeName, { color: isEarned ? theme.text : theme.textSecondary, fontWeight: isEarned ? '600' : '400' }]}>
           {badge.name}
         </ThemedText>
+        <ThemedText type="caption" style={[styles.badgeDescription, { color: isEarned ? theme.textSecondary : theme.textTertiary, fontSize: 9 }]}>
+          {badge.description}
+        </ThemedText>
         {isEarned ? (
           <View style={[styles.earnedBadge, { backgroundColor: theme.success, ...Shadows.glow }]}>
             <Feather name="check" size={12} color={theme.buttonText} />
@@ -372,6 +375,10 @@ const styles = StyleSheet.create({
   badgeName: {
     textAlign: "center",
     fontSize: 11,
+  },
+  badgeDescription: {
+    textAlign: "center",
+    marginTop: 2,
   },
   earnedBadge: {
     position: "absolute",
