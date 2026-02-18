@@ -24,6 +24,51 @@ const BADGES = [
   { id: "hundred-commits", name: "Centurion", description: "100 commits total", icon: "target", requirement: 100, color: "#34D399" },
 ];
 
+// Level system: infinite levels with scaling difficulty
+// Levels 1-5: 10 commits each
+// Levels 6-10: 20 commits each
+// Levels 11-15: 30 commits each
+// And so on, incrementing by 10 every 5 levels
+
+const getCommitsRequiredForLevel = (level) => {
+  if (level <= 0) return 0;
+  
+  let totalCommits = 0;
+  for (let i = 1; i < level; i++) {
+    const increment = Math.floor((i - 1) / 5) * 10 + 10;
+    totalCommits += increment;
+  }
+  return totalCommits;
+};
+
+const getCurrentLevel = (totalCommits) => {
+  let level = 1;
+  while (getCommitsRequiredForLevel(level + 1) <= totalCommits) {
+    level++;
+  }
+  return level;
+};
+
+const getCommitsForNextLevel = (totalCommits) => {
+  return getCommitsRequiredForLevel(getCurrentLevel(totalCommits) + 1);
+};
+
+const getLevelProgress = (totalCommits) => {
+  const currentLevel = getCurrentLevel(totalCommits);
+  const currentLevelRequired = getCommitsRequiredForLevel(currentLevel);
+  const nextLevelRequired = getCommitsRequiredForLevel(currentLevel + 1);
+  
+  const progress = totalCommits - currentLevelRequired;
+  const needed = nextLevelRequired - currentLevelRequired;
+  
+  return {
+    currentLevel,
+    progress,
+    needed,
+    percentage: (progress / needed) * 100,
+  };
+};
+
 export default function StatsScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
@@ -120,13 +165,21 @@ export default function StatsScreen() {
             label="Best Streak"
             theme={theme}
           />
-          <StatCard
-            icon="star"
-            value={earnedBadges.length}
-            label="Badges Earned"
+          <LevelCard
+            level={getCurrentLevel(streakData.totalCommits)}
+            progress={getLevelProgress(streakData.totalCommits)}
             theme={theme}
+            highlight
           />
         </View>
+      </Animated.View>
+
+      <Animated.View entering={FadeInUp.delay(150).duration(500)}>
+        <Card
+          icon="award"
+          label="Badges Earned"
+          theme={theme}
+        />
       </Animated.View>
 
       <Animated.View entering={FadeInUp.delay(200).duration(500)}>
@@ -247,6 +300,76 @@ function StatCard({ icon, value, label, theme, highlight = false }) {
         </ThemedText>
         <ThemedText type="caption" style={[styles.statLabel, { color: theme.textSecondary }]}>
           {label}
+        </ThemedText>
+      </LinearGradient>
+    </View>
+  );
+}
+
+function LevelCard({ level, progress, theme, highlight = false }) {
+  return (
+    <View
+      style={[
+        styles.statCard,
+        Shadows.card,
+      ]}
+    >
+      <LinearGradient
+        colors={highlight 
+          ? [theme.primary + "20", theme.primary + "10"]
+          : [theme.backgroundDefault, theme.backgroundSecondary]
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.statGradient, { 
+          borderWidth: 1.5,
+          borderColor: highlight ? theme.borderAccent : theme.border,
+        }]}
+      >
+        <LinearGradient
+          colors={highlight 
+            ? [theme.primary + "30", theme.primary + "20"]
+            : [theme.backgroundSecondary + "80", theme.backgroundSecondary]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.statIcon}
+        >
+          <Feather
+            name="trending-up"
+            size={24}
+            color={highlight ? theme.primary : theme.accent}
+          />
+        </LinearGradient>
+        <ThemedText
+          type="h2"
+          style={[styles.statValue, { 
+            color: highlight ? theme.primary : theme.text,
+            fontWeight: '800',
+            fontSize: 36,
+          }]}
+        >
+          {level}
+        </ThemedText>
+        <ThemedText type="caption" style={[styles.statLabel, { color: theme.textSecondary }]}>
+          Level
+        </ThemedText>
+        <View style={[styles.progressBar, { backgroundColor: theme.border, marginTop: Spacing.sm }]}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width: `${progress.percentage}%`,
+                backgroundColor: theme.primary,
+              },
+            ]}
+          />
+        </View>
+        <ThemedText 
+          type="caption" 
+          style={[styles.progressText, { color: theme.textSecondary, marginTop: 4 }]}
+        >
+          {progress.progress}/{progress.needed}
         </ThemedText>
       </LinearGradient>
     </View>
@@ -414,5 +537,19 @@ const styles = StyleSheet.create({
   nextBadgeText: {
     flex: 1,
     gap: 4,
+  },
+  progressBar: {
+    height: 6,
+    borderRadius: 3,
+    width: "100%",
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 10,
+    textAlign: "center",
   },
 });
