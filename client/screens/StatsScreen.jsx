@@ -17,11 +17,14 @@ import { getStreakData } from "@/lib/storage";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 const BADGES = [
-  { id: "first-commit", name: "First Steps", description: "1 commit", icon: "play", requirement: 1, color: "#34D399" },
-  { id: "week-streak", name: "Week Warrior", description: "7 days straight", icon: "calendar", requirement: 7, color: "#F59E0B" },
-  { id: "two-weeks", name: "Fortnight Force", description: "14 days straight", icon: "zap", requirement: 14, color: "#7C3AED" },
-  { id: "month-streak", name: "Monthly Master", description: "30 days straight", icon: "award", requirement: 30, color: "#9F7AEA" },
-  { id: "hundred-commits", name: "Centurion", description: "100 commits total", icon: "target", requirement: 100, color: "#34D399" },
+  { id: "first-commit", name: "Getting Started", description: "1 day streak", icon: "play", requirement: 1, color: "#34D399", type: "streak" },
+  { id: "week-streak", name: "Week Warrior", description: "7 days straight", icon: "calendar", requirement: 7, color: "#F59E0B", type: "streak" },
+  { id: "two-weeks", name: "Fortnight Force", description: "14 days straight", icon: "zap", requirement: 14, color: "#7C3AED", type: "streak" },
+  { id: "month-streak", name: "Monthly Master", description: "30 days straight", icon: "award", requirement: 30, color: "#9F7AEA", type: "streak" },
+  { id: "hundred-days", name: "Centurion", description: "100 days straight", icon: "target", requirement: 100, color: "#34D399", type: "streak" },
+  { id: "six-months", name: "Half-Year Hero", description: "6 months straight", icon: "trending-up", requirement: 180, color: "#8B5CF6", type: "streak" },
+  { id: "nine-months", name: "Nine-Month Ninja", description: "9 months straight", icon: "zap", requirement: 270, color: "#EC4899", type: "streak" },
+  { id: "full-year", name: "Year Warrior", description: "365 days straight", icon: "star", requirement: 365, color: "#F59E0B", type: "streak" },
 ];
 
 // Level system: infinite levels with scaling difficulty
@@ -98,17 +101,23 @@ export default function StatsScreen() {
     setStreakData(data);
   };
 
-  const earnedBadges = BADGES.filter(
-    (badge) =>
-      streakData.longestStreak >= badge.requirement ||
-      streakData.totalCommits >= badge.requirement
-  );
+  const earnedBadges = BADGES.filter((badge) => {
+    if (badge.type === "streak") {
+      return streakData.longestStreak >= badge.requirement;
+    } else if (badge.type === "commit") {
+      return streakData.totalCommits >= badge.requirement;
+    }
+    return false;
+  });
 
-  const nextBadge = BADGES.find(
-    (badge) =>
-      streakData.longestStreak < badge.requirement &&
-      streakData.totalCommits < badge.requirement
-  );
+  const nextBadge = BADGES.find((badge) => {
+    if (badge.type === "streak") {
+      return streakData.longestStreak < badge.requirement;
+    } else if (badge.type === "commit") {
+      return streakData.totalCommits < badge.requirement;
+    }
+    return false;
+  });
 
   const isEmpty = streakData.totalCommits === 0;
 
@@ -221,9 +230,12 @@ export default function StatsScreen() {
         </ThemedText>
         <View style={styles.badgesContainer}>
           {BADGES.map((badge) => {
-            const isEarned =
-              streakData.longestStreak >= badge.requirement ||
-              streakData.totalCommits >= badge.requirement;
+            let isEarned = false;
+            if (badge.type === "streak") {
+              isEarned = streakData.longestStreak >= badge.requirement;
+            } else if (badge.type === "commit") {
+              isEarned = streakData.totalCommits >= badge.requirement;
+            }
             return (
               <BadgeCard
                 key={badge.id}
@@ -270,7 +282,11 @@ export default function StatsScreen() {
                     {nextBadge.name}
                   </ThemedText>
                   <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: 2 }}>
-                    {nextBadge.requirement - Math.max(streakData.longestStreak, streakData.totalCommits)} more to go
+                    {(() => {
+                      const current = nextBadge.type === "streak" ? streakData.longestStreak : streakData.totalCommits;
+                      const remaining = Math.max(0, nextBadge.requirement - current);
+                      return `${remaining} more to go`;
+                    })()}
                   </ThemedText>
                 </View>
               </View>
