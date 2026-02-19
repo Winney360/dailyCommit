@@ -16,6 +16,17 @@ import { useAuth } from "@/context/AuthContext";
 import { getStreakData } from "@/lib/storage";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
+// Format large numbers with K/M suffix (truncate, don't round)
+const formatNumber = (num) => {
+  if (num >= 1000000) {
+    return (Math.floor(num / 100000) / 10).toFixed(1) + 'M';
+  }
+  if (num >= 100000) {
+    return (Math.floor(num / 100) / 10).toFixed(1) + 'K';
+  }
+  return num.toString();
+};
+
 const BADGES = [
   { id: "first-commit", name: "Getting Started", description: "1 day streak", icon: "play", requirement: 1, color: "#34D399", type: "streak" },
   { id: "week-streak", name: "Week Warrior", description: "7 days straight", icon: "calendar", requirement: 7, color: "#F59E0B", type: "streak" },
@@ -366,7 +377,7 @@ function StatCard({ icon, value, label, theme, highlight = false }) {
             fontSize: 36,
           }]}
         >
-          {value}
+          {formatNumber(value)}
         </ThemedText>
         <ThemedText type="caption" style={[styles.statLabel, { color: theme.textSecondary }]}>
           {label}
