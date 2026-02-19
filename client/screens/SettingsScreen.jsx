@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Alert, Image, Platform, Linking, Modal, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ScrollView, Alert, Image, Platform, Linking, Modal, TouchableOpacity, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -30,6 +30,8 @@ export default function SettingsScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempHour, setTempHour] = useState(20);
   const [tempMinute, setTempMinute] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
 
   useEffect(() => {
     if (user?.id) {
@@ -177,51 +179,43 @@ export default function SettingsScreen() {
     );
   };
 
+  const executeDeleteAccount = async () => {
+    try {
+      await cancelDailyReminder();
+      await deleteAccount();
+      await clearAllData();
+      await logout();
+
+      // Navigation will happen automatically via AuthContext state change
+      Alert.alert(
+        "Account Deleted",
+          "Your DailyCommit account has been permanently deleted."
+      );
+    } catch (error) {
+      console.error("Delete account error:", error);
+      Alert.alert("Error", "Failed to delete account. Please try again.");
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     }
 
-    const doDeleteAccount = async () => {
-      try {
-        await cancelDailyReminder();
-        await deleteAccount();
-        await clearAllData();
-        await logout();
-
-        // Navigation will happen automatically via AuthContext state change
-        Alert.alert(
-          "Account Deleted",
-          "Your DailyCommit account data has been deleted."
-        );
-      } catch (error) {
-        console.error("Delete account error:", error);
-        Alert.alert("Error", "Failed to delete account. Please try again.");
-      }
-    };
-
     if (Platform.OS === "web") {
-      const confirmed = window.confirm(
-        "This will delete your DailyCommit account data from Firebase and remove local data. This action cannot be undone."
+      const input = window.prompt(
+          "Type DELETE to confirm. This will permanently delete your DailyCommit account and data."
       );
-      if (confirmed) {
-        await doDeleteAccount();
+      if (input === "DELETE") {
+        await executeDeleteAccount();
+      } else if (input !== null) {
+        window.alert("Delete cancelled. You must type DELETE exactly to confirm.");
       }
       return;
     }
 
-    Alert.alert(
-      "Delete Account",
-      "This will delete your DailyCommit account data from Firebase and remove local data. This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete Account",
-          style: "destructive",
-          onPress: doDeleteAccount,
-        },
-      ]
-    );
+    setDeleteInput("");
+    setShowDeleteModal(true);
   };
 
   const formatTime = (time) => {
@@ -430,6 +424,76 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Delete Account Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}> 
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}> 
+            <View style={styles.modalHeader}>
+              <ThemedText type="h4" style={{ color: theme.text }}>
+                Delete Account
+              </ThemedText>
+              <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
+                <Feather name="x" size={24} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ThemedText type="body" style={{ color: theme.textSecondary, marginBottom: Spacing.lg }}>
+                Type DELETE to permanently remove your DailyCommit account and data.
+            </ThemedText>
+
+            <TextInput
+              value={deleteInput}
+              onChangeText={setDeleteInput}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              placeholder="Type DELETE"
+              placeholderTextColor={theme.textSecondary}
+              style={[
+                styles.deleteInput,
+                {
+                  borderColor: deleteInput === "DELETE" ? theme.primary : theme.border,
+                  color: theme.text,
+                  backgroundColor: theme.backgroundSecondary,
+                },
+              ]}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.cancelButton, { borderColor: theme.border }]}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}>
+                  Cancel
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.saveButton,
+                  {
+                    backgroundColor: deleteInput === "DELETE" ? theme.error : theme.border,
+                  },
+                ]}
+                disabled={deleteInput !== "DELETE"}
+                onPress={async () => {
+                  setShowDeleteModal(false);
+                  await executeDeleteAccount();
+                }}
+              >
+                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}>
+                  Delete Account
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -528,5 +592,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     alignItems: "center",
+  },
+  deleteInput: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: 16,
   },
 });
