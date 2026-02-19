@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"; // ← Added useEffect import
-import { View, StyleSheet, Image, Platform, Alert } from "react-native";
+import { View, StyleSheet, Image, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
@@ -56,7 +56,7 @@ export default function LoginScreen() {
           } catch (error) {
             console.error("Callback error:", error);
             setError(error.message);
-            Alert.alert("Login Error", error.message);
+            showErrorToast("Login Error", error.message);
           } finally {
             setIsLoading(false);
           }
@@ -153,13 +153,13 @@ export default function LoginScreen() {
         } else {
           console.log("Authentication failed with type:", result.type);
           setError(`Authentication failed: ${result.type}`);
-          Alert.alert("Authentication Failed", `Authentication failed: ${result.type}`);
+          showErrorToast("Authentication Failed", result.type);
         }
       }
     } catch (error) {
       console.error("GitHub login error:", error);
       setError(error.message || "Failed to login with GitHub. Please try again.");
-      Alert.alert("Login Error", error.message || "An error occurred during login.");
+      showErrorToast("Login Error", error.message || "An error occurred during login.");
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Alert, Image, Platform, Linking, Modal, TouchableOpacity, TextInput } from "react-native";
+import { View, StyleSheet, ScrollView, Image, Platform, Linking, Modal, TouchableOpacity, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -14,6 +14,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
 import { getSettings, setSettings, clearAllData } from "@/lib/storage";
 import { deleteAccount } from "@/lib/api";
+import { showSuccessToast, showErrorToast, showInfoToast } from "@/lib/toast";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 export default function SettingsScreen() {
@@ -31,6 +32,7 @@ export default function SettingsScreen() {
   const [tempHour, setTempHour] = useState(20);
   const [tempMinute, setTempMinute] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
@@ -126,9 +128,9 @@ export default function SettingsScreen() {
     
     if (settings.notificationsEnabled && Platform.OS !== "web") {
       await scheduleDailyReminder();
-      Alert.alert("Success", `Reminder time set to ${formatTime(timeString)}`);
+      showSuccessToast("Reminder Set", `Reminder time set to ${formatTime(timeString)}`);
     } else if (Platform.OS === "web") {
-      Alert.alert("Web Reminder", `Reminder time saved to ${formatTime(timeString)}. Notifications are only available on mobile devices.`);
+      showInfoToast("Web Reminder", `Reminder time saved to ${formatTime(timeString)}. Notifications are only available on mobile devices.`);
     }
   };
 
@@ -145,39 +147,8 @@ export default function SettingsScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    const doLogout = async () => {
-      try {
-        console.log("Starting logout...");
-        await cancelDailyReminder();
-        await logout();
-        console.log("Logout successful");
-        // Navigation will happen automatically via AuthContext state change
-      } catch (error) {
-        console.error("Logout error:", error);
-        Alert.alert("Error", "Failed to log out. Please try again.");
-      }
-    };
-
-    if (Platform.OS === "web") {
-      const confirmed = window.confirm("Are you sure you want to log out?");
-      if (confirmed) {
-        await doLogout();
-      }
-      return;
-    }
-
-    Alert.alert(
-      "Log Out",
-      "Are you sure you want to log out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Log Out",
-          style: "destructive",
-          onPress: doLogout,
-        },
-      ]
-    );
+    // Show logout confirmation modal for all platforms
+    setShowLogoutModal(true);
   };
 
   const executeDeleteAccount = async () => {
@@ -200,14 +171,14 @@ export default function SettingsScreen() {
         setShowDeleteSuccess(true);
         setTimeout(() => setShowDeleteSuccess(false), 2000);
       } else {
-        Alert.alert(
+        showSuccessToast(
           "Account Deleted",
           "Your DailyCommit account has been permanently deleted."
         );
       }
     } catch (error) {
       console.error("Delete account error:", error);
-      Alert.alert("Error", "Failed to delete account: " + error.message);
+      showErrorToast("Deletion Failed", error.message);
     }
   };
 
@@ -514,6 +485,58 @@ export default function SettingsScreen() {
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm, textAlign: "center" }}>
               Your DailyCommit account has been permanently deleted.
             </ThemedText>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View style={[styles.successModalContent, { backgroundColor: theme.backgroundDefault }]}>
+            <Feather name="log-out" size={48} color={theme.primary} />
+            <ThemedText type="h4" style={{ color: theme.text, marginTop: Spacing.md }}>
+              Log Out?
+            </ThemedText>
+            <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm, textAlign: "center" }}>
+              Are you sure you want to log out?
+            </ThemedText>
+            <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl, width: "100%" }}>
+              <TouchableOpacity
+                style={[styles.cancelButton, { borderColor: theme.border, backgroundColor: "transparent" }]}
+                onPress={() => setShowLogoutModal(false)}
+              >
+                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}>
+                  Cancel
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: theme.primary }]}
+                onPress={async () => {
+                  setShowLogoutModal(false);
+                  const doLogout = async () => {
+                    try {
+                      console.log("Starting logout...");
+                      await cancelDailyReminder();
+                      await logout();
+                      console.log("Logout successful");
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      showErrorToast("Logout Failed", "Please try again");
+                    }
+                  };
+                  await doLogout();
+                }}
+              >
+                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}>
+                  Log Out
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>

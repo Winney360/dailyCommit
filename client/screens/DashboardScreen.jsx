@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, ScrollView, RefreshControl, Platform, AppState, Alert } from "react-native";
+import { View, StyleSheet, ScrollView, RefreshControl, Platform, AppState } from "react-native";
+import { showSuccessToast, showWarningToast } from "@/lib/toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -247,14 +248,15 @@ export default function DashboardScreen() {
         // Show notification for newly earned badges
         if (newlyEarned.length === 1) {
           const badge = newlyEarned[0];
-          Alert.alert(
+          showSuccessToast(
             "🎉 Badge Earned!",
-            `Congratulations! You unlocked "${badge.name}" with a ${longestStreak}-day streak!`
+            `You unlocked "${badge.name}" with a ${longestStreak}-day streak!`
           );
         } else {
-          Alert.alert(
+          const badgeList = newlyEarned.map(b => b.name).join(", ");
+          showSuccessToast(
             "🎉 Multiple Badges Earned!",
-            `Amazing! You unlocked ${newlyEarned.length} badges:\n${newlyEarned.map(b => `• ${b.name}`).join('\n')}`
+            `You unlocked ${newlyEarned.length} badges: ${badgeList}`
           );
         }
       }

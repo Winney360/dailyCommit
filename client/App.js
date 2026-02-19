@@ -7,6 +7,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Toast from "react-native-toast-message";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
@@ -75,26 +76,29 @@ export default function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SafeAreaProvider>
-            <GestureHandlerRootView style={styles.root}>
-              <KeyboardProvider>
-                <NavigationContainer 
-                  theme={customDarkTheme}
-                  initialState={initialState}
-                  onStateChange={onStateChange}
-                >
-                  <RootStackNavigator />
-                </NavigationContainer>
-                <StatusBar style="light" backgroundColor="#0A071B" />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
-          </SafeAreaProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SafeAreaProvider>
+              <GestureHandlerRootView style={styles.root}>
+                <KeyboardProvider>
+                  <NavigationContainer 
+                    theme={customDarkTheme}
+                    initialState={initialState}
+                    onStateChange={onStateChange}
+                  >
+                    <RootStackNavigator />
+                  </NavigationContainer>
+                  <StatusBar style="light" backgroundColor="#0A071B" />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </SafeAreaProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+      <Toast />
+    </>
   );
 }
 
