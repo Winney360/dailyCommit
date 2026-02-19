@@ -24,7 +24,7 @@ export function StreakCounter({ currentStreak, longestStreak, animate = true }) 
     if (animate) {
       scale.value = withDelay(
         200,
-        withSpring(1, { damping: 12, stiffness: 100 })
+        withSpring(1, { damping: 25, stiffness: 50 })
       );
       opacity.value = withDelay(200, withSpring(1));
     }
