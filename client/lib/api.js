@@ -62,6 +62,19 @@ export async function getGitHubCommits() {
 }
 
 /**
+ * Get fast commit totals (all-time + current year) for the authenticated user
+ */
+export async function getTotalAllTimeCommits() {
+  try {
+    const data = await fetchAuthenticated("api/github/total-commits");
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch total commits:", error);
+    throw error;
+  }
+}
+
+/**
  * Delete the authenticated user's account data in Firestore
  */
 export async function deleteAccount() {

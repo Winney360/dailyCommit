@@ -142,7 +142,7 @@ export async function registerRoutes(app) {
     }
   });
 
-  // Get commits for streak calculation - Enhanced version
+  // Get commits for streak calculation (current year only)
   app.get("/api/github/commits", async (req, res) => {
     const authHeader = req.headers.authorization;
 
@@ -167,6 +167,7 @@ export async function registerRoutes(app) {
       const userData = await userResponse.json();
       const username = userData.login;
 
+      // Current year only for streak/daily tracking
       const currentYear = new Date().getFullYear();
       const yearStart = new Date(Date.UTC(currentYear, 0, 1));
       const sinceDate = yearStart.toISOString();
@@ -281,6 +282,75 @@ export async function registerRoutes(app) {
         totalCommits: totalCommitsFetched,
         username: username,
         reposChecked: repos.length
+      });
+    } catch (error) {
+      console.error("GitHub API error:", error);
+      res.status(500).json({ error: "Failed to fetch commits: " + error.message });
+    }
+  });
+
+  // Get total all-time commits (for badge display)
+  app.get("/api/github/total-commits", async (req, res) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+
+    try {
+      const userResponse = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!userResponse.ok) {
+        throw new Error("Failed to authenticate with GitHub");
+      }
+
+      const userData = await userResponse.json();
+      const username = userData.login;
+
+      const today = new Date();
+      const todayStr = today.toISOString().split("T")[0];
+      const currentYear = today.getFullYear();
+      const yearStart = `${currentYear}-01-01`;
+      const allTimeStart = "2008-01-01";
+
+      console.log(`\n=== Fast commit totals for ${username} ===`);
+
+      const searchHeaders = {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.cloak-preview+json",
+      };
+
+      const fetchCommitSearchCount = async (query) => {
+        const url = `https://api.github.com/search/commits?q=${encodeURIComponent(query)}&per_page=1`;
+        const response = await fetch(url, { headers: searchHeaders });
+        if (!response.ok) {
+          throw new Error(`Commit search failed: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.total_count || 0;
+      };
+
+      const yearlyQuery = `author:${username} committer-date:${yearStart}..${todayStr}`;
+      const allTimeQuery = `author:${username} committer-date:${allTimeStart}..${todayStr}`;
+
+      const [yearlyCommits, totalAllTimeCommits] = await Promise.all([
+        fetchCommitSearchCount(yearlyQuery),
+        fetchCommitSearchCount(allTimeQuery),
+      ]);
+
+      console.log(`Yearly commits: ${yearlyCommits}`);
+      console.log(`Total all-time commits: ${totalAllTimeCommits}\n`);
+
+      res.json({
+        totalAllTimeCommits,
+        yearlyCommits,
+        username: username,
       });
     } catch (error) {
       console.error("GitHub API error:", error);

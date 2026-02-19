@@ -13,8 +13,8 @@ import { WeeklyChart } from "@/components/WeeklyChart";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
-import { getStreakData, setStreakData, getEarnedBadges, setEarnedBadges } from "@/lib/storage";
-import { getGitHubCommits } from "@/lib/api";
+import { getStreakData, setStreakData, getEarnedBadges, setEarnedBadges, setTotalAllTimeCommits } from "@/lib/storage";
+import { getGitHubCommits, getTotalAllTimeCommits } from "@/lib/api";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
 const BADGES = [
@@ -52,6 +52,7 @@ export default function DashboardScreen() {
     if (user?.id) {
       loadStreakData();
       syncCommitsFromGitHub();
+      syncTotalsFromGitHub();
     }
   }, [user?.id]);
 
@@ -195,6 +196,33 @@ export default function DashboardScreen() {
     }
   };
 
+  const syncTotalsFromGitHub = async () => {
+    if (!user?.id) return;
+
+    try {
+      const totals = await getTotalAllTimeCommits();
+
+      if (typeof totals?.totalAllTimeCommits === "number") {
+        await setTotalAllTimeCommits(user.id, totals.totalAllTimeCommits);
+      }
+
+      if (typeof totals?.yearlyCommits === "number") {
+        setLocalStreakData((prev) => ({
+          ...prev,
+          yearlyCommits: totals.yearlyCommits,
+        }));
+
+        const existingData = await getStreakData(user.id);
+        await setStreakData(user.id, {
+          ...existingData,
+          yearlyCommits: totals.yearlyCommits,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to sync commit totals:", error);
+    }
+  };
+
   const checkAndAwardBadges = async (userId, longestStreak) => {
     try {
       const previouslyEarned = await getEarnedBadges(userId);
@@ -237,7 +265,7 @@ export default function DashboardScreen() {
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await syncCommitsFromGitHub();
+    await Promise.all([syncCommitsFromGitHub(), syncTotalsFromGitHub()]);
     setIsRefreshing(false);
   }, [user?.id]);
 

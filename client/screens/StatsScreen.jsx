@@ -13,7 +13,7 @@ import { WeeklyChart } from "@/components/WeeklyChart";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
-import { getStreakData } from "@/lib/storage";
+import { getStreakData, getTotalAllTimeCommits } from "@/lib/storage";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 // Format large numbers with K/M suffix (truncate, don't round)
@@ -99,6 +99,7 @@ export default function StatsScreen() {
     totalCommits: 0,
     yearlyCommits: 0,
   });
+  const [totalAllTimeCommits, setTotalAllTimeCommits] = useState(0);
 
   useEffect(() => {
     if (user?.id) {
@@ -110,6 +111,10 @@ export default function StatsScreen() {
     if (!user?.id) return;
     const data = await getStreakData(user.id);
     setStreakData(data);
+    
+    // Load total all-time commits
+    const totalCommits = await getTotalAllTimeCommits(user.id);
+    setTotalAllTimeCommits(totalCommits);
   };
 
   const earnedBadges = BADGES.filter((badge) => {
@@ -169,8 +174,8 @@ export default function StatsScreen() {
         <View style={styles.statsGrid}>
           <StatCard
             icon="git-commit"
-            value={streakData.totalCommits}
-            label="Total Commits"
+            value={totalAllTimeCommits}
+            label="Commits Ever"
             theme={theme}
           />
           <StatCard

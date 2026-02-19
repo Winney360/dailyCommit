@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   SETTINGS: (userId) => `@dailycommit_settings_${userId}`,
   COMMITS: (userId) => `@dailycommit_commits_${userId}`,
   EARNED_BADGES: (userId) => `@dailycommit_earned_badges_${userId}`,
+  TOTAL_ALL_TIME_COMMITS: (userId) => `@dailycommit_total_commits_${userId}`,
 };
 
 export async function getUser() {
@@ -161,5 +162,25 @@ export async function setEarnedBadges(userId, badgeIds) {
     await AsyncStorage.setItem(STORAGE_KEYS.EARNED_BADGES(userId), JSON.stringify(badgeIds));
   } catch (error) {
     console.error("Error setting earned badges:", error);
+  }
+}
+
+export async function getTotalAllTimeCommits(userId) {
+  if (!userId) return 0;
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.TOTAL_ALL_TIME_COMMITS(userId));
+    return data ? parseInt(data) : 0;
+  } catch (error) {
+    console.error("Error getting total all-time commits:", error);
+    return 0;
+  }
+}
+
+export async function setTotalAllTimeCommits(userId, count) {
+  if (!userId) return;
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_ALL_TIME_COMMITS(userId), String(count));
+  } catch (error) {
+    console.error("Error setting total all-time commits:", error);
   }
 }
