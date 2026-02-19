@@ -571,6 +571,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.md,
+    justifyContent: "center",
   },
   badgeCard: {
     width: "30%",
