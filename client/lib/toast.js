@@ -10,9 +10,9 @@ const toastConfig = {
       backgroundColor: "#10B981",
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 16,
+      marginHorizontal: 0,
+      marginBottom: 0,
+      borderRadius: 0,
     }}>
       <Text style={{ color: "white", fontWeight: "600", fontSize: 14 }}>
         {props.text1}
@@ -29,9 +29,9 @@ const toastConfig = {
       backgroundColor: "#EF4444",
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 16,
+      marginHorizontal: 0,
+      marginBottom: 0,
+      borderRadius: 0,
     }}>
       <Text style={{ color: "white", fontWeight: "600", fontSize: 14 }}>
         {props.text1}
@@ -48,9 +48,9 @@ const toastConfig = {
       backgroundColor: "#3B82F6",
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 16,
+      marginHorizontal: 0,
+      marginBottom: 0,
+      borderRadius: 0,
     }}>
       <Text style={{ color: "white", fontWeight: "600", fontSize: 14 }}>
         {props.text1}
@@ -67,9 +67,9 @@ const toastConfig = {
       backgroundColor: "#F59E0B",
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 16,
+      marginHorizontal: 0,
+      marginBottom: 0,
+      borderRadius: 0,
     }}>
       <Text style={{ color: "white", fontWeight: "600", fontSize: 14 }}>
         {props.text1}

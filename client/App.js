@@ -98,7 +98,11 @@ export default function App() {
           </AuthProvider>
         </QueryClientProvider>
       </ErrorBoundary>
-      <Toast config={toastConfig} />
+      <Toast 
+        config={toastConfig}
+        topOffset={0}
+        bottomOffset={0}
+      />
     </>
   );
 }
