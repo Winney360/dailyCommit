@@ -299,6 +299,8 @@ export async function registerRoutes(app) {
     const token = authHeader.replace("Bearer ", "");
 
     try {
+      console.log("[DELETE] Starting account deletion...");
+      
       const userResponse = await fetch("https://api.github.com/user", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -312,13 +314,17 @@ export async function registerRoutes(app) {
 
       const userData = await userResponse.json();
       const userId = String(userData.id);
-
+      
+      console.log(`[DELETE] GitHub user ID: ${userId}`);
+      
       await deleteUserById(userId);
+      
+      console.log(`[DELETE] Account deletion completed`);
 
       return res.json({ status: "deleted" });
     } catch (error) {
       console.error("Account delete error:", error);
-      return res.status(500).json({ error: "Failed to delete account" });
+      return res.status(500).json({ error: "Failed to delete account: " + error.message });
     }
   });
 

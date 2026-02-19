@@ -32,6 +32,7 @@ export default function SettingsScreen() {
   const [tempMinute, setTempMinute] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -181,37 +182,38 @@ export default function SettingsScreen() {
 
   const executeDeleteAccount = async () => {
     try {
+      console.log("Starting account deletion...");
       await cancelDailyReminder();
+      
+      console.log("Calling deleteAccount API...");
       await deleteAccount();
+      console.log("Account deleted from Firebase");
+      
       await clearAllData();
+      console.log("Local data cleared");
+      
       await logout();
+      console.log("Logged out");
 
       // Navigation will happen automatically via AuthContext state change
-      Alert.alert(
-        "Account Deleted",
+      if (Platform.OS === "web") {
+        setShowDeleteSuccess(true);
+        setTimeout(() => setShowDeleteSuccess(false), 2000);
+      } else {
+        Alert.alert(
+          "Account Deleted",
           "Your DailyCommit account has been permanently deleted."
-      );
+        );
+      }
     } catch (error) {
       console.error("Delete account error:", error);
-      Alert.alert("Error", "Failed to delete account. Please try again.");
+      Alert.alert("Error", "Failed to delete account: " + error.message);
     }
   };
 
   const handleDeleteAccount = async () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    }
-
-    if (Platform.OS === "web") {
-      const input = window.prompt(
-          "Type DELETE to confirm. This will permanently delete your DailyCommit account and data."
-      );
-      if (input === "DELETE") {
-        await executeDeleteAccount();
-      } else if (input !== null) {
-        window.alert("Delete cancelled. You must type DELETE exactly to confirm.");
-      }
-      return;
     }
 
     setDeleteInput("");
@@ -478,10 +480,11 @@ export default function SettingsScreen() {
                   styles.saveButton,
                   {
                     backgroundColor: deleteInput === "DELETE" ? theme.error : theme.border,
+                    opacity: deleteInput === "DELETE" ? 1 : 0.5,
                   },
                 ]}
-                disabled={deleteInput !== "DELETE"}
                 onPress={async () => {
+                  if (deleteInput !== "DELETE") return;
                   setShowDeleteModal(false);
                   await executeDeleteAccount();
                 }}
@@ -491,6 +494,26 @@ export default function SettingsScreen() {
                 </ThemedText>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Success Modal */}
+      <Modal
+        visible={showDeleteSuccess}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteSuccess(false)}
+      >
+        <View style={[styles.successModalContainer, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
+          <View style={[styles.successModalContent, { backgroundColor: theme.backgroundDefault }]}>
+            <Feather name="check-circle" size={48} color="#FB923C" />
+            <ThemedText type="h4" style={{ color: theme.text, marginTop: Spacing.md }}>
+              Account Deleted
+            </ThemedText>
+            <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm, textAlign: "center" }}>
+              Your DailyCommit account has been permanently deleted.
+            </ThemedText>
           </View>
         </View>
       </Modal>
@@ -599,5 +622,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     fontSize: 16,
+  },
+  successModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  successModalContent: {
+    borderRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xl,
+    alignItems: "center",
+    flex: 0,
+    width: 280,
   },
 });
