@@ -575,7 +575,9 @@ const styles = StyleSheet.create({
   },
   badgeCard: {
     width: "30%",
-    aspectRatio: 1,
+    flexGrow: 1,
+    maxWidth: "50%",
+    minHeight: 25,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
   },
