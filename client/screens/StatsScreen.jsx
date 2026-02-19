@@ -310,7 +310,7 @@ export default function StatsScreen() {
                       // Show progress toward next badge based on CURRENT streak
                       const current = streakData.currentStreak;
                       const remaining = Math.max(0, nextBadge.requirement - current);
-                      return `${current}/${nextBadge.requirement} (${remaining} more)`;
+                      return `${current}/${nextBadge.requirement} (${remaining} more days)`;
                     })()}
                   </ThemedText>
                 </View>
