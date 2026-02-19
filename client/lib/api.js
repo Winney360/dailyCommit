@@ -62,6 +62,21 @@ export async function getGitHubCommits() {
 }
 
 /**
+ * Delete the authenticated user's account data in Firestore
+ */
+export async function deleteAccount() {
+  try {
+    const data = await fetchAuthenticated("api/user/delete", {
+      method: "DELETE",
+    });
+    return data;
+  } catch (error) {
+    console.error("Failed to delete account:", error);
+    throw error;
+  }
+}
+
+/**
  * Refresh authentication token (if using refresh tokens)
  */
 export async function refreshToken() {

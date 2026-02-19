@@ -13,6 +13,7 @@ import { SettingsItem, SettingsSection } from "@/components/SettingsItem";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
 import { getSettings, setSettings, clearAllData } from "@/lib/storage";
+import { deleteAccount } from "@/lib/api";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 export default function SettingsScreen() {
@@ -176,47 +177,48 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleClearData = async () => {
+  const handleDeleteAccount = async () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     }
 
-    const doClearData = async () => {
+    const doDeleteAccount = async () => {
       try {
         await cancelDailyReminder();
+        await deleteAccount();
         await clearAllData();
         await logout();
 
         // Navigation will happen automatically via AuthContext state change
         Alert.alert(
-          "Data Cleared",
-          "All data has been cleared successfully."
+          "Account Deleted",
+          "Your DailyCommit account data has been deleted."
         );
       } catch (error) {
-        console.error("Clear data error:", error);
-        Alert.alert("Error", "Failed to clear data. Please try again.");
+        console.error("Delete account error:", error);
+        Alert.alert("Error", "Failed to delete account. Please try again.");
       }
     };
 
     if (Platform.OS === "web") {
       const confirmed = window.confirm(
-        "This will delete all your streak data and settings. This action cannot be undone."
+        "This will delete your DailyCommit account data from Firebase and remove local data. This action cannot be undone."
       );
       if (confirmed) {
-        await doClearData();
+        await doDeleteAccount();
       }
       return;
     }
 
     Alert.alert(
-      "Clear All Data",
-      "This will delete all your streak data and settings. This action cannot be undone.",
+      "Delete Account",
+      "This will delete your DailyCommit account data from Firebase and remove local data. This action cannot be undone.",
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Clear Data",
+          text: "Delete Account",
           style: "destructive",
-          onPress: doClearData,
+          onPress: doDeleteAccount,
         },
       ]
     );
@@ -321,11 +323,11 @@ export default function SettingsScreen() {
             onPress={handleLogout}
           />
           <SettingsItem
-            icon="trash-2"
-            title="Clear All Data"
-            subtitle="Delete all app data"
+            icon="user-x"
+            title="Delete Account"
+            subtitle="Remove your DailyCommit account"
             destructive
-            onPress={handleClearData}
+            onPress={handleDeleteAccount}
           />
         </SettingsSection>
       </Animated.View>

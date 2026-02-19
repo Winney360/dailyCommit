@@ -1,6 +1,6 @@
 // server/storage.js
 import { db } from "./firebase.js";
-import { collection, doc, setDoc, getDoc, query, where, getDocs, limit } from "firebase/firestore";
+import { collection, doc, setDoc, getDoc, deleteDoc, query, where, getDocs, limit } from "firebase/firestore";
 
 // Reference to the "users" collection
 const usersCol = collection(db, "users");
@@ -26,4 +26,10 @@ export async function getUserByUsername(username) {
   if (querySnapshot.empty) return undefined;
   const docData = querySnapshot.docs[0];
   return { id: docData.id, ...docData.data() };
+}
+
+// Delete user by ID
+export async function deleteUserById(id) {
+  const docRef = doc(usersCol, id);
+  await deleteDoc(docRef);
 }

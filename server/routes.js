@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { createUser, getUserById, getUserByUsername } from "./storage.js";
+import { createUser, getUserById, getUserByUsername, deleteUserById } from "./storage.js";
 
 /**
  * @param {import("express").Express} app
@@ -285,6 +285,40 @@ export async function registerRoutes(app) {
     } catch (error) {
       console.error("GitHub API error:", error);
       res.status(500).json({ error: "Failed to fetch commits: " + error.message });
+    }
+  });
+
+  // Delete DailyCommit account (Firestore user document)
+  app.delete("/api/user/delete", async (req, res) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+
+    try {
+      const userResponse = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      });
+
+      if (!userResponse.ok) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+
+      const userData = await userResponse.json();
+      const userId = String(userData.id);
+
+      await deleteUserById(userId);
+
+      return res.json({ status: "deleted" });
+    } catch (error) {
+      console.error("Account delete error:", error);
+      return res.status(500).json({ error: "Failed to delete account" });
     }
   });
 
