@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -6,6 +6,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
@@ -37,6 +38,32 @@ const customDarkTheme = {
 };
 
 export default function App() {
+  const [initialState, setInitialState] = useState();
+
+  useEffect(() => {
+    // Restore navigation state from storage
+    const restoreState = async () => {
+      try {
+        const savedState = await AsyncStorage.getItem("navigationState");
+        if (savedState) {
+          setInitialState(JSON.parse(savedState));
+        }
+      } catch (error) {
+        console.error("Failed to restore navigation state:", error);
+      }
+    };
+
+    restoreState();
+  }, []);
+
+  const onStateChange = async (state) => {
+    try {
+      await AsyncStorage.setItem("navigationState", JSON.stringify(state));
+    } catch (error) {
+      console.error("Failed to save navigation state:", error);
+    }
+  };
+
   useEffect(() => {
     // Handle notification response when user taps on notification
     const subscription = Notifications.addNotificationResponseReceivedListener(response => {
@@ -54,7 +81,11 @@ export default function App() {
           <SafeAreaProvider>
             <GestureHandlerRootView style={styles.root}>
               <KeyboardProvider>
-                <NavigationContainer theme={customDarkTheme}>
+                <NavigationContainer 
+                  theme={customDarkTheme}
+                  initialState={initialState}
+                  onStateChange={onStateChange}
+                >
                   <RootStackNavigator />
                 </NavigationContainer>
                 <StatusBar style="light" backgroundColor="#0A071B" />
