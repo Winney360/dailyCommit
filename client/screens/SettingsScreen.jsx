@@ -498,7 +498,7 @@ export default function SettingsScreen() {
       >
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
           <View style={[styles.successModalContent, { backgroundColor: theme.backgroundDefault }]}>
-            <Feather name="log-out" size={48} color={theme.primary} />
+            <Feather name="log-out" size={48} color="#EF4444" />
             <ThemedText type="h4" style={{ color: theme.text, marginTop: Spacing.md }}>
               Log Out?
             </ThemedText>

@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
+import { toastConfig } from "@/lib/toast";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
@@ -97,7 +98,7 @@ export default function App() {
           </AuthProvider>
         </QueryClientProvider>
       </ErrorBoundary>
-      <Toast />
+      <Toast config={toastConfig} />
     </>
   );
 }
