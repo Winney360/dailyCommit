@@ -137,7 +137,30 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    const doLogout = async () => {
+      try {
+        console.log("Starting logout...");
+        await cancelDailyReminder();
+        await logout();
+        console.log("Logout successful");
+        // Navigation will happen automatically via AuthContext state change
+      } catch (error) {
+        console.error("Logout error:", error);
+        Alert.alert("Error", "Failed to log out. Please try again.");
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm("Are you sure you want to log out?");
+      if (confirmed) {
+        await doLogout();
+      }
+      return;
+    }
 
     Alert.alert(
       "Log Out",
@@ -147,27 +170,43 @@ export default function SettingsScreen() {
         {
           text: "Log Out",
           style: "destructive",
-          onPress: async () => {
-            try {
-              console.log("Starting logout...");
-
-              await cancelDailyReminder();
-              await logout();
-
-              console.log("Logout successful");
-              // Navigation will happen automatically via AuthContext state change
-            } catch (error) {
-              console.error("Logout error:", error);
-              Alert.alert("Error", "Failed to log out. Please try again.");
-            }
-          },
+          onPress: doLogout,
         },
       ]
     );
   };
 
   const handleClearData = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
+
+    const doClearData = async () => {
+      try {
+        await cancelDailyReminder();
+        await clearAllData();
+        await logout();
+
+        // Navigation will happen automatically via AuthContext state change
+        Alert.alert(
+          "Data Cleared",
+          "All data has been cleared successfully."
+        );
+      } catch (error) {
+        console.error("Clear data error:", error);
+        Alert.alert("Error", "Failed to clear data. Please try again.");
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm(
+        "This will delete all your streak data and settings. This action cannot be undone."
+      );
+      if (confirmed) {
+        await doClearData();
+      }
+      return;
+    }
 
     Alert.alert(
       "Clear All Data",
@@ -177,22 +216,7 @@ export default function SettingsScreen() {
         {
           text: "Clear Data",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await cancelDailyReminder();
-              await clearAllData();
-              await logout();
-
-              // Navigation will happen automatically via AuthContext state change
-              Alert.alert(
-                "Data Cleared",
-                "All data has been cleared successfully."
-              );
-            } catch (error) {
-              console.error("Clear data error:", error);
-              Alert.alert("Error", "Failed to clear data. Please try again.");
-            }
-          },
+          onPress: doClearData,
         },
       ]
     );
