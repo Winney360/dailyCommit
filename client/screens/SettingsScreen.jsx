@@ -138,10 +138,6 @@ export default function SettingsScreen() {
     Linking.openURL("https://github.com/Winney360/dailyCommit.git");
   };
 
-  const handleFeedbackPress = () => {
-    Linking.openURL("mailto:nkathawinnie94@gmail.com?subject=DailyCommit Feedback");
-  };
-
   const handleLogout = async () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -270,13 +266,6 @@ export default function SettingsScreen() {
             subtitle="View on GitHub"
             showChevron
             onPress={handleGitHubPress}
-          />
-          <SettingsItem
-            icon="mail"
-            title="Send Feedback"
-            subtitle="Help us improve"
-            showChevron
-            onPress={handleFeedbackPress}
           />
         </SettingsSection>
       </Animated.View>
