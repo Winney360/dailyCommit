@@ -177,6 +177,7 @@ export default function SettingsScreen() {
       await deleteAccount();
       console.log("Account deleted from MongoDB");
       
+      // Clear ALL local data BEFORE logout to prevent toasts
       await clearAllData();
       console.log("Local data cleared");
       
@@ -218,14 +219,11 @@ export default function SettingsScreen() {
         });
       }
       
-      // Reset auth state
+      // Reset auth state - this should trigger navigation to login/GitHub screen
       await logout();
-      console.log("Logged out - GitHub token revoked");
-
-      showSuccessToast(
-        "Account Deleted",
-        "Your DailyCommit account has been permanently deleted."
-      );
+      console.log("Logged out - account fully deleted");
+      
+      // Don't show any toast after logout - user is already navigated away
     } catch (error) {
       console.error("Delete account error:", error);
       showErrorToast("Deletion Failed", error.message || "Could not delete account");
