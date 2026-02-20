@@ -403,6 +403,52 @@ export async function registerRoutes(app) {
     }
   });
 
+  // Add this new endpoint to revoke GitHub token
+  app.post("/api/auth/revoke-github-token", async (req, res) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ error: "GitHub OAuth not configured" });
+    }
+
+    try {
+      console.log("[REVOKE] Attempting to revoke GitHub OAuth token...");
+
+      const response = await fetch(
+        `https://api.github.com/applications/${clientId}/token`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+          body: JSON.stringify({ access_token: token }),
+        }
+      );
+
+      console.log("[REVOKE] GitHub API response:", response.status);
+
+      if (!response.ok) {
+        console.error("[REVOKE] Failed:", response.status, await response.text());
+      } else {
+        console.log("[REVOKE] Token revoked successfully");
+      }
+
+      return res.json({ status: "revoked", success: response.ok });
+    } catch (error) {
+      console.error("[REVOKE] Error revoking token:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

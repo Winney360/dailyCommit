@@ -22,7 +22,7 @@ export default function SettingsScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
 
   const [settings, setLocalSettings] = useState({
     reminderTime: "20:00",
@@ -34,7 +34,6 @@ export default function SettingsScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
-  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -46,6 +45,13 @@ export default function SettingsScreen() {
     if (!user?.id) return;
     const savedSettings = await getSettings(user.id);
     setLocalSettings(savedSettings);
+    
+    // Parse saved time for temp state
+    if (savedSettings?.reminderTime) {
+      const [hours, minutes] = savedSettings.reminderTime.split(":").map(Number);
+      setTempHour(hours);
+      setTempMinute(minutes);
+    }
   };
 
   const updateSetting = async (key, value) => {
@@ -57,8 +63,16 @@ export default function SettingsScreen() {
     // Handle notifications permission (skip on web)
     if (Platform.OS !== "web") {
       if (key === "notificationsEnabled" && value) {
-        await requestNotificationPermission();
-        await scheduleDailyReminder();
+        const hasPermission = await requestNotificationPermission();
+        if (hasPermission) {
+          await scheduleDailyReminder();
+        } else {
+          // Revert the setting if permission denied
+          const revertedSettings = { ...settings, [key]: false };
+          setLocalSettings(revertedSettings);
+          await setSettings(user.id, revertedSettings);
+          showErrorToast("Permission Denied", "Notifications permission is required for reminders");
+        }
       } else if (key === "notificationsEnabled" && !value) {
         await cancelDailyReminder();
       }
@@ -66,18 +80,26 @@ export default function SettingsScreen() {
   };
 
   const requestNotificationPermission = async () => {
-    if (Platform.OS === "web") return true; // Notifications not supported on web
+    if (Platform.OS === "web") return false;
     
-    const { status } = await Notifications.getPermissionsAsync();
-    if (status !== "granted") {
-      const { status: newStatus } = await Notifications.requestPermissionsAsync();
-      return newStatus === "granted";
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      
+      return finalStatus === "granted";
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
+      return false;
     }
-    return true;
   };
 
   const scheduleDailyReminder = async () => {
-    if (Platform.OS === "web") return; // Notifications not supported on web
+    if (Platform.OS === "web") return;
     
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
@@ -100,11 +122,12 @@ export default function SettingsScreen() {
       console.log("Daily reminder scheduled for", settings.reminderTime);
     } catch (error) {
       console.error("Failed to schedule reminder:", error);
+      showErrorToast("Reminder Failed", "Could not schedule daily reminder");
     }
   };
 
   const cancelDailyReminder = async () => {
-    if (Platform.OS === "web") return; // Notifications not supported on web
+    if (Platform.OS === "web") return;
     
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
@@ -128,9 +151,9 @@ export default function SettingsScreen() {
     
     if (settings.notificationsEnabled && Platform.OS !== "web") {
       await scheduleDailyReminder();
-      showSuccessToast("Reminder Set", `Reminder time set to ${formatTime(timeString)}`);
+      showSuccessToast("Reminder Set", `Daily reminder set for ${formatTime(timeString)}`);
     } else if (Platform.OS === "web") {
-      showInfoToast("Web Reminder", `Reminder time saved to ${formatTime(timeString)}. Notifications are only available on mobile devices.`);
+      showInfoToast("Time Saved", `Reminder time saved to ${formatTime(timeString)}. Notifications are only available on mobile devices.`);
     }
   };
 
@@ -138,12 +161,10 @@ export default function SettingsScreen() {
     Linking.openURL("https://github.com/Winney360/dailyCommit.git");
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-
-    // Show logout confirmation modal for all platforms
     setShowLogoutModal(true);
   };
 
@@ -159,33 +180,71 @@ export default function SettingsScreen() {
       await clearAllData();
       console.log("Local data cleared");
       
-      // Reset auth state to trigger GitHub authorization flow
-      await logout();
-      console.log("Logged out");
-
-      // Navigation will happen automatically via AuthContext state change
-      if (Platform.OS === "web") {
-        setShowDeleteSuccess(true);
-        setTimeout(() => setShowDeleteSuccess(false), 2000);
+      // Revoke GitHub OAuth token BEFORE logout
+      if (token) {
+        try {
+          const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+          console.log("Revoking token at:", apiUrl);
+          
+          const revokeRes = await fetch(
+            `${apiUrl}/api/auth/revoke-github-token`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          
+          if (!revokeRes.ok) {
+            console.error("Revoke failed:", revokeRes.status);
+          } else {
+            console.log("GitHub token revoked successfully");
+          }
+        } catch (error) {
+          console.error("Failed to revoke GitHub token:", error);
+        }
       } else {
-        showSuccessToast(
-          "Account Deleted",
-          "Your DailyCommit account has been permanently deleted."
-        );
+        console.warn("No token available, skipping GitHub revocation");
       }
+      
+      // Clear OAuth session (web)
+      if (Platform.OS === "web") {
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+      }
+      
+      // Reset auth state
+      await logout();
+      console.log("Logged out - GitHub token revoked");
+
+      showSuccessToast(
+        "Account Deleted",
+        "Your DailyCommit account has been permanently deleted."
+      );
     } catch (error) {
       console.error("Delete account error:", error);
-      showErrorToast("Deletion Failed", error.message);
+      showErrorToast("Deletion Failed", error.message || "Could not delete account");
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     }
-
     setDeleteInput("");
     setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = () => {
+    if (deleteInput === "DELETE") {
+      executeDeleteAccount();
+      setShowDeleteModal(false);
+    }
   };
 
   const formatTime = (time) => {
@@ -197,93 +256,91 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.backgroundRoot }}
-      contentContainerStyle={[
-        styles.container,
-        {
-          paddingTop: headerHeight + Spacing.xl,
-          paddingBottom: tabBarHeight + Spacing.xl,
-        },
-      ]}
-      scrollIndicatorInsets={{ bottom: insets.bottom }}
-    >
-      <Animated.View entering={FadeInUp.delay(100).duration(500)}>
-        <View
-          style={[styles.profileCard, { backgroundColor: theme.backgroundDefault }, Shadows.card]}
-        >
-          <View
-            style={[styles.avatarContainer, { backgroundColor: theme.primary + "20" }]}
-          >
-            {user?.avatarUrl ? (
-              <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
-            ) : (
-              <Feather name="user" size={32} color={theme.primary} />
-            )}
+    <View style={{ flex: 1, backgroundColor: theme.backgroundRoot }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.backgroundRoot }}
+        contentContainerStyle={[
+          styles.container,
+          {
+            paddingTop: headerHeight + Spacing.xl,
+            paddingBottom: tabBarHeight + Spacing.xl,
+          },
+        ]}
+        scrollIndicatorInsets={{ bottom: insets.bottom }}
+      >
+        <Animated.View entering={FadeInUp.delay(100).duration(500)}>
+          <View style={[styles.profileCard, { backgroundColor: theme.backgroundDefault }]}>
+            <View style={[styles.avatarContainer, { backgroundColor: theme.primary + "20" }]}>
+              {user?.avatarUrl ? (
+                <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
+              ) : (
+                <Feather name="user" size={32} color={theme.primary} />
+              )}
+            </View>
+            <View style={styles.profileInfo}>
+              <ThemedText type="h4">{user?.username || "Developer"}</ThemedText>
+              <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                {user?.email || "developer@example.com"}
+              </ThemedText>
+            </View>
           </View>
-          <View style={styles.profileInfo}>
-            <ThemedText type="h4">{user?.username || "Developer"}</ThemedText>
-            <ThemedText type="small" style={{ color: theme.textSecondary }}>
-              {user?.email || "developer@example.com"}
-            </ThemedText>
-          </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
 
-      <Animated.View entering={FadeInUp.delay(200).duration(500)}>
-        <SettingsSection title="Notifications">
-          <SettingsItem
-            icon="bell"
-            title="Daily Reminders"
-            subtitle="Get reminded to commit"
-            isSwitch
-            value={settings.notificationsEnabled}
-            onValueChange={(value) => updateSetting("notificationsEnabled", value)}
-          />
-          <SettingsItem
-            icon="clock"
-            title="Reminder Time"
-            subtitle={formatTime(settings.reminderTime)}
-            showChevron
-            onPress={handleReminderTimePress}
-          />
-        </SettingsSection>
-      </Animated.View>
+        <Animated.View entering={FadeInUp.delay(200).duration(500)}>
+          <SettingsSection title="Notifications">
+            <SettingsItem
+              icon="bell"
+              title="Daily Reminders"
+              subtitle="Get reminded to commit"
+              isSwitch
+              value={settings.notificationsEnabled}
+              onValueChange={(value) => updateSetting("notificationsEnabled", value)}
+            />
+            <SettingsItem
+              icon="clock"
+              title="Reminder Time"
+              subtitle={formatTime(settings.reminderTime)}
+              showChevron
+              onPress={handleReminderTimePress}
+            />
+          </SettingsSection>
+        </Animated.View>
 
-      <Animated.View entering={FadeInUp.delay(300).duration(500)}>
-        <SettingsSection title="About">
-          <SettingsItem
-            icon="info"
-            title="Version"
-            subtitle="1.0.0"
-          />
-          <SettingsItem
-            icon="github"
-            title="Source Code"
-            subtitle="View on GitHub"
-            showChevron
-            onPress={handleGitHubPress}
-          />
-        </SettingsSection>
-      </Animated.View>
+        <Animated.View entering={FadeInUp.delay(300).duration(500)}>
+          <SettingsSection title="About">
+            <SettingsItem
+              icon="info"
+              title="Version"
+              subtitle="1.0.0"
+            />
+            <SettingsItem
+              icon="github"
+              title="Source Code"
+              subtitle="View on GitHub"
+              showChevron
+              onPress={handleGitHubPress}
+            />
+          </SettingsSection>
+        </Animated.View>
 
-      <Animated.View entering={FadeInUp.delay(400).duration(500)}>
-        <SettingsSection title="Account">
-          <SettingsItem
-            icon="log-out"
-            title="Log Out"
-            subtitle="Sign out of your account"
-            onPress={handleLogout}
-          />
-          <SettingsItem
-            icon="user-x"
-            title="Delete Account"
-            subtitle="Remove your DailyCommit account"
-            destructive
-            onPress={handleDeleteAccount}
-          />
-        </SettingsSection>
-      </Animated.View>
+        <Animated.View entering={FadeInUp.delay(400).duration(500)}>
+          <SettingsSection title="Account">
+            <SettingsItem
+              icon="log-out"
+              title="Log Out"
+              subtitle="Sign out of your account"
+              onPress={handleLogout}
+            />
+            <SettingsItem
+              icon="user-x"
+              title="Delete Account"
+              subtitle="Remove your DailyCommit account"
+              destructive
+              onPress={handleDeleteAccount}
+            />
+          </SettingsSection>
+        </Animated.View>
+      </ScrollView>
 
       {/* Time Picker Modal */}
       <Modal
@@ -292,200 +349,124 @@ export default function SettingsScreen() {
         animationType="slide"
         onRequestClose={() => setShowTimePicker(false)}
       >
-        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}>
+        <View style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
-            <View style={styles.modalHeader}>
-              <ThemedText type="h4" style={{ color: theme.text }}>
-                Set Reminder Time
-              </ThemedText>
-              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                <Feather name="x" size={24} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Time Display */}
-            <View style={[styles.timeDisplay, { backgroundColor: theme.primary + "10", borderColor: theme.primary }]}>
-              <ThemedText type="h1" style={{ color: theme.primary, fontWeight: "900" }}
-              >
-                {String(tempHour).padStart(2, "0")}:{String(tempMinute).padStart(2, "0")}
-              </ThemedText>
-              <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.sm }}
-              >
-                {formatTime(`${String(tempHour).padStart(2, "0")}:${String(tempMinute).padStart(2, "0")}`)}
-              </ThemedText>
-            </View>
-
-            {/* Hour Picker */}
-            <View style={styles.pickerSection}>
-              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}
-              >
-                Hours
-              </ThemedText>
-              <View style={styles.numberPicker}>
+            <ThemedText type="h4" style={styles.modalTitle}>
+              Set Reminder Time
+            </ThemedText>
+            
+            <View style={styles.pickerContainer}>
+              <View style={styles.pickerColumn}>
                 <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
-                  }
-                  onPress={() => setTempHour(tempHour === 0 ? 23 : tempHour - 1)}
+                  style={[styles.pickerArrow, { backgroundColor: theme.backgroundRoot }]}
+                  onPress={() => setTempHour((h) => (h === 23 ? 0 : h + 1))}
                 >
-                  <Feather name="minus" size={20} color={theme.primary} />
+                  <Feather name="chevron-up" size={24} color={theme.text} />
                 </TouchableOpacity>
-                <View style={[styles.pickerValue, { borderColor: theme.border }]}>
-                  <ThemedText type="h5">{String(tempHour).padStart(2, "0")}</ThemedText>
+                <View style={[styles.pickerValue, { borderColor: theme.textTertiary }]}>
+                  <ThemedText type="h2">{String(tempHour).padStart(2, "0")}</ThemedText>
                 </View>
                 <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
-                  }
-                  onPress={() => setTempHour(tempHour === 23 ? 0 : tempHour + 1)}
+                  style={[styles.pickerArrow, { backgroundColor: theme.backgroundRoot }]}
+                  onPress={() => setTempHour((h) => (h === 0 ? 23 : h - 1))}
                 >
-                  <Feather name="plus" size={20} color={theme.primary} />
+                  <Feather name="chevron-down" size={24} color={theme.text} />
+                </TouchableOpacity>
+              </View>
+
+              <ThemedText type="h2" style={styles.pickerSeparator}>:</ThemedText>
+
+              <View style={styles.pickerColumn}>
+                <TouchableOpacity
+                  style={[styles.pickerArrow, { backgroundColor: theme.backgroundRoot }]}
+                  onPress={() => setTempMinute((m) => (m === 59 ? 0 : m + 1))}
+                >
+                  <Feather name="chevron-up" size={24} color={theme.text} />
+                </TouchableOpacity>
+                <View style={[styles.pickerValue, { borderColor: theme.textTertiary }]}>
+                  <ThemedText type="h2">{String(tempMinute).padStart(2, "0")}</ThemedText>
+                </View>
+                <TouchableOpacity
+                  style={[styles.pickerArrow, { backgroundColor: theme.backgroundRoot }]}
+                  onPress={() => setTempMinute((m) => (m === 0 ? 59 : m - 1))}
+                >
+                  <Feather name="chevron-down" size={24} color={theme.text} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Minute Picker */}
-            <View style={styles.pickerSection}>
-              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}
-              >
-                Minutes
-              </ThemedText>
-              <View style={styles.numberPicker}>
-                <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
-                  }
-                  onPress={() => setTempMinute(tempMinute === 0 ? 59 : tempMinute - 1)}
-                >
-                  <Feather name="minus" size={20} color={theme.primary} />
-                </TouchableOpacity>
-                <View style={[styles.pickerValue, { borderColor: theme.border }]}>
-                  <ThemedText type="h5">{String(tempMinute).padStart(2, "0")}</ThemedText>
-                </View>
-                <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
-                  }
-                  onPress={() => setTempMinute(tempMinute === 59 ? 0 : tempMinute + 1)}
-                >
-                  <Feather name="plus" size={20} color={theme.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Buttons */}
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.cancelButton, { borderColor: theme.border }]
-                }
+                style={[styles.modalButton, styles.cancelButton, { borderColor: theme.textTertiary }]}
                 onPress={() => setShowTimePicker(false)}
               >
-                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}
-                >
-                  Cancel
-                </ThemedText>
+                <ThemedText>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: theme.primary }]
-                }
+                style={[styles.modalButton, styles.saveButton, { backgroundColor: theme.primary }]}
                 onPress={handleTimePickerSave}
               >
-                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}
-                >
-                  Save
-                </ThemedText>
+                <ThemedText style={{ color: "white" }}>Save</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* Delete Account Modal */}
+      {/* Delete Account Confirmation Modal */}
       <Modal
         visible={showDeleteModal}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowDeleteModal(false)}
       >
-        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}>
+        <View style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
-            <View style={styles.modalHeader}>
-              <ThemedText type="h4" style={{ color: theme.text }}>
-                Delete Account
-              </ThemedText>
-              <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
-                <Feather name="x" size={24} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-
-            <ThemedText type="body" style={{ color: theme.textSecondary, marginBottom: Spacing.lg }}>
-                Type DELETE to permanently remove your DailyCommit account and data.
+            <ThemedText type="h4" style={styles.modalTitle}>
+              Delete Account?
+            </ThemedText>
+            
+            <ThemedText style={[styles.modalText, { color: theme.textSecondary }]}>
+              This action cannot be undone. Type "DELETE" to confirm.
             </ThemedText>
 
             <TextInput
-              value={deleteInput}
-              onChangeText={setDeleteInput}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              placeholder="Type DELETE"
-              placeholderTextColor={theme.textSecondary}
               style={[
                 styles.deleteInput,
                 {
-                  borderColor: deleteInput === "DELETE" ? theme.primary : theme.border,
+                  backgroundColor: theme.backgroundRoot,
+                  borderColor: theme.textTertiary,
                   color: theme.text,
-                  backgroundColor: theme.backgroundSecondary,
                 },
               ]}
+              placeholder="Type DELETE"
+              placeholderTextColor={theme.textTertiary}
+              value={deleteInput}
+              onChangeText={setDeleteInput}
+              autoCapitalize="characters"
             />
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.cancelButton, { borderColor: theme.border }]
-                }
+                style={[styles.modalButton, styles.cancelButton, { borderColor: theme.textTertiary }]}
                 onPress={() => setShowDeleteModal(false)}
               >
-                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}
-                >
-                  Cancel
-                </ThemedText>
+                <ThemedText>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
-                  styles.saveButton,
+                  styles.modalButton,
+                  styles.deleteButton,
                   {
-                    backgroundColor: deleteInput === "DELETE" ? theme.error : theme.border,
-                    opacity: deleteInput === "DELETE" ? 1 : 0.5,
+                    backgroundColor: deleteInput === "DELETE" ? "#DC2626" : theme.textTertiary,
                   },
                 ]}
-                onPress={async () => {
-                  if (deleteInput !== "DELETE") return;
-                  setShowDeleteModal(false);
-                  await executeDeleteAccount();
-                }}
+                onPress={confirmDeleteAccount}
+                disabled={deleteInput !== "DELETE"}
               >
-                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}
-                >
-                  Delete Account
-                </ThemedText>
+                <ThemedText style={{ color: "white" }}>Delete</ThemedText>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Delete Success Modal */}
-      <Modal
-        visible={showDeleteSuccess}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDeleteSuccess(false)}
-      >
-        <View style={[styles.successModalContainer, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
-          <View style={[styles.successModalContent, { backgroundColor: theme.backgroundDefault }]}>
-            <Feather name="check-circle" size={48} color="#FB923C" />
-            <ThemedText type="h4" style={{ color: theme.text, marginTop: Spacing.md }}>
-              Account Deleted
-            </ThemedText>
-            <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm, textAlign: "center" }}>
-              Your DailyCommit account has been permanently deleted.
-            </ThemedText>
           </View>
         </View>
       </Modal>
@@ -497,55 +478,37 @@ export default function SettingsScreen() {
         animationType="fade"
         onRequestClose={() => setShowLogoutModal(false)}
       >
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View style={[styles.successModalContent, { backgroundColor: theme.backgroundDefault }]}>
-            <Feather name="log-out" size={48} color="#EF4444" />
-            <ThemedText type="h4" style={{ color: theme.text, marginTop: Spacing.md }}>
-              Log Out?
+        <View style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
+            <ThemedText type="h4" style={styles.modalTitle}>
+              Sign Out?
             </ThemedText>
-            <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm, textAlign: "center" }}>
-              Are you sure you want to log out?
+            
+            <ThemedText style={[styles.modalText, { color: theme.textSecondary }]}>
+              Are you sure you want to sign out?
             </ThemedText>
-            <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl, width: "100%" }}>
+
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.cancelButton, { borderColor: theme.border, backgroundColor: "transparent" }]
-                }
+                style={[styles.modalButton, styles.cancelButton, { borderColor: theme.textTertiary }]}
                 onPress={() => setShowLogoutModal(false)}
               >
-                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}
-                >
-                  Cancel
-                </ThemedText>
+                <ThemedText>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: theme.primary }]
-                }
-                onPress={async () => {
+                style={[styles.modalButton, styles.saveButton, { backgroundColor: theme.primary }]}
+                onPress={() => {
                   setShowLogoutModal(false);
-                  const doLogout = async () => {
-                    try {
-                      console.log("Starting logout...");
-                      await cancelDailyReminder();
-                      await logout();
-                      console.log("Logout successful");
-                    } catch (error) {
-                      console.error("Logout error:", error);
-                      showErrorToast("Logout Failed", "Please try again");
-                    }
-                  };
-                  await doLogout();
+                  logout();
                 }}
               >
-                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}
-                >
-                  Log Out
-                </ThemedText>
+                <ThemedText style={{ color: "white" }}>Sign Out</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -559,6 +522,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
     marginBottom: Spacing.xl,
+    ...Shadows.card,
   },
   avatarContainer: {
     width: 64,
@@ -577,41 +541,36 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.lg,
     gap: 2,
   },
-  // Time Picker Modal Styles
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    paddingTop: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    width: "90%",
+    maxWidth: 400,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
   },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  modalTitle: {
+    marginBottom: Spacing.md,
+    textAlign: "center",
+  },
+  modalText: {
     marginBottom: Spacing.xl,
+    textAlign: "center",
   },
-  timeDisplay: {
-    alignItems: "center",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.xxl,
-    borderWidth: 2,
-  },
-  pickerSection: {
-    marginBottom: Spacing.xl,
-  },
-  numberPicker: {
+  pickerContainer: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.lg,
+    alignItems: "center",
+    marginBottom: Spacing.xl,
   },
-  pickerButton: {
+  pickerColumn: {
+    alignItems: "center",
+    width: 80,
+  },
+  pickerArrow: {
     width: 48,
     height: 48,
     borderRadius: BorderRadius.md,
@@ -619,30 +578,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   pickerValue: {
-    width: 80,
-    height: 60,
+    width: "100%",
+    height: 70,
     borderWidth: 1,
     borderRadius: BorderRadius.md,
     justifyContent: "center",
     alignItems: "center",
+    marginVertical: Spacing.sm,
+  },
+  pickerSeparator: {
+    marginHorizontal: Spacing.md,
   },
   modalButtons: {
     flexDirection: "row",
     gap: Spacing.md,
-    marginTop: Spacing.xxl,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
   },
   cancelButton: {
-    flex: 1,
-    paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
   },
   saveButton: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
+    borderWidth: 0,
+  },
+  deleteButton: {
+    borderWidth: 0,
   },
   deleteInput: {
     borderWidth: 1,
@@ -650,18 +614,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     fontSize: 16,
-  },
-  successModalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  successModalContent: {
-    borderRadius: BorderRadius.xl,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xl,
-    alignItems: "center",
-    flex: 0,
-    width: 280,
+    marginBottom: Spacing.xl,
   },
 });
