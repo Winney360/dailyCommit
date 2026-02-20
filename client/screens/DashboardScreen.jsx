@@ -14,6 +14,7 @@ import { WeeklyChart } from "@/components/WeeklyChart";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
+import { useResponsive } from "@/hooks/useResponsive";
 import { getStreakData, setStreakData, getEarnedBadges, setEarnedBadges, setTotalAllTimeCommits } from "@/lib/storage";
 import { getGitHubCommits, getTotalAllTimeCommits } from "@/lib/api";
 import { Spacing, BorderRadius } from "@/constants/theme";
@@ -35,6 +36,7 @@ export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const { contentMaxWidth } = useResponsive();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -300,6 +302,9 @@ export default function DashboardScreen() {
         {
           paddingTop: headerHeight + Spacing.xl,
           paddingBottom: tabBarHeight + Spacing.xl,
+          maxWidth: contentMaxWidth,
+          alignSelf: contentMaxWidth ? "center" : undefined,
+          width: "100%",
         },
       ]}
       scrollIndicatorInsets={{ bottom: insets.bottom }}

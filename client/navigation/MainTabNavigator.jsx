@@ -8,11 +8,13 @@ import DashboardStackNavigator from "@/navigation/DashboardStackNavigator";
 import StatsStackNavigator from "@/navigation/StatsStackNavigator";
 import SettingsStackNavigator from "@/navigation/SettingsStackNavigator";
 import { useTheme } from "@/hooks/useTheme";
+import { useResponsive } from "@/hooks/useResponsive";
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
+  const { isTablet } = useResponsive();
 
   return (
     <Tab.Navigator
@@ -25,10 +27,26 @@ export default function MainTabNavigator() {
           backgroundColor: Platform.select({
             ios: "transparent",
             android: theme.backgroundRoot,
+            web: isTablet ? theme.backgroundDefault : theme.backgroundRoot,
           }),
           borderTopWidth: 0,
+          borderRightWidth: Platform.OS === "web" && isTablet ? 1 : 0,
+          borderRightColor: theme.border,
           elevation: 0,
+          ...(Platform.OS === "web" && isTablet
+            ? {
+                width: 220,
+                height: "100%",
+                paddingTop: 24,
+                paddingBottom: 24,
+                flexDirection: "column",
+              }
+            : {}),
         },
+        tabBarLabelStyle:
+          Platform.OS === "web" && isTablet
+            ? { fontSize: 13, marginTop: 4 }
+            : undefined,
         tabBarBackground: () =>
           Platform.OS === "ios" ? (
             <BlurView
