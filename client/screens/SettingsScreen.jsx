@@ -12,6 +12,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { SettingsItem, SettingsSection } from "@/components/SettingsItem";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
+import { useResponsive } from "@/hooks/useResponsive";
 import { getSettings, setSettings, clearAllData } from "@/lib/storage";
 import { deleteAccount } from "@/lib/api";
 import { showSuccessToast, showErrorToast, showInfoToast } from "@/lib/toast";
@@ -23,6 +24,7 @@ export default function SettingsScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { user, logout, token } = useAuth();
+  const { contentMaxWidth } = useResponsive();
 
   const [settings, setLocalSettings] = useState({
     reminderTime: "20:00",
@@ -262,6 +264,9 @@ export default function SettingsScreen() {
           {
             paddingTop: headerHeight + Spacing.xl,
             paddingBottom: tabBarHeight + Spacing.xl,
+            maxWidth: contentMaxWidth,
+            alignSelf: contentMaxWidth ? "center" : undefined,
+            width: "100%",
           },
         ]}
         scrollIndicatorInsets={{ bottom: insets.bottom }}

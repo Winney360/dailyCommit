@@ -13,6 +13,7 @@ import { WeeklyChart } from "@/components/WeeklyChart";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
+import { useResponsive } from "@/hooks/useResponsive";
 import { getStreakData, getTotalAllTimeCommits } from "@/lib/storage";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
@@ -89,6 +90,7 @@ export default function StatsScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const { contentMaxWidth, gridColumns } = useResponsive();
 
   const [streakData, setStreakData] = useState({
     currentStreak: 0,
@@ -166,44 +168,29 @@ export default function StatsScreen() {
         {
           paddingTop: headerHeight + Spacing.xl,
           paddingBottom: tabBarHeight + Spacing.xl,
+          maxWidth: contentMaxWidth,
+          alignSelf: contentMaxWidth ? "center" : undefined,
+          width: "100%",
         },
       ]}
       scrollIndicatorInsets={{ bottom: insets.bottom }}
     >
       <Animated.View entering={FadeInUp.delay(100).duration(500)}>
-        <View style={styles.statsGrid}>
-          <StatCard
-            icon="git-commit"
-            value={totalAllTimeCommits}
-            label="Commits Ever"
-            theme={theme}
-          />
-          <StatCard
-            icon="calendar"
-            value={streakData.yearlyCommits}
-            label="This Year"
-            theme={theme}
-          />
-          <StatCard
-            icon="zap"
-            value={streakData.currentStreak}
-            label="Current Streak"
-            theme={theme}
-            highlight
-          />
-          <StatCard
-            icon="award"
-            value={streakData.longestStreak}
-            label="Best Streak"
-            theme={theme}
-          />
-          <LevelCard
-            level={getCurrentLevel(streakData.totalCommits)}
-            progress={getLevelProgress(streakData.totalCommits)}
-            theme={theme}
-            highlight
-          />
-        </View>
+        {(() => {
+          // Subtract ~1.5% per item to account for gap spacing between columns
+          const itemWidth = `${(100 / gridColumns - 1.5).toFixed(1)}%`;
+          // Override the base statCard flex/minWidth so explicit width controls sizing
+          const itemStyle = { width: itemWidth, flex: 0, minWidth: 0 };
+          return (
+            <View style={styles.statsGrid}>
+              <StatCard icon="git-commit" value={totalAllTimeCommits} label="Commits Ever" theme={theme} style={itemStyle} />
+              <StatCard icon="calendar" value={streakData.yearlyCommits} label="This Year" theme={theme} style={itemStyle} />
+              <StatCard icon="zap" value={streakData.currentStreak} label="Current Streak" theme={theme} highlight style={itemStyle} />
+              <StatCard icon="award" value={streakData.longestStreak} label="Best Streak" theme={theme} style={itemStyle} />
+              <LevelCard level={getCurrentLevel(streakData.totalCommits)} progress={getLevelProgress(streakData.totalCommits)} theme={theme} highlight style={itemStyle} />
+            </View>
+          );
+        })()}
       </Animated.View>
 
       {streakData.currentStreak === 0 && streakData.longestStreak > 0 ? (
@@ -339,12 +326,13 @@ export default function StatsScreen() {
   );
 }
 
-function StatCard({ icon, value, label, theme, highlight = false }) {
+function StatCard({ icon, value, label, theme, highlight = false, style }) {
   return (
     <View
       style={[
         styles.statCard,
         Shadows.card,
+        style,
       ]}
     >
       <LinearGradient
@@ -392,12 +380,13 @@ function StatCard({ icon, value, label, theme, highlight = false }) {
   );
 }
 
-function LevelCard({ level, progress, theme, highlight = false }) {
+function LevelCard({ level, progress, theme, highlight = false, style }) {
   return (
     <View
       style={[
         styles.statCard,
         Shadows.card,
+        style,
       ]}
     >
       <LinearGradient
