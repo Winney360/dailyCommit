@@ -116,16 +116,21 @@ export async function registerRoutes(app) {
         createdAt: new Date().toISOString(),
       };
 
+      console.log("[OAuth] User object prepared:", user);
+
       try {
+        console.log("[OAuth] Checking if user exists:", user.id);
         const existingUser = await getUserById(user.id);
         if (!existingUser) {
+          console.log("[OAuth] User does not exist, creating...");
           await createUser(user);
-          console.log(`New user created: ${user.username}`);
+          console.log(`[OAuth SUCCESS] New user created: ${user.username}`);
         } else {
-          console.log(`User already exists: ${user.username}`);
+          console.log(`[OAuth] User already exists: ${user.username}`);
         }
       } catch (dbError) {
-        console.error("Database error (non-critical):", dbError.message);
+        console.error("[OAuth ERROR] Database error:", dbError.message);
+        console.error(dbError.stack);
       }
 
       const userParam = encodeURIComponent(JSON.stringify(user));

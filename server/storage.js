@@ -1,177 +1,128 @@
-// server/storage.js
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID;
-const API_KEY = process.env.FIREBASE_API_KEY;
-const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+import { getDB } from "./db.js";
+import { ObjectId } from "mongodb";
 
-function convertFirestoreValue(value) {
-  if (value === null || value === undefined) return { nullValue: null };
-  if (typeof value === "string") return { stringValue: value };
-  if (typeof value === "number") return { integerValue: String(value) };
-  if (typeof value === "boolean") return { booleanValue: value };
-  return { stringValue: String(value) };
-}
-
-function extractFirestoreData(fields) {
-  if (!fields) return {};
-  const result = {};
-  for (const [key, value] of Object.entries(fields)) {
-    if (value.stringValue) result[key] = value.stringValue;
-    else if (value.integerValue) result[key] = parseInt(value.integerValue);
-    else if (value.booleanValue) result[key] = value.booleanValue;
-    else if (value.nullValue) result[key] = null;
-    else result[key] = value;
-  }
-  return result;
-}
-
-// Create a new user
 export async function createUser(user) {
   try {
     if (!user.id) throw new Error("User ID is required");
-    
-    const fields = {};
-    for (const [key, value] of Object.entries(user)) {
-      fields[key] = convertFirestoreValue(value);
-    }
-    
-    const docId = String(user.id);
-    const url = `${BASE_URL}/users/${docId}?key=${API_KEY}`;
-    
-    const response = await fetch(url, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fields }),
-    });
-    
-    if (!response.ok) throw new Error(`Failed to create user: ${response.statusText}`);
-    return { id: docId, ...user };
+
+    const db = getDB();
+    const usersCollection = db.collection("users");
+
+    const userData = {
+      _id: new ObjectId(),
+      id: String(user.id),
+      username: user.username,
+      email: user.email || null,
+      avatarUrl: user.avatarUrl || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    console.log(`[MongoDB] Creating user ${user.username} with GitHub ID ${user.id}`);
+
+    const result = await usersCollection.insertOne(userData);
+
+    console.log(`[MongoDB] User created successfully with _id: ${result.insertedId}`);
+    return { id: result.insertedId, ...userData };
   } catch (error) {
-    console.error("Error in createUser:", error);
+    console.error("Error in createUser:", error.message);
     throw error;
   }
 }
 
-// Get user by ID
 export async function getUserById(id) {
   try {
-    const docId = String(id);
-    const url = `${BASE_URL}/users/${docId}?key=${API_KEY}`;
-    
-    const response = await fetch(url);
-    if (response.ok) {
-      const doc = await response.json();
-      return { id: doc.name.split("/").pop(), ...extractFirestoreData(doc.fields) };
+    const db = getDB();
+    const usersCollection = db.collection("users");
+
+    console.log(`[MongoDB] Fetching user with GitHub ID ${id}`);
+
+    const user = await usersCollection.findOne({ id: String(id) });
+
+    if (user) {
+      console.log(`[MongoDB] User found: ${user.username}`);
+      return user;
     }
-    
-    // Fallback: query by "id" field
-    const queryUrl = `${BASE_URL}:runQuery?key=${API_KEY}`;
-    const queryBody = {
-      structuredQuery: {
-        from: [{ collectionId: "users" }],
-        where: {
-          fieldFilter: {
-            field: { fieldPath: "id" },
-            op: "EQUAL",
-            value: convertFirestoreValue(id),
-          },
-        },
-      },
-    };
-    
-    const queryResponse = await fetch(queryUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(queryBody),
-    });
-    
-    if (!queryResponse.ok) return null;
-    
-    const results = await queryResponse.json();
-    if (results.length === 0) return null;
-    
-    const firstDoc = results[0].document;
-    return { id: firstDoc.name.split("/").pop(), ...extractFirestoreData(firstDoc.fields) };
+
+    console.log(`[MongoDB] User not found with GitHub ID ${id}`);
+    return null;
   } catch (error) {
-    console.error("Error in getUserById:", error);
+    console.error("Error in getUserById:", error.message);
     return null;
   }
 }
 
-// Get user by username
 export async function getUserByUsername(username) {
   try {
-    const queryUrl = `${BASE_URL}:runQuery?key=${API_KEY}`;
-    const queryBody = {
-      structuredQuery: {
-        from: [{ collectionId: "users" }],
-        where: {
-          fieldFilter: {
-            field: { fieldPath: "username" },
-            op: "EQUAL",
-            value: convertFirestoreValue(username),
-          },
-        },
-      },
-    };
-    
-    const response = await fetch(queryUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(queryBody),
-    });
-    
-    if (!response.ok) return null;
-    
-    const results = await response.json();
-    if (results.length === 0) return null;
-    
-    const firstDoc = results[0].document;
-    return { id: firstDoc.name.split("/").pop(), ...extractFirestoreData(firstDoc.fields) };
+    const db = getDB();
+    const usersCollection = db.collection("users");
+
+    console.log(`[MongoDB] Fetching user by username: ${username}`);
+
+    const user = await usersCollection.findOne({ username: username });
+
+    if (user) {
+      console.log(`[MongoDB] User found: ${user.username}`);
+      return user;
+    }
+
+    console.log(`[MongoDB] User not found with username ${username}`);
+    return null;
   } catch (error) {
-    console.error("Error in getUserByUsername:", error);
+    console.error("Error in getUserByUsername:", error.message);
     return null;
   }
 }
 
-// Delete user by ID
 export async function deleteUserById(githubId) {
   try {
-    console.log(`[DELETE] Starting deletion for GitHub ID: ${githubId}`);
-    
-    const docId = String(githubId);
-    
-    // Try direct delete first
-    const url = `${BASE_URL}/users/${docId}?key=${API_KEY}`;
-    
-    console.log(`[DELETE] Attempting direct document deletion...`);
-    const response = await fetch(url, { method: "DELETE" });
-    
-    if (response.ok) {
-      console.log(`[DELETE] Document deleted successfully via direct ID`);
-      return { success: true };
+    const db = getDB();
+    const usersCollection = db.collection("users");
+
+    console.log(`[MongoDB] Deleting user with GitHub ID ${githubId}`);
+
+    const result = await usersCollection.deleteOne({ id: String(githubId) });
+
+    if (result.deletedCount === 0) {
+      console.log(`[MongoDB] User not found for deletion`);
+      return { success: false };
     }
-    
-    console.log(`[DELETE] Direct deletion failed, attempting query-based deletion...`);
-    
-    // Query by "id" field and delete
-    const user = await getUserById(githubId);
-    if (!user) {
-      console.log(`[DELETE] User not found with ID: ${githubId} - treating as already deleted`);
-      return { success: true, message: "User already deleted or does not exist" };
-    }
-    
-    console.log(`[DELETE] Found user document, deleting...`);
-    const deleteUrl = `${BASE_URL}/users/${user.id}?key=${API_KEY}`;
-    const deleteResponse = await fetch(deleteUrl, { method: "DELETE" });
-    
-    if (!deleteResponse.ok) {
-      throw new Error(`Failed to delete document: ${deleteResponse.statusText}`);
-    }
-    
-    console.log(`[DELETE] Document deleted successfully`);
-    return { success: true };
+
+    console.log(`[MongoDB] User deleted successfully`);
+    return { success: true, deletedCount: result.deletedCount };
   } catch (error) {
-    console.error("[DELETE] Error deleting user:", error);
+    console.error("Error in deleteUserById:", error.message);
+    throw error;
+  }
+}
+
+export async function updateUser(githubId, updates) {
+  try {
+    const db = getDB();
+    const usersCollection = db.collection("users");
+
+    console.log(`[MongoDB] Updating user with GitHub ID ${githubId}`);
+
+    const result = await usersCollection.updateOne(
+      { id: String(githubId) },
+      {
+        $set: {
+          ...updates,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      console.log(`[MongoDB] User not found for update`);
+      return null;
+    }
+
+    const updatedUser = await usersCollection.findOne({ id: String(githubId) });
+    console.log(`[MongoDB] User updated successfully`);
+    return updatedUser;
+  } catch (error) {
+    console.error("Error in updateUser:", error.message);
     throw error;
   }
 }

@@ -1,12 +1,25 @@
-import express from "express";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import dotenv from "dotenv";
-import fs from "fs";
-import { registerRoutes } from "./routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+const envResult = dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+if (envResult.error) {
+  console.warn('[dotenv] Error loading .env file:', envResult.error.message);
+} else {
+  console.log('[dotenv] Successfully loaded .env file');
+  if (process.env.MONGODB_URI) {
+    console.log(`[dotenv] MONGODB_URI loaded`);
+  } else {
+    console.warn('[dotenv] MONGODB_URI is not set!');
+  }
+}
+
+import express from "express";
+import fs from "fs";
+import { registerRoutes } from "./routes.js";
+import { connectDB, closeDB } from "./db.js";
 
 const app = express();
 const log = console.log;
@@ -113,18 +126,33 @@ function configureExpo(app) {
 
 configureExpo(app);
 
-// ------------------------ Register your routes ------------------------
+// Register your routes and start server
 (async () => {
-  const server = await registerRoutes(app);
+  try {
+    // Connect to MongoDB before registering routes
+    await connectDB();
 
-  // ------------------------ Error handler ------------------------
-  app.use((err, _req, res, _next) => {
-    console.error("Server error:", err);
-    res.status(err.status || 500).json({ message: err.message || "Internal Server Error" });
-  });
+    const server = await registerRoutes(app);
 
-  const port = Number(process.env.PORT) || 5000;
-  server.listen(port, "0.0.0.0", () => {
-    log(`🚀 Server running on http://localhost:${port}`);
-  });
+    // ------------------------ Error handler ------------------------
+    app.use((err, _req, res, _next) => {
+      console.error("Server error:", err);
+      res.status(err.status || 500).json({ message: err.message || "Internal Server Error" });
+    });
+
+    const port = Number(process.env.PORT) || 5000;
+    server.listen(port, "0.0.0.0", () => {
+      log(`🚀 Server running on http://localhost:${port}`);
+    });
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      console.log("\n[Server] Shutting down gracefully...");
+      await closeDB();
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error("[Server] Failed to start:", error);
+    process.exit(1);
+  }
 })();
