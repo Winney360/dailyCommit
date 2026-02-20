@@ -154,11 +154,12 @@ export default function SettingsScreen() {
       
       console.log("Calling deleteAccount API...");
       await deleteAccount();
-      console.log("Account deleted from Firebase");
+      console.log("Account deleted from MongoDB");
       
       await clearAllData();
       console.log("Local data cleared");
       
+      // Reset auth state to trigger GitHub authorization flow
       await logout();
       console.log("Logged out");
 
@@ -209,14 +210,10 @@ export default function SettingsScreen() {
     >
       <Animated.View entering={FadeInUp.delay(100).duration(500)}>
         <View
-          style={[
-            styles.profileCard,
-            { backgroundColor: theme.backgroundDefault },
-            Shadows.card,
-          ]}
+          style={[styles.profileCard, { backgroundColor: theme.backgroundDefault }, Shadows.card]}
         >
           <View
-            style={[styles.avatarContainer, { backgroundColor: theme.primary + "20"} ]}
+            style={[styles.avatarContainer, { backgroundColor: theme.primary + "20" }]}
           >
             {user?.avatarUrl ? (
               <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
@@ -308,22 +305,26 @@ export default function SettingsScreen() {
 
             {/* Time Display */}
             <View style={[styles.timeDisplay, { backgroundColor: theme.primary + "10", borderColor: theme.primary }]}>
-              <ThemedText type="h1" style={{ color: theme.primary, fontWeight: "900" }}>
+              <ThemedText type="h1" style={{ color: theme.primary, fontWeight: "900" }}
+              >
                 {String(tempHour).padStart(2, "0")}:{String(tempMinute).padStart(2, "0")}
               </ThemedText>
-              <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.sm }}>
+              <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.sm }}
+              >
                 {formatTime(`${String(tempHour).padStart(2, "0")}:${String(tempMinute).padStart(2, "0")}`)}
               </ThemedText>
             </View>
 
             {/* Hour Picker */}
             <View style={styles.pickerSection}>
-              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}
+              >
                 Hours
               </ThemedText>
               <View style={styles.numberPicker}>
                 <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
+                  }
                   onPress={() => setTempHour(tempHour === 0 ? 23 : tempHour - 1)}
                 >
                   <Feather name="minus" size={20} color={theme.primary} />
@@ -332,7 +333,8 @@ export default function SettingsScreen() {
                   <ThemedText type="h5">{String(tempHour).padStart(2, "0")}</ThemedText>
                 </View>
                 <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
+                  }
                   onPress={() => setTempHour(tempHour === 23 ? 0 : tempHour + 1)}
                 >
                   <Feather name="plus" size={20} color={theme.primary} />
@@ -342,12 +344,14 @@ export default function SettingsScreen() {
 
             {/* Minute Picker */}
             <View style={styles.pickerSection}>
-              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+              <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}
+              >
                 Minutes
               </ThemedText>
               <View style={styles.numberPicker}>
                 <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
+                  }
                   onPress={() => setTempMinute(tempMinute === 0 ? 59 : tempMinute - 1)}
                 >
                   <Feather name="minus" size={20} color={theme.primary} />
@@ -356,7 +360,8 @@ export default function SettingsScreen() {
                   <ThemedText type="h5">{String(tempMinute).padStart(2, "0")}</ThemedText>
                 </View>
                 <TouchableOpacity
-                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]}
+                  style={[styles.pickerButton, { backgroundColor: theme.backgroundSecondary }]
+                  }
                   onPress={() => setTempMinute(tempMinute === 59 ? 0 : tempMinute + 1)}
                 >
                   <Feather name="plus" size={20} color={theme.primary} />
@@ -367,18 +372,22 @@ export default function SettingsScreen() {
             {/* Buttons */}
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.cancelButton, { borderColor: theme.border }]}
+                style={[styles.cancelButton, { borderColor: theme.border }]
+                }
                 onPress={() => setShowTimePicker(false)}
               >
-                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}>
+                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}
+                >
                   Cancel
                 </ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: theme.primary }]}
+                style={[styles.saveButton, { backgroundColor: theme.primary }]
+                }
                 onPress={handleTimePickerSave}
               >
-                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}>
+                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}
+                >
                   Save
                 </ThemedText>
               </TouchableOpacity>
@@ -394,8 +403,8 @@ export default function SettingsScreen() {
         animationType="slide"
         onRequestClose={() => setShowDeleteModal(false)}
       >
-        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}> 
-          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}> 
+        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
             <View style={styles.modalHeader}>
               <ThemedText type="h4" style={{ color: theme.text }}>
                 Delete Account
@@ -428,10 +437,12 @@ export default function SettingsScreen() {
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.cancelButton, { borderColor: theme.border }]}
+                style={[styles.cancelButton, { borderColor: theme.border }]
+                }
                 onPress={() => setShowDeleteModal(false)}
               >
-                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}>
+                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}
+                >
                   Cancel
                 </ThemedText>
               </TouchableOpacity>
@@ -449,7 +460,8 @@ export default function SettingsScreen() {
                   await executeDeleteAccount();
                 }}
               >
-                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}>
+                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}
+                >
                   Delete Account
                 </ThemedText>
               </TouchableOpacity>
@@ -496,15 +508,18 @@ export default function SettingsScreen() {
             </ThemedText>
             <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl, width: "100%" }}>
               <TouchableOpacity
-                style={[styles.cancelButton, { borderColor: theme.border, backgroundColor: "transparent" }]}
+                style={[styles.cancelButton, { borderColor: theme.border, backgroundColor: "transparent" }]
+                }
                 onPress={() => setShowLogoutModal(false)}
               >
-                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}>
+                <ThemedText type="body" style={{ color: theme.text, fontWeight: "600" }}
+                >
                   Cancel
                 </ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: theme.primary }]}
+                style={[styles.saveButton, { backgroundColor: theme.primary }]
+                }
                 onPress={async () => {
                   setShowLogoutModal(false);
                   const doLogout = async () => {
@@ -521,7 +536,8 @@ export default function SettingsScreen() {
                   await doLogout();
                 }}
               >
-                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}>
+                <ThemedText type="body" style={{ color: "white", fontWeight: "600" }}
+                >
                   Log Out
                 </ThemedText>
               </TouchableOpacity>
