@@ -184,7 +184,7 @@ export default function SettingsScreen() {
       // Revoke GitHub OAuth token BEFORE logout
       if (token) {
         try {
-          const apiUrl ="https://dailycommit.onrender.com" || 'http://localhost:5000';
+          const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
           console.log("Revoking token at:", apiUrl);
           
           const revokeRes = await fetch(
