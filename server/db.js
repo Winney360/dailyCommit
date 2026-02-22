@@ -3,8 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
-const DB_NAME = process.env.DB_NAME || "dailycommit";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/dailycommit";
 
 let cachedClient = null;
 let cachedDb = null;
@@ -21,7 +20,7 @@ export async function connectDB() {
     console.log("[MongoDB] Connected successfully");
 
     cachedClient = client;
-    cachedDb = client.db(DB_NAME);
+    cachedDb = client.db();
 
     // Create indexes
     await createIndexes(cachedDb);
