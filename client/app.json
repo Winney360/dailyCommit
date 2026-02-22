@@ -13,6 +13,9 @@
     },
     "android": {
       "package": "com.dailycommit.app"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
