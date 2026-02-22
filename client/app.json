@@ -5,6 +5,14 @@
     "version": "1.0.0",
     "scheme": "dailycommit",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0A071B"
+    "backgroundColor": "#0A071B",
+    "extra": {
+      "eas": {
+        "projectId": "fe945ad2-a672-448e-ba89-e910c058b1a6"
+      }
+    },
+    "android": {
+      "package": "com.dailycommit.app"
+    }
   }
 }

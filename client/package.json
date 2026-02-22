@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "expo start"
   },
   "keywords": [],
   "author": "",
@@ -18,14 +19,14 @@
     "@react-navigation/native": "^7.1.28",
     "@react-navigation/native-stack": "^7.10.0",
     "@tanstack/react-query": "^5.90.19",
-    "expo": "^54.0.32",
+    "expo": "^54.0.33",
     "expo-linear-gradient": "^15.0.8",
     "expo-notifications": "^0.32.16",
     "expo-secure-store": "^15.0.8",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "^0.81.5",
-    "react-native-reanimated": "^4.2.1",
+    "react-native-reanimated": "^4.1.6",
     "react-native-safe-area-context": "^5.6.2",
     "react-native-toast-message": "^2.3.3"
   },
