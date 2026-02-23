@@ -25,6 +25,18 @@ const app = express();
 const log = console.log;
 
 // ------------------------ CORS ------------------------
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5001',
+];
+
+// Add production origin from environment if available
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
@@ -65,57 +77,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// ------------------------ Expo & Landing Page ------------------------
-function getAppName() {
-  try {
-    const appJsonPath = path.resolve(process.cwd(), "app.json");
-    const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf-8"));
-    return appJson.expo?.name || "App";
-  } catch {
-    return "App";
-  }
+// ------------------------ Serve React Build ------------------------
+// Serve static files from the React build
+const clientBuildPath = path.resolve(__dirname, "../client/dist");
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+  log(`[Server] Serving React build from ${clientBuildPath}`);
+} else {
+  log(`[Server] No React build found at ${clientBuildPath}`);
 }
-
-function serveExpoManifest(platform, res) {
-  const manifestPath = path.resolve(process.cwd(), "static-build", platform, "manifest.json");
-  if (!fs.existsSync(manifestPath)) return res.status(404).json({ error: "Manifest not found" });
-  res.setHeader("content-type", "application/json");
-  res.send(fs.readFileSync(manifestPath, "utf-8"));
-}
-
-function serveLandingPage({ req, res, template, appName }) {
-  const protocol = req.protocol;
-  const host = req.get("host");
-  const html = template
-    .replace(/BASE_URL_PLACEHOLDER/g, `${protocol}://${host}`)
-    .replace(/EXPS_URL_PLACEHOLDER/g, host)
-    .replace(/APP_NAME_PLACEHOLDER/g, appName);
-
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.status(200).send(html);
-}
-
-function configureExpo(app) {
-  const templatePath = path.resolve(__dirname, "templates", "landing-page.html");
-  if (!fs.existsSync(templatePath)) return;
-
-  const template = fs.readFileSync(templatePath, "utf-8");
-  const appName = getAppName();
-
-  app.use((req, res, next) => {
-    if (req.path.startsWith("/api")) return next();
-
-    const platform = req.header("expo-platform");
-    if (platform === "ios" || platform === "android") return serveExpoManifest(platform, res);
-    if (req.path === "/") return serveLandingPage({ req, res, template, appName });
-
-    next();
-  });
-
-  app.use(express.static(path.resolve(process.cwd(), "static-build")));
-}
-
-configureExpo(app);
 
 // Register your routes and start server
 (async () => {
@@ -146,4 +116,20 @@ configureExpo(app);
     console.error("[Server] Failed to start:", error);
     process.exit(1);
   }
-})();
+})();Serve React App for all non-API routes ------------------------
+    app.get('*', (req, res) => {
+      const indexPath = path.resolve(clientBuildPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('App not found. Please build the client first.');
+      }
+    });
+
+    // ------------------------ Error handler ------------------------
+    app.use((err, _req, res, _next) => {
+      console.error("Server error:", err);
+      res.status(err.status || 500).json({ message: err.message || "Internal Server Error" });
+    });
+
+    const port = Number(process.env.PORT) || 5001
