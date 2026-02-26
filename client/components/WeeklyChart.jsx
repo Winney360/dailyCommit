@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -7,10 +7,11 @@ import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const { width: screenWidth } = Dimensions.get("window");
 
 export function WeeklyChart({ weeklyCommits = [0, 0, 0, 0, 0, 0, 0], title = "This Week" }) {
   const { theme } = useTheme();
+  const { width } = useWindowDimensions();
+  const chartHeight = width >= 768 ? 200 : 150;
   const maxCommits = Math.max(...weeklyCommits, 1);
   const todayIndex = new Date().getDay();
   const adjustedTodayIndex = todayIndex === 0 ? 6 : todayIndex - 1;
@@ -35,7 +36,7 @@ export function WeeklyChart({ weeklyCommits = [0, 0, 0, 0, 0, 0, 0], title = "Th
           {title}
         </ThemedText>
         
-        <View style={styles.chartContainer}>
+        <View style={[styles.chartContainer, { height: chartHeight }]}>
           {weeklyCommits.map((commits, index) => {
             const height = commits > 0 ? (commits / maxCommits) * 100 : 8;
             const isToday = index === adjustedTodayIndex;
@@ -124,7 +125,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    height: 150,
     paddingTop: Spacing.lg,
   },
   barWrapper: {
