@@ -112,11 +112,8 @@ if (fs.existsSync(clientBuildPath)) {
       await closeDB();
       process.exit(0);
     });
-  } catch (error) {
-    console.error("[Server] Failed to start:", error);
-    process.exit(1);
-  }
-})();Serve React App for all non-API routes ------------------------
+
+    // Serve React App for all non-API routes
     app.get('*', (req, res) => {
       const indexPath = path.resolve(clientBuildPath, 'index.html');
       if (fs.existsSync(indexPath)) {
@@ -125,11 +122,8 @@ if (fs.existsSync(clientBuildPath)) {
         res.status(404).send('App not found. Please build the client first.');
       }
     });
-
-    // ------------------------ Error handler ------------------------
-    app.use((err, _req, res, _next) => {
-      console.error("Server error:", err);
-      res.status(err.status || 500).json({ message: err.message || "Internal Server Error" });
-    });
-
-    const port = Number(process.env.PORT) || 5001
+  } catch (error) {
+    console.error("[Server] Failed to start:", error);
+    process.exit(1);
+  }
+})();

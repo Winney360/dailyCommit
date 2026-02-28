@@ -9,6 +9,7 @@ DailyCommit is built with React for the web frontend and Express.js for the back
 ## Tech Stack
 
 ### Frontend (client/)
+
 - React (Web)
 - React Router for navigation
 - localStorage for local data persistence
@@ -18,6 +19,7 @@ DailyCommit is built with React for the web frontend and Express.js for the back
 - JavaScript/JSX only (no TypeScript)
 
 ### Backend (server/)
+
 - Express.js
 - MongoDB for data storage
 - GitHub OAuth integration
@@ -77,6 +79,7 @@ DailyCommit is built with React for the web frontend and Express.js for the back
 ### Environment Setup
 
 1. Copy `.env.example` to `.env`:
+
    ```bash
    cp .env.example .env
    ```
@@ -98,11 +101,13 @@ DailyCommit is built with React for the web frontend and Express.js for the back
 #### Development Mode
 
 1. Start the server (in one terminal):
+
    ```bash
    pnpm server
    ```
 
 2. Start the client (in another terminal):
+
    ```bash
    pnpm client
    ```
@@ -112,11 +117,13 @@ DailyCommit is built with React for the web frontend and Express.js for the back
 #### Production Build
 
 1. Build the client:
+
    ```bash
    pnpm build
    ```
 
 2. Start the server (will serve the built client):
+
    ```bash
    pnpm server
    ```

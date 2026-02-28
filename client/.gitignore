@@ -1,27 +1,6 @@
 # Node modules
 node_modules/
 
-# Expo
-.expo/
-.expo-shared/
-
 # Environment
 .env
-*.keystore
 
-# Android / iOS builds (generated)
-android/build/
-android/app/build/
-ios/build/
-ios/Pods/
-
-# Ignore generated native folders
-/android
-/ios
-
-# Expo build outputs
-.expo/
-.expo-shared/
-
-# Misc
-*.log
