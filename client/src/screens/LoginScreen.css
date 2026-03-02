@@ -75,49 +75,6 @@
   cursor: not-allowed;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 32px 0;
-  color: #6B7280;
-  font-size: 14px;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background-color: #2D2440;
-}
-
-.divider span {
-  padding: 0 16px;
-}
-
-.demo-button {
-  width: 100%;
-  padding: 16px;
-  background-color: transparent;
-  color: #10B981;
-  border: 2px solid #10B981;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.demo-button:hover:not(:disabled) {
-  background-color: #10B981;
-  color: #ffffff;
-}
-
-.demo-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .login-footer {
   text-align: center;
   font-size: 14px;

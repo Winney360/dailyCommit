@@ -68,19 +68,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleDemoMode = () => {
-    const demoUser = {
-      id: 'demo',
-      username: 'DemoUser',
-      name: 'Demo User',
-      avatarUrl: null,
-      accessToken: 'demo-token',
-    };
-
-    login(demoUser);
-    navigate('/', { replace: true });
-  };
-
   if (isLoading && !error) {
     return (
       <div className="login-screen">
@@ -109,14 +96,6 @@ export default function LoginScreen() {
         <button className="github-button" onClick={handleGitHubLogin} disabled={isLoading}>
           <Github size={24} />
           <span>Continue with GitHub</span>
-        </button>
-
-        <div className="divider">
-          <span>or</span>
-        </div>
-
-        <button className="demo-button" onClick={handleDemoMode} disabled={isLoading}>
-          Try Demo Mode
         </button>
 
         <p className="login-footer">
