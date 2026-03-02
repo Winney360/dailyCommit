@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 export function getApiUrl() {
   // For development, use localhost
   if (import.meta.env.DEV) {
-    return 'http://localhost:5001/';
+    return 'http://localhost:5000/';
   }
   
   // For production, use environment variable or default

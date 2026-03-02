@@ -3,7 +3,6 @@ import { RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getStreakData, setStreakData, setTotalAllTimeCommits } from '@/lib/storage';
 import { getGitHubCommits, getTotalAllTimeCommits as fetchTotalCommits } from '@/lib/api';
-import './DashboardScreen.css';
 
 export default function DashboardScreen() {
   const { user } = useAuth();
@@ -119,58 +118,52 @@ export default function DashboardScreen() {
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
-    <div className="dashboard-screen">
-      <div className="dashboard-header">
+    <div className="flex-1 bg-slate-950 p-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1>Welcome back, {user?.name || user?.username}!</h1>
-          <p>Here's your commit activity for today</p>
+          <h1 className="text-4xl font-bold text-slate-100">Welcome back, {user?.name || user?.username}!</h1>
+          <p className="text-slate-400 mt-2">Here's your commit activity for today</p>
         </div>
-        <button className="refresh-button" onClick={syncCommitsFromGitHub} disabled={isRefreshing}>
-          <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
+        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-3 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50">
+          <RefreshCw size={20} className={`text-blue-500 ${isRefreshing ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Current Streak</h3>
-          <p className="stat-value">{streakData.currentStreak}</p>
-          <span className="stat-label">days</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h3 className="text-slate-400 font-semibold mb-2">Current Streak</h3>
+          <p className="text-4xl font-bold text-blue-500">{streakData.currentStreak}</p>
+          <span className="text-sm text-slate-500">days</span>
         </div>
 
-        <div className="stat-card">
-          <h3>Longest Streak</h3>
-          <p className="stat-value">{streakData.longestStreak}</p>
-          <span className="stat-label">days</span>
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h3 className="text-slate-400 font-semibold mb-2">Longest Streak</h3>
+          <p className="text-4xl font-bold text-blue-500">{streakData.longestStreak}</p>
+          <span className="text-sm text-slate-500">days</span>
         </div>
 
-        <div className="stat-card">
-          <h3>Today's Commits</h3>
-          <p className="stat-value">{streakData.todayCommits}</p>
-          <span className="stat-label">commits</span>
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h3 className="text-slate-400 font-semibold mb-2">Today's Commits</h3>
+          <p className="text-4xl font-bold text-blue-500">{streakData.todayCommits}</p>
+          <span className="text-sm text-slate-500">commits</span>
         </div>
 
-        <div className="stat-card">
-          <h3>This Year</h3>
-          <p className="stat-value">{streakData.yearlyCommits}</p>
-          <span className="stat-label">commits</span>
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h3 className="text-slate-400 font-semibold mb-2">This Year</h3>
+          <p className="text-4xl font-bold text-blue-500">{streakData.yearlyCommits}</p>
+          <span className="text-sm text-slate-500">commits</span>
         </div>
       </div>
 
-      <div className="weekly-chart">
-        <h2>This Week</h2>
-        <div className="chart-bars">
+      <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-slate-100 mb-6">This Week</h2>
+        <div className="flex items-end justify-between gap-6 h-48">
           {streakData.weeklyCommits.map((count, index) => (
-            <div key={index} className="chart-bar-container">
-              <div className="chart-bar-wrapper">
-                <div
-                  className="chart-bar"
-                  style={{
-                    height: `${Math.min((count / Math.max(...streakData.weeklyCommits, 1)) * 100, 100)}%`,
-                  }}
-                ></div>
+            <div key={index} className="flex flex-col items-center flex-1">
+              <div className="w-full bg-slate-800 rounded-t-lg relative group" style={{ height: `${Math.min((count / Math.max(...streakData.weeklyCommits, 1)) * 100, 100)}%` }}>
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count}</div>
               </div>
-              <span className="chart-label">{dayNames[index]}</span>
-              <span className="chart-value">{count}</span>
+              <span className="text-xs text-slate-400 mt-2 font-medium">{dayNames[index]}</span>
             </div>
           ))}
         </div>

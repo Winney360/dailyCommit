@@ -112,7 +112,7 @@ DailyCommit is built with React for the web frontend and Express.js for the back
    pnpm client
    ```
 
-3. Open your browser to `http://localhost:3000`
+3. Open your browser to `http://localhost:5173`
 
 #### Production Build
 
@@ -128,7 +128,7 @@ DailyCommit is built with React for the web frontend and Express.js for the back
    pnpm server
    ```
 
-3. Open your browser to `http://localhost:5001`
+3. Open your browser to `http://localhost:5000`
 
 ## Features
 

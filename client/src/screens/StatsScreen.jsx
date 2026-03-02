@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Award } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getStreakData, getTotalAllTimeCommits } from '@/lib/storage';
-import './StatsScreen.css';
 
 const BADGES = [
   { id: 'first-commit', name: 'Getting Started', requirement: 1, color: '#34D399' },
@@ -43,56 +42,62 @@ export default function StatsScreen() {
   const nextBadge = BADGES.find((badge) => streakData.longestStreak < badge.requirement);
 
   return (
-    <div className="stats-screen">
-      <h1>Statistics & Achievements</h1>
+    <div className="flex-1 bg-slate-950 p-8">
+      <h1 className="text-4xl font-bold text-slate-100 mb-8">Statistics & Achievements</h1>
 
-      <div className="overview-cards">
-        <div className="overview-card">
-          <h3>Total All-Time</h3>
-          <p className="big-number">{totalAllTimeCommits.toLocaleString()}</p>
-          <span>commits</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h3 className="text-slate-400 font-semibold mb-2">Total All-Time</h3>
+          <p className="text-4xl font-bold text-blue-500">{totalAllTimeCommits.toLocaleString()}</p>
+          <span className="text-sm text-slate-500">commits</span>
         </div>
 
-        <div className="overview-card">
-          <h3>This Year</h3>
-          <p className="big-number">{streakData.yearlyCommits}</p>
-          <span>commits</span>
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h3 className="text-slate-400 font-semibold mb-2">This Year</h3>
+          <p className="text-4xl font-bold text-blue-500">{streakData.yearlyCommits}</p>
+          <span className="text-sm text-slate-500">commits</span>
         </div>
 
-        <div className="overview-card">
-          <h3>Longest Streak</h3>
-          <p className="big-number">{streakData.longestStreak}</p>
-          <span>days</span>
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h3 className="text-slate-400 font-semibold mb-2">Longest Streak</h3>
+          <p className="text-4xl font-bold text-blue-500">{streakData.longestStreak}</p>
+          <span className="text-sm text-slate-500">days</span>
         </div>
       </div>
 
-      <div className="achievements-section">
-        <h2>Achievements</h2>
-        <p className="section-subtitle">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-100 mb-2">Achievements</h2>
+        <p className="text-slate-400 mb-6">
           {earnedBadges.length} of {BADGES.length} badges earned
         </p>
 
-        <div className="badges-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {BADGES.map((badge) => {
             const isEarned = earnedBadges.some((b) => b.id === badge.id);
             return (
-              <div key={badge.id} className={`badge-card ${isEarned ? 'earned' : 'locked'}`}>
-                <div className="badge-icon" style={{ backgroundColor: isEarned ? badge.color : '#2D2440' }}>
-                  <Award size={32} color="#ffffff" />
+              <div key={badge.id} className={`rounded-lg p-6 text-center border transition-all ${
+                isEarned 
+                  ? 'bg-slate-900 border-blue-600' 
+                  : 'bg-slate-950 border-slate-800 opacity-60'
+              }`}>
+                <div className={`flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-4 ${
+                  isEarned ? 'bg-linear-to-br from-blue-600 to-blue-700' : 'bg-slate-800'
+                }`}>
+                  <Award size={32} className="text-white" />
                 </div>
-                <h3>{badge.name}</h3>
-                <p>{badge.requirement} day{badge.requirement > 1 ? 's' : ''} streak</p>
-                {isEarned && <span className="earned-label">Earned!</span>}
+                <h3 className="text-slate-100 font-semibold mb-1">{badge.name}</h3>
+                <p className="text-slate-400 text-sm mb-2">{badge.requirement} day{badge.requirement > 1 ? 's' : ''} streak</p>
+                {isEarned && <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full">Earned!</span>}
               </div>
             );
           })}
         </div>
 
         {nextBadge && (
-          <div className="next-badge">
-            <h3>Next Achievement</h3>
-            <p>
-              <strong>{nextBadge.name}</strong> - {nextBadge.requirement - streakData.longestStreak} more day
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+            <h3 className="text-slate-100 font-semibold mb-2">Next Achievement</h3>
+            <p className="text-slate-300">
+              <span className="font-semibold">{nextBadge.name}</span> — {nextBadge.requirement - streakData.longestStreak} more day
               {nextBadge.requirement - streakData.longestStreak > 1 ? 's' : ''} to go!
             </p>
           </div>

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Github } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getApiUrl } from '@/lib/query-client';
-import './LoginScreen.css';
 
 export default function LoginScreen() {
   const navigate = useNavigate();
@@ -70,35 +69,37 @@ export default function LoginScreen() {
 
   if (isLoading && !error) {
     return (
-      <div className="login-screen">
-        <div className="login-container">
-          <div className="spinner"></div>
-          <p>Authenticating...</p>
+      <div className="flex items-center justify-center min-h-screen bg-slate-950">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 mb-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+          <p className="text-slate-100 font-medium">Authenticating...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="login-screen">
-      <div className="login-container">
-        <div className="login-header">
-          <h1>DailyCommit</h1>
-          <p>Track your GitHub commits and maintain your daily coding streak</p>
+    <div className="flex items-center justify-center min-h-screen bg-slate-950 px-6">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <h1 className="text-5xl font-bold text-blue-500 mb-3">DailyCommit</h1>
+          <p className="text-slate-400 text-lg">Track your GitHub commits and maintain your daily coding streak</p>
         </div>
 
         {error && (
-          <div className="error-message">
-            <p>{error}</p>
+          <div className="mb-6 p-4 bg-red-950 border border-red-800 rounded-lg">
+            <p className="text-red-200">{error}</p>
           </div>
         )}
 
-        <button className="github-button" onClick={handleGitHubLogin} disabled={isLoading}>
+        <button onClick={handleGitHubLogin} disabled={isLoading} className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors mb-8">
           <Github size={24} />
           <span>Continue with GitHub</span>
         </button>
 
-        <p className="login-footer">
+        <p className="text-center text-slate-500 text-sm">
           Sign in to access your GitHub commit history and track your progress
         </p>
       </div>
