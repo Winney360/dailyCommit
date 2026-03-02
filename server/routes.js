@@ -16,16 +16,14 @@ export async function registerRoutes(app) {
   // GitHub OAuth redirect
   app.get("/api/auth/github", (req, res) => {
     const clientId = process.env.GITHUB_CLIENT_ID;
-    const redirectUri = process.env.GITHUB_REDIRECT_URI;
 
-    if (!clientId || !redirectUri) {
+    if (!clientId) {
       return res.status(500).json({ error: "GitHub OAuth not configured" });
     }
 
     const authUrl =
       `https://github.com/login/oauth/authorize` +
       `?client_id=${clientId}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&scope=user:email,read:user`;
 
     res.redirect(authUrl);
@@ -36,7 +34,6 @@ export async function registerRoutes(app) {
     const code = req.query.code;
     const clientId = process.env.GITHUB_CLIENT_ID;
     const clientSecret = process.env.GITHUB_CLIENT_SECRET;
-    const requestedRedirectUri = process.env.GITHUB_REDIRECT_URI;
 
     if (!code) {
       return res.status(400).json({ error: "Authorization code missing" });
@@ -59,7 +56,6 @@ export async function registerRoutes(app) {
             client_id: clientId,
             client_secret: clientSecret,
             code,
-            redirect_uri: requestedRedirectUri,
           }),
         }
       );

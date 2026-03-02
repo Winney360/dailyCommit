@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envResult = dotenv.config({ path: path.resolve(__dirname, "../.env") });
+const envResult = dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 if (envResult.error) {
   console.warn('[dotenv] Error loading .env file:', envResult.error.message);
