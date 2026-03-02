@@ -114,7 +114,7 @@ if (fs.existsSync(clientBuildPath)) {
     });
 
     // Serve React App for all non-API routes
-    app.get('*', (req, res) => {
+    app.get(/.*/, (req, res) => {
       const indexPath = path.resolve(clientBuildPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
