@@ -135,7 +135,7 @@ export async function registerRoutes(app) {
 
       const userParam = encodeURIComponent(JSON.stringify(user));
       const tokenParam = encodeURIComponent(tokenData.access_token);
-      const webFrontendUrl = process.env.WEB_FRONTEND_URL || "http://localhost:8183";
+      const webFrontendUrl = process.env.WEB_FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
       const redirectUrl = `${webFrontendUrl}?user=${userParam}&token=${tokenParam}`;
       
       console.log("Redirecting to:", redirectUrl);

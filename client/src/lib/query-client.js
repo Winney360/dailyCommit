@@ -1,13 +1,18 @@
 import { QueryClient } from '@tanstack/react-query';
 
 export function getApiUrl() {
-  // For development, use localhost
-  if (import.meta.env.DEV) {
-    return 'http://localhost:5000/';
+  const configuredApiUrl = import.meta.env.VITE_API_URL;
+
+  // In local development (or local production preview), default API to backend on 5000
+  if (!configuredApiUrl) {
+    const { hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5000/';
+    }
   }
-  
-  // For production, use environment variable or default
-  const host = import.meta.env.VITE_API_URL || window.location.origin;
+
+  // For production, use environment variable or current origin
+  const host = configuredApiUrl || window.location.origin;
   
   const url = host.startsWith('http://') || host.startsWith('https://')
     ? new URL(host)
