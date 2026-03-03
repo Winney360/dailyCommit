@@ -33,8 +33,8 @@ export default function SettingsScreen() {
       setNotificationPermission(Notification.permission);
     }
 
-    // Set up interval to check for reminders every minute
-    const checkInterval = setInterval(checkAndSendReminder, 60000);
+    // Set up interval to check for reminders every 30 seconds (more frequent)
+    const checkInterval = setInterval(checkAndSendReminder, 30000);
     
     // Check immediately on mount
     checkAndSendReminder();
@@ -46,7 +46,14 @@ export default function SettingsScreen() {
     const enabled = localStorage.getItem('reminderEnabled') === 'true';
     const time = localStorage.getItem('reminderTime') || '20:00';
     
+    console.log('[Reminder] Checking:', { enabled, time, permission: Notification?.permission });
+    
     if (!enabled || !('Notification' in window) || Notification.permission !== 'granted') {
+      console.log('[Reminder] Check failed:', { 
+        enabled, 
+        hasNotificationAPI: 'Notification' in window, 
+        permission: Notification?.permission 
+      });
       return;
     }
 
@@ -55,20 +62,32 @@ export default function SettingsScreen() {
     const currentHours = now.getHours();
     const currentMinutes = now.getMinutes();
 
+    console.log('[Reminder] Time check:', { 
+      currentTime: `${currentHours}:${currentMinutes}`, 
+      reminderTime: `${hours}:${minutes}`,
+      matches: currentHours === hours && currentMinutes === minutes
+    });
+
     // Check if it's the reminder time (within the current minute)
     if (currentHours === hours && currentMinutes === minutes) {
       const lastNotification = localStorage.getItem('lastReminderSent');
       const today = now.toDateString();
 
+      console.log('[Reminder] Time matched!', { lastNotification, today });
+
       // Only send one notification per day
       if (lastNotification !== today) {
+        console.log('[Reminder] Sending notification...');
         sendNotification();
         localStorage.setItem('lastReminderSent', today);
+      } else {
+        console.log('[Reminder] Already sent today');
       }
     }
   };
 
   const sendNotification = () => {
+    console.log('[Reminder] sendNotification called');
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('DailyCommit Reminder', {
         body: 'Don\'t forget to make your daily commit! Keep your streak alive! 🔥',
@@ -76,6 +95,12 @@ export default function SettingsScreen() {
         badge: '/favicon.ico',
         tag: 'daily-commit-reminder',
         requireInteraction: false,
+      });
+      console.log('[Reminder] Notification sent successfully');
+    } else {
+      console.log('[Reminder] Cannot send notification:', {
+        hasAPI: 'Notification' in window,
+        permission: Notification?.permission
       });
     }
   };
