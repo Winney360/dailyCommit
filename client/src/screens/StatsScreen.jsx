@@ -156,8 +156,8 @@ export default function StatsScreen() {
           <div className="bg-secondary border border-custom rounded-lg p-6">
             <h3 className="text-primary font-semibold mb-2">Next Achievement</h3>
             <p className="text-primary">
-              <span className="font-semibold">{nextBadge.name}</span> — {nextBadge.requirement - streakData.longestStreak} more day
-              {nextBadge.requirement - streakData.longestStreak > 1 ? 's' : ''} to go!
+              <span className="font-semibold">{nextBadge.name}</span> — {nextBadge.requirement - streakData.currentStreak} more day
+              {nextBadge.requirement - streakData.currentStreak > 1 ? 's' : ''} to go!
             </p>
           </div>
         )}
