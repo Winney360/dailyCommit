@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Trash2, User, Shield, Bell } from 'lucide-react';
+import { LogOut, Trash2, User, Shield, Bell, X, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { deleteAccount } from '@/lib/api';
 import { clearAllData } from '@/lib/storage';
@@ -17,6 +17,9 @@ export default function SettingsScreen() {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('20:00');
   const [notificationPermission, setNotificationPermission] = useState('default');
+  
+  // Toast states
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info', action: null });
 
   useEffect(() => {
     // Load reminder settings from localStorage
@@ -77,10 +80,25 @@ export default function SettingsScreen() {
     }
   };
 
+  const showToast = (message, type = 'info', action = null) => {
+    setToast({ show: true, message, type, action });
+    
+    // Auto-dismiss after 4 seconds if not a confirm toast
+    if (!action) {
+      setTimeout(() => {
+        hideToast();
+      }, 4000);
+    }
+  };
+
+  const hideToast = () => {
+    setToast({ show: false, message: '', type: 'info', action: null });
+  };
+
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
-      alert('This browser does not support notifications');
-      return;
+      showToast('This browser does not support notifications', 'error');
+      return false;
     }
 
     try {
@@ -93,13 +111,17 @@ export default function SettingsScreen() {
           body: 'Reminders enabled! You\'ll get notified at ' + reminderTime,
           icon: '/favicon.ico',
         });
+        showToast('Reminders enabled successfully! 🔔', 'success');
+        return true;
       } else {
-        alert('Notification permission denied. Please enable notifications in your browser settings.');
+        showToast('Notification permission denied. Please enable in browser settings.', 'error');
         setReminderEnabled(false);
         localStorage.setItem('reminderEnabled', 'false');
+        return false;
       }
     } catch (error) {
       console.error('Error requesting notification permission:', error);
+      return false;
     }
   };
 
@@ -107,17 +129,37 @@ export default function SettingsScreen() {
     const newEnabled = !reminderEnabled;
     
     if (newEnabled) {
-      // Request permission if not granted
-      if (notificationPermission !== 'granted') {
-        await requestNotificationPermission();
-        if (Notification.permission !== 'granted') {
-          return; // Don't enable if permission denied
+      // Show confirmation toast with accept/deny options
+      showToast(
+        'Enable daily commit reminders? You\'ll receive a notification at your set time.',
+        'confirm',
+        {
+          onAccept: async () => {
+            hideToast();
+            // Request permission if not granted
+            if (notificationPermission !== 'granted') {
+              const granted = await requestNotificationPermission();
+              if (!granted) {
+                return; // Don't enable if permission denied
+              }
+            } else {
+              showToast('Reminders enabled! 🔔', 'success');
+            }
+            setReminderEnabled(true);
+            localStorage.setItem('reminderEnabled', 'true');
+          },
+          onDeny: () => {
+            hideToast();
+            // Keep toggle in off position
+          }
         }
-      }
+      );
+    } else {
+      // Directly disable
+      setReminderEnabled(false);
+      localStorage.setItem('reminderEnabled', 'false');
+      showToast('Reminders disabled', 'info');
     }
-    
-    setReminderEnabled(newEnabled);
-    localStorage.setItem('reminderEnabled', String(newEnabled));
   };
 
   const handleReminderTimeChange = (e) => {
@@ -133,7 +175,7 @@ export default function SettingsScreen() {
 
   const handleDeleteAccount = async () => {
     if (deleteInput !== 'DELETE') {
-      alert('Please type DELETE to confirm');
+      showToast('Please type DELETE to confirm', 'error');
       return;
     }
 
@@ -145,7 +187,7 @@ export default function SettingsScreen() {
       navigate('/login', { replace: true });
     } catch (error) {
       console.error('Failed to delete account:', error);
-      alert('Failed to delete account. Please try again.');
+      showToast('Failed to delete account. Please try again.', 'error');
     } finally {
       setIsDeleting(false);
     }
@@ -317,6 +359,50 @@ export default function SettingsScreen() {
                 {isDeleting ? 'Deleting...' : 'Delete Account'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast.show && (
+        <div className="fixed bottom-8 right-8 z-50 animate-slide-up">
+          <div className={`bg-secondary border rounded-lg shadow-lg p-4 min-w-[320px] max-w-md ${
+            toast.type === 'error' ? 'border-red-500' : 
+            toast.type === 'success' ? 'border-success' : 
+            toast.type === 'confirm' ? 'border-primary' : 
+            'border-custom'
+          }`}>
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="text-primary text-sm">{toast.message}</p>
+              </div>
+              {!toast.action && (
+                <button
+                  onClick={hideToast}
+                  className="text-muted hover:text-primary transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+            
+            {toast.action && (
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={toast.action.onDeny}
+                  className="flex-1 px-3 py-2 bg-hover hover:bg-tertiary text-muted text-sm font-medium rounded transition-colors"
+                >
+                  Deny
+                </button>
+                <button
+                  onClick={toast.action.onAccept}
+                  className="flex-1 px-3 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded transition-colors flex items-center justify-center gap-1"
+                >
+                  <Check size={16} />
+                  Accept
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
