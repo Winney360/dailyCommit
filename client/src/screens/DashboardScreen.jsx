@@ -167,25 +167,44 @@ export default function DashboardScreen() {
             <span className="text-xs text-muted">total commits</span>
           </div>
         </div>
-        <div className="flex items-end justify-between gap-6 h-48">
-          {streakData.weeklyCommits.map((count, index) => {
-            const maxCount = Math.max(...streakData.weeklyCommits, 1);
-            const isBestDay = count > 0 && count === maxCount;
-            return (
-              <div key={index} className="flex flex-col items-center flex-1">
-                <div className={`w-full rounded-t-lg relative group transition-colors ${
-                  isBestDay ? 'bg-success' : 'bg-hover hover:bg-primary'
-                }`} style={{ height: `${Math.min((count / maxCount) * 100, 100)}%`, minHeight: count > 0 ? '8px' : '2px' }}>
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-accent text-white px-2 py-1 rounded text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    {count} commit{count !== 1 ? 's' : ''}
-                    {isBestDay && ' 🔥'}
+        <div className="flex items-end justify-between gap-6">
+          <div className="flex items-end justify-center gap-3 flex-1">
+            {streakData.weeklyCommits.map((count, index) => {
+              const maxCount = Math.max(...streakData.weeklyCommits, 1);
+              const intensity = count === 0 ? 0.1 : Math.max(0.3, count / maxCount);
+              const isBestDay = count > 0 && count === maxCount;
+              
+              return (
+                <div key={index} className="flex flex-col items-center">
+                  <div 
+                    className={`w-12 h-12 rounded transition-all hover:ring-2 hover:ring-offset-2 hover:ring-primary group relative cursor-pointer mb-2 ${
+                      count === 0 ? 'bg-hover' : isBestDay ? 'bg-success' : 'bg-primary'
+                    }`}
+                    style={{ opacity: intensity }}
+                    title={`${dayNames[index]}: ${count} commit${count !== 1 ? 's' : ''}`}
+                  >
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-accent text-white text-xs font-semibold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      {dayNames[index]}: {count} {count === 1 ? 'commit' : 'commits'} {isBestDay && '🔥'}
+                    </div>
                   </div>
+                  <span className="text-xs text-muted">{dayNames[index]}</span>
                 </div>
-                <span className="text-xs text-muted mt-2 font-medium">{dayNames[index]}</span>
-                {isBestDay && <span className="text-xs text-success mt-1">★</span>}
+              );
+            })}
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted">Less</span>
+              <div className="flex gap-1">
+                <div className="w-3 h-3 rounded bg-hover opacity-30"></div>
+                <div className="w-3 h-3 rounded bg-primary opacity-50"></div>
+                <div className="w-3 h-3 rounded bg-primary opacity-75"></div>
+                <div className="w-3 h-3 rounded bg-primary opacity-100"></div>
+                <div className="w-3 h-3 rounded bg-success"></div>
               </div>
-            );
-          })}
+              <span className="text-xs text-muted">More</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
