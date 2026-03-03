@@ -41,7 +41,12 @@ export default function LoginScreen() {
     
     try {
       const userData = JSON.parse(decodeURIComponent(userParam));
-      console.log('[LoginScreen] Parsed user data:', { id: userData.id, username: userData.username });
+      console.log('[LoginScreen] Parsed user data:', { 
+        id: userData.id, 
+        username: userData.username,
+        name: userData.name,
+        email: userData.email 
+      });
 
       if (tokenParam) {
         userData.accessToken = decodeURIComponent(tokenParam);

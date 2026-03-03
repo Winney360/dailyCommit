@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { createUser, getUserById, getUserByUsername, deleteUserById } from "./storage.js";
+import { createUser, getUserById, getUserByUsername, deleteUserById, updateUser } from "./storage.js";
 
 /**
  * @param {import("express").Express} app
@@ -83,6 +83,14 @@ export async function registerRoutes(app) {
       }
 
       const userData = await userResponse.json();
+      
+      console.log("[OAuth] GitHub user data received:", {
+        id: userData.id,
+        login: userData.login,
+        name: userData.name,
+        email: userData.email,
+        avatar_url: userData.avatar_url
+      });
 
       let email = userData.email;
       if (!email) {
@@ -107,6 +115,7 @@ export async function registerRoutes(app) {
       const user = {
         id: String(userData.id),
         username: userData.login,
+        name: userData.name || userData.login,
         email: email || `${userData.login}@users.noreply.github.com`,
         avatarUrl: userData.avatar_url,
         createdAt: new Date().toISOString(),
@@ -122,7 +131,14 @@ export async function registerRoutes(app) {
           await createUser(user);
           console.log(`[OAuth SUCCESS] New user created: ${user.username}`);
         } else {
-          console.log(`[OAuth] User already exists: ${user.username}`);
+          console.log(`[OAuth] User already exists, updating info: ${user.username}`);
+          await updateUser(user.id, {
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            avatarUrl: user.avatarUrl
+          });
+          console.log(`[OAuth SUCCESS] User info updated: ${user.username}`);
         }
       } catch (dbError) {
         console.error("[OAuth ERROR] Database error:", dbError.message);

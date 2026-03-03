@@ -12,6 +12,7 @@ export async function createUser(user) {
       _id: new ObjectId(),
       id: String(user.id),
       username: user.username,
+      name: user.name || user.username,
       email: user.email || null,
       avatarUrl: user.avatarUrl || null,
       createdAt: new Date(),
