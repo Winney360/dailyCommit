@@ -48,6 +48,10 @@
 	.border-custom-light { border-color: var(--color-border-light); }
 	.border-accent { border-color: var(--color-accent); }
 	.border-primary { border-color: var(--color-primary); }
+	.border-warning { border-color: var(--color-warning); }
+	
+	.bg-warning\/10 { background-color: rgb(245 158 11 / 0.1); }
+	.border-warning\/30 { border-color: rgb(245 158 11 / 0.3); }
 	
 	.hover\:bg-hover:hover { background-color: var(--color-hover); }
 	.hover\:bg-primary-hover:hover { background-color: var(--color-primary-hover); }
