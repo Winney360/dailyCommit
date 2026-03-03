@@ -124,8 +124,9 @@ export default function DashboardScreen() {
           <h1 className="text-4xl font-bold text-primary">Welcome back, {user?.name || user?.username}!</h1>
           <p className="text-muted mt-2">Here's your commit activity for today</p>
         </div>
-        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-3 rounded-lg hover:bg-hover transition-colors disabled:opacity-50">
-          <RefreshCw size={20} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
+        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="flex items-center gap-2 px-4 py-2 bg-hover hover:bg-tertiary rounded-lg transition-colors disabled:opacity-50">
+          <RefreshCw size={18} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span className="text-primary font-medium">Refresh</span>
         </button>
       </div>
 
@@ -156,16 +157,35 @@ export default function DashboardScreen() {
       </div>
 
       <div className="bg-secondary border border-custom rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-primary mb-6">This Week</h2>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-primary mb-2">This Week</h2>
+            <p className="text-muted text-sm">Your daily commit activity</p>
+          </div>
+          <div className="text-right">
+            <p className="text-3xl font-bold text-warning">{streakData.weeklyCommits.reduce((sum, count) => sum + count, 0)}</p>
+            <span className="text-xs text-muted">total commits</span>
+          </div>
+        </div>
         <div className="flex items-end justify-between gap-6 h-48">
-          {streakData.weeklyCommits.map((count, index) => (
-            <div key={index} className="flex flex-col items-center flex-1">
-              <div className="w-full bg-hover rounded-t-lg relative group" style={{ height: `${Math.min((count / Math.max(...streakData.weeklyCommits, 1)) * 100, 100)}%` }}>
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-accent text-white px-2 py-1 rounded text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count}</div>
+          {streakData.weeklyCommits.map((count, index) => {
+            const maxCount = Math.max(...streakData.weeklyCommits, 1);
+            const isBestDay = count > 0 && count === maxCount;
+            return (
+              <div key={index} className="flex flex-col items-center flex-1">
+                <div className={`w-full rounded-t-lg relative group transition-colors ${
+                  isBestDay ? 'bg-success' : 'bg-hover hover:bg-primary'
+                }`} style={{ height: `${Math.min((count / maxCount) * 100, 100)}%`, minHeight: count > 0 ? '8px' : '2px' }}>
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-accent text-white px-2 py-1 rounded text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    {count} commit{count !== 1 ? 's' : ''}
+                    {isBestDay && ' 🔥'}
+                  </div>
+                </div>
+                <span className="text-xs text-muted mt-2 font-medium">{dayNames[index]}</span>
+                {isBestDay && <span className="text-xs text-success mt-1">★</span>}
               </div>
-              <span className="text-xs text-muted mt-2 font-medium">{dayNames[index]}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
