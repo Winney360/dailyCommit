@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Trash2, User, Shield, Bell, X, Check } from 'lucide-react';
+import { LogOut, Trash2, User, Shield, Bell, X, Check, Clock } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { deleteAccount } from '@/lib/api';
 import { clearAllData } from '@/lib/storage';
@@ -245,7 +245,8 @@ export default function SettingsScreen() {
 
           {reminderEnabled && (
             <div className="pt-4 border-t border-custom">
-              <label className="block mb-2">
+              <label className="flex items-center gap-2 mb-2">
+                <Clock size={18} className="text-accent" />
                 <span className="text-muted font-medium">Reminder Time</span>
               </label>
               <input
