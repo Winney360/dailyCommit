@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+:root {
+	/* Custom color palette for dark purple developer theme */
+	--color-primary: #7C3AED;
+	--color-primary-hover: #6D2FD9;
+	--color-bg-base: #0A071B;
+	--color-bg-secondary: #1A142C;
+	--color-bg-tertiary: #120D20;
+	--color-accent: #9F7AEA;
+	--color-text-primary: #E9E2F5;
+	--color-text-muted: #A59CB0;
+	--color-success: #34D399;
+	--color-warning: #F59E0B;
+	--color-border: #2A1F3D;
+	--color-border-light: #3A2F4D;
+	--color-hover: #241939;
+}
+
+@layer base {
+	html,
+	body,
+	#root {
+		min-height: 100%;
+		background-color: var(--color-bg-base);
+		color: var(--color-text-primary);
+	}
+}
+
+@layer utilities {
+	.bg-base { background-color: var(--color-bg-base); }
+	.bg-secondary { background-color: var(--color-bg-secondary); }
+	.bg-tertiary { background-color: var(--color-bg-tertiary); }
+	.bg-primary { background-color: var(--color-primary); }
+	.bg-primary-hover { background-color: var(--color-primary-hover); }
+	.bg-accent { background-color: var(--color-accent); }
+	.bg-hover { background-color: var(--color-hover); }
+	.bg-success { background-color: var(--color-success); }
+	.bg-warning { background-color: var(--color-warning); }
+	
+	.text-primary { color: var(--color-text-primary); }
+	.text-muted { color: var(--color-text-muted); }
+	.text-accent { color: var(--color-accent); }
+	.text-success { color: var(--color-success); }
+	.text-warning { color: var(--color-warning); }
+	
+	.border-custom { border-color: var(--color-border); }
+	.border-custom-light { border-color: var(--color-border-light); }
+	.border-accent { border-color: var(--color-accent); }
+	.border-primary { border-color: var(--color-primary); }
+	
+	.hover\:bg-hover:hover { background-color: var(--color-hover); }
+	.hover\:bg-primary-hover:hover { background-color: var(--color-primary-hover); }
+	.hover\:bg-tertiary:hover { background-color: var(--color-bg-tertiary); }
+	
+	.focus\:border-primary:focus { border-color: var(--color-primary); }
+	
+	.divide-custom > * + * { border-color: var(--color-border); }
+}

@@ -85,23 +85,23 @@ export default function LoginScreen() {
 
   if (isLoading && !error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950">
+      <div className="flex items-center justify-center min-h-screen bg-base">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 mb-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
           </div>
-          <p className="text-slate-100 font-medium">Authenticating...</p>
+          <p className="text-primary font-medium">Authenticating...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-950 px-6">
+    <div className="flex items-center justify-center min-h-screen bg-base px-6">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-5xl font-bold text-blue-500 mb-3">DailyCommit</h1>
-          <p className="text-slate-400 text-lg">Track your GitHub commits and maintain your daily coding streak</p>
+          <h1 className="text-5xl font-bold text-accent mb-3">DailyCommit</h1>
+          <p className="text-muted text-lg">Track your GitHub commits and maintain your daily coding streak</p>
         </div>
 
         {error && (
@@ -110,12 +110,12 @@ export default function LoginScreen() {
           </div>
         )}
 
-        <button onClick={handleGitHubLogin} disabled={isLoading} className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors mb-8">
+        <button onClick={handleGitHubLogin} disabled={isLoading} className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-primary hover:bg-primary-hover disabled:bg-primary-hover disabled:opacity-50 text-white font-semibold rounded-lg transition-colors mb-8">
           <Github size={24} />
           <span>Continue with GitHub</span>
         </button>
 
-        <p className="text-center text-slate-500 text-sm">
+        <p className="text-center text-muted text-sm">
           Sign in to access your GitHub commit history and track your progress
         </p>
       </div>
