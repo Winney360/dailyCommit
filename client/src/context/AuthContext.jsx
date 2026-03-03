@@ -35,19 +35,28 @@ export function AuthProvider({ children }) {
   }
 
   function login(userData) {
+    console.log('[AuthContext] login() called with:', { id: userData?.id, username: userData?.username });
+    
     if (!userData?.id || !userData?.username) {
+      console.error('[AuthContext] Invalid user data:', userData);
       throw new Error("Invalid user data: missing id or username");
     }
 
     const { accessToken, ...userWithoutToken } = userData;
+    console.log('[AuthContext] Saving user to localStorage...');
 
     saveUser(userWithoutToken);
     setUserState(userWithoutToken);
+    console.log('[AuthContext] User state updated');
 
     if (accessToken) {
+      console.log('[AuthContext] Saving token to localStorage...');
       saveToken(accessToken);
       setToken(accessToken);
+      console.log('[AuthContext] Token saved');
     }
+    
+    console.log('[AuthContext] Login complete');
   }
 
   function logout() {

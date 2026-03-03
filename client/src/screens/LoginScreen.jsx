@@ -11,8 +11,11 @@ export default function LoginScreen() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('[LoginScreen] Component mounted, window.location.search:', window.location.search);
+    
     // If already logged in, redirect to dashboard
     if (user) {
+      console.log('[LoginScreen] User already logged in, redirecting to dashboard');
       navigate('/', { replace: true });
       return;
     }
@@ -22,28 +25,41 @@ export default function LoginScreen() {
     const userParam = urlParams.get('user');
     const tokenParam = urlParams.get('token');
 
+    console.log('[LoginScreen] URL params:', { userParam: !!userParam, tokenParam: !!tokenParam });
+
     if (userParam) {
+      console.log('[LoginScreen] Found user param, processing callback...');
       handleCallback(userParam, tokenParam);
+    } else {
+      console.log('[LoginScreen] No user param found, staying on login page');
     }
   }, [user, navigate]);
 
   const handleCallback = async (userParam, tokenParam) => {
     setIsLoading(true);
+    console.log('[LoginScreen] Processing OAuth callback...');
+    
     try {
       const userData = JSON.parse(decodeURIComponent(userParam));
+      console.log('[LoginScreen] Parsed user data:', { id: userData.id, username: userData.username });
 
       if (tokenParam) {
         userData.accessToken = decodeURIComponent(tokenParam);
+        console.log('[LoginScreen] Token received');
       }
 
+      console.log('[LoginScreen] Calling login()...');
       login(userData);
+      console.log('[LoginScreen] Login successful, user saved to storage');
 
       // Clear the URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
+      console.log('[LoginScreen] URL params cleared');
 
       navigate('/', { replace: true });
+      console.log('[LoginScreen] Navigating to dashboard');
     } catch (error) {
-      console.error('Callback error:', error);
+      console.error('[LoginScreen] Callback error:', error);
       setError(error.message);
     } finally {
       setIsLoading(false);
