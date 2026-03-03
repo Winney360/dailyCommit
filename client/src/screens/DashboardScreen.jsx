@@ -56,13 +56,20 @@ export default function DashboardScreen() {
       const todayCommits = localCommitsByDay[today] || 0;
 
       const weeklyCommits = [0, 0, 0, 0, 0, 0, 0];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
+      const todayDate = new Date();
+      const dayOfWeek = todayDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      const daysFromSunday = dayOfWeek; // How many days since Sunday
+      
+      // Calculate start of this week (Sunday)
+      const sundayDate = new Date(todayDate);
+      sundayDate.setDate(todayDate.getDate() - daysFromSunday);
+      
+      // Fill in commits from Sunday to today only
+      for (let i = 0; i <= daysFromSunday; i++) {
+        const date = new Date(sundayDate);
+        date.setDate(sundayDate.getDate() + i);
         const dateStr = getLocalDateString(date.toISOString());
-        const dayOfWeek = date.getDay();
-        const adjustedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        weeklyCommits[adjustedDayIndex] = localCommitsByDay[dateStr] || 0;
+        weeklyCommits[i] = localCommitsByDay[dateStr] || 0;
       }
 
       let longestStreakValue = 0;
@@ -115,7 +122,7 @@ export default function DashboardScreen() {
     }
   };
 
-  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
     <div className="flex-1 bg-base p-8">
