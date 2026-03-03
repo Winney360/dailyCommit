@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Award } from 'lucide-react';
+import { Award, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { getStreakData, getTotalAllTimeCommits } from '@/lib/storage';
+import { getStreakData, getTotalAllTimeCommits, setTotalAllTimeCommits } from '@/lib/storage';
+import { getTotalAllTimeCommits as fetchTotalCommits } from '@/lib/api';
 
 const BADGES = [
   { id: 'first-commit', name: 'Getting Started', requirement: 1, color: '#34D399' },
@@ -21,13 +22,45 @@ export default function StatsScreen() {
     totalCommits: 0,
     yearlyCommits: 0,
   });
-  const [totalAllTimeCommits, setTotalAllTimeCommits] = useState(0);
+  const [totalAllTimeCommits, setTotalAllTimeCommitsState] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       loadData();
+      // Fetch fresh data if all-time commits is 0
+      const stored = getTotalAllTimeCommits(user.id);
+      if (stored === 0) {
+        syncAllTimeCommits();
+      }
     }
   }, [user?.id]);
+
+  // Listen for storage changes from other tabs/components
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (user?.id) {
+        loadData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also set up an interval to check for updates every 5 seconds
+    const interval = setInterval(() => {
+      if (user?.id) {
+        const freshData = getTotalAllTimeCommits(user.id);
+        if (freshData !== totalAllTimeCommits) {
+          setTotalAllTimeCommitsState(freshData);
+        }
+      }
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [user?.id, totalAllTimeCommits]);
 
   const loadData = () => {
     if (!user?.id) return;
@@ -35,7 +68,23 @@ export default function StatsScreen() {
     setStreakData(data);
 
     const totalCommits = getTotalAllTimeCommits(user.id);
-    setTotalAllTimeCommits(totalCommits);
+    setTotalAllTimeCommitsState(totalCommits);
+  };
+
+  const syncAllTimeCommits = async () => {
+    if (!user?.id || isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      const response = await fetchTotalCommits();
+      const total = response.totalAllTimeCommits || 0;
+      setTotalAllTimeCommits(user.id, total);
+      setTotalAllTimeCommitsState(total);
+    } catch (error) {
+      console.error('Failed to sync all-time commits:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const earnedBadges = BADGES.filter((badge) => streakData.longestStreak >= badge.requirement);
@@ -43,7 +92,17 @@ export default function StatsScreen() {
 
   return (
     <div className="flex-1 bg-base p-8">
-      <h1 className="text-4xl font-bold text-primary mb-8">Statistics & Achievements</h1>
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-4xl font-bold text-primary">Statistics & Achievements</h1>
+        <button
+          onClick={syncAllTimeCommits}
+          disabled={isRefreshing}
+          className="p-3 rounded-lg hover:bg-hover transition-colors disabled:opacity-50"
+          title="Refresh all-time commits"
+        >
+          <RefreshCw size={20} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <div className="bg-secondary border border-custom rounded-lg p-6">

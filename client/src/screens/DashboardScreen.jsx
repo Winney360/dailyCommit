@@ -107,7 +107,7 @@ export default function DashboardScreen() {
       setLocalStreakData(updatedData);
 
       const totalsResponse = await fetchTotalCommits();
-      setTotalAllTimeCommits(user.id, totalsResponse.totalAllTime || 0);
+      setTotalAllTimeCommits(user.id, totalsResponse.totalAllTimeCommits || 0);
     } catch (error) {
       console.error('Failed to sync commits:', error);
     } finally {
