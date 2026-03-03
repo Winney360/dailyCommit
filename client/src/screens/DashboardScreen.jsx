@@ -131,9 +131,9 @@ export default function DashboardScreen() {
           <h1 className="text-4xl font-bold text-primary">Welcome back, {user?.name || user?.username}!</h1>
           <p className="text-muted mt-2">Here's your commit activity for today</p>
         </div>
-        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="flex items-center gap-2 px-4 py-2 bg-hover hover:bg-tertiary rounded-lg transition-colors disabled:opacity-50">
+        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-3 rounded-lg hover:bg-hover transition-colors disabled:opacity-50 group relative" title="Refresh commits">
           <RefreshCw size={18} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="text-primary font-medium">Refresh</span>
+          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
         </button>
       </div>
 

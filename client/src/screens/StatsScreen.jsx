@@ -97,10 +97,11 @@ export default function StatsScreen() {
         <button
           onClick={syncAllTimeCommits}
           disabled={isRefreshing}
-          className="p-3 rounded-lg hover:bg-hover transition-colors disabled:opacity-50"
+          className="p-3 rounded-lg hover:bg-hover transition-colors disabled:opacity-50 group relative"
           title="Refresh all-time commits"
         >
           <RefreshCw size={20} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
         </button>
       </div>
 
