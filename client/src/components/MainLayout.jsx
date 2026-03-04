@@ -1,8 +1,39 @@
-import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, BarChart3, Settings } from 'lucide-react';
 
 export default function MainLayout() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [touchStart, setTouchStart] = useState(null);
+
+  const minSwipeDistance = 50;
+  const pageOrder = ['/', '/stats', '/settings'];
+  const currentPageIndex = pageOrder.indexOf(location.pathname);
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStart) return;
+    
+    const touchEndPos = e.changedTouches[0].clientX;
+    const distance = touchStart - touchEndPos;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentPageIndex < pageOrder.length - 1) {
+      // Swipe left - go to next page
+      navigate(pageOrder[currentPageIndex + 1]);
+    } else if (isRightSwipe && currentPageIndex > 0) {
+      // Swipe right - go to previous page
+      navigate(pageOrder[currentPageIndex - 1]);
+    }
+    
+    setTouchStart(null);
+  };
+
   return (
     <div className="flex flex-col md:flex-row h-screen w-full bg-base">
       {/* Desktop Sidebar */}
@@ -38,7 +69,11 @@ export default function MainLayout() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-base pb-16 md:pb-0">
+      <main 
+        className="flex-1 overflow-y-auto bg-base pb-16 md:pb-0"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <Outlet />
       </main>
 
