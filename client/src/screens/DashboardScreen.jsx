@@ -39,6 +39,10 @@ export default function DashboardScreen() {
       const { commitsByDay, totalCommits } = response;
 
       const getLocalDateString = (isoDateString) => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(isoDateString)) {
+          return isoDateString;
+        }
+
         const date = new Date(isoDateString);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
