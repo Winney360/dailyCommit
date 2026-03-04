@@ -4,10 +4,52 @@ import { useAuth } from '@/context/AuthContext';
 import { getStreakData, setStreakData, setTotalAllTimeCommits } from '@/lib/storage';
 import { getGitHubCommits, getTotalAllTimeCommits as fetchTotalCommits } from '@/lib/api';
 
+const liquidStyles = `
+  @keyframes liquidWave {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 40px 0;
+    }
+  }
+  
+  .liquid-fill {
+    background: linear-gradient(
+      90deg,
+      #7c3aed 0%,
+      #a78bfa 50%,
+      #7c3aed 100%
+    );
+    background-size: 40px 100%;
+    background-position: 0 0;
+    animation: liquidWave 4s linear infinite;
+    position: relative;
+    opacity: 0.85;
+  }
+  
+  .liquid-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);
+    animation: liquidGlow 4s ease-in-out infinite;
+  }
+  
+  @keyframes liquidGlow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.5; }
+  }
+`;
+
 export default function DashboardScreen() {
   const { user } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasSyncedOnce, setHasSyncedOnce] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [streakData, setLocalStreakData] = useState({
     currentStreak: 0,
     longestStreak: 0,
@@ -17,6 +59,13 @@ export default function DashboardScreen() {
     totalCommits: 0,
     yearlyCommits: 0,
   });
+
+  useEffect(() => {
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = liquidStyles;
+    document.head.appendChild(styleSheet);
+    return () => styleSheet.remove();
+  }, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -36,6 +85,19 @@ export default function DashboardScreen() {
     if (!user?.id || isRefreshing) return;
 
     setIsRefreshing(true);
+    setLoadingProgress(0);
+
+    // Realistic progress milestones with dynamic timing
+    const milestones = [0, 15, 35, 58, 72, 82, 90, 95, 98, 100];
+    const delays = [0, 200, 300, 400, 450, 500, 600, 700, 800, 0];
+    
+    const progressPromise = (async () => {
+      for (let i = 0; i < milestones.length - 1; i++) {
+        await new Promise(resolve => setTimeout(resolve, delays[i]));
+        setLoadingProgress(milestones[i]);
+      }
+    })();
+
     try {
       const totalsPromise = fetchTotalCommits().catch(() => null);
       const response = await getGitHubCommits();
@@ -127,8 +189,12 @@ export default function DashboardScreen() {
     } catch (error) {
       console.error('Failed to sync commits:', error);
     } finally {
+      await progressPromise;
+      setLoadingProgress(100);
       setHasSyncedOnce(true);
       setIsRefreshing(false);
+      // Reset progress bar after brief delay
+      setTimeout(() => setLoadingProgress(0), 500);
     }
   };
 
@@ -149,16 +215,33 @@ export default function DashboardScreen() {
   };
 
   return (
-    <div className="flex-1 bg-base p-4 md:p-8">
-      {!hasSyncedOnce && isRefreshing && (
-        <div className="mb-6 md:mb-8 p-4 bg-accent/10 border border-accent/30 rounded-lg flex items-start gap-3">
-          <RefreshCw size={20} className="text-accent shrink-0 mt-0.5 animate-spin" />
-          <div>
-            <h3 className="text-primary font-semibold mb-1">Fetching your commit data...</h3>
-            <p className="text-muted text-sm">We’re syncing from GitHub. Your stats will update automatically.</p>
+    <React.Fragment>
+      <div className="flex-1 bg-base p-4 md:p-8">
+        {!hasSyncedOnce && isRefreshing && (
+          <div className="mb-6 md:mb-8 p-4 bg-accent/10 border border-accent/30 rounded-lg">
+            <h3 className="text-primary font-semibold mb-4">Fetching your commit data...</h3>
+            
+            <div className="space-y-2">
+              <div className="w-full h-4 bg-accent/40 rounded-full overflow-hidden border border-accent/50">
+                <div 
+                  className="liquid-fill h-full rounded-full transition-all duration-200 ease-out flex items-center justify-end pr-2 shadow-lg"
+                  style={{ width: `${loadingProgress}%`, minWidth: '4px' }}
+                >
+                  {loadingProgress > 20 && (
+                    <span className="text-white text-xs font-bold drop-shadow">{Math.round(loadingProgress)}%</span>
+                  )}
+                </div>
+              </div>
+              {loadingProgress <= 20 && (
+                <div className="text-right">
+                  <span className="text-accent font-bold text-sm">{Math.round(loadingProgress)}%</span>
+                </div>
+              )}
+            </div>
+            
+            <p className="text-muted text-sm mt-4">We're syncing from GitHub. Your stats will update automatically.</p>
           </div>
-        </div>
-      )}
+        )}
 
       {hasSyncedOnce && streakData.todayCommits === 0 && (
         <div className="mb-6 md:mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-3">
@@ -263,6 +346,7 @@ export default function DashboardScreen() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </React.Fragment>
   );
 }
