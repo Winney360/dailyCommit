@@ -144,21 +144,21 @@ export default function StatsScreen() {
             const isEarned = earnedBadges.some((b) => b.id === badge.id);
             const isLast2 = index >= BADGES.length - 2;
             return (
-              <div key={badge.id} className={`rounded-lg p-6 text-center border transition-all ${
+              <div key={badge.id} className={`rounded-lg p-2 sm:p-4 md:p-6 text-center border transition-all ${
                 isLast2 ? 'col-span-3 sm:col-span-3 lg:col-span-3' : 'col-span-2 sm:col-span-3 lg:col-span-3'
               } ${
                 isEarned 
                   ? 'bg-secondary border-custom-light' 
                   : 'bg-base border-custom opacity-60'
               }`}>
-                <div className={`flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-4 ${
+                <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full mx-auto mb-2 sm:mb-3 md:mb-4 ${
                   isEarned ? 'bg-primary' : 'bg-hover'
                 }`}>
-                  <Award size={32} className="text-white" />
+                  <Award size={24} className="text-white" />
                 </div>
-                <h3 className="text-primary font-semibold mb-1">{badge.name}</h3>
-                <p className="text-muted text-sm mb-2">{formatRequirement(badge.requirement)} streak</p>
-                {isEarned && <span className="inline-block px-3 py-1 bg-success text-white text-xs font-semibold rounded-full">Earned!</span>}
+                <h3 className="text-primary font-semibold mb-1 text-xs sm:text-sm md:text-base">{badge.name}</h3>
+                <p className="text-muted text-xs sm:text-xs md:text-sm mb-2">{formatRequirement(badge.requirement)} streak</p>
+                {isEarned && <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 bg-success text-white text-xs font-semibold rounded-full">Earned!</span>}
               </div>
             );
           })}
