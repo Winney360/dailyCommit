@@ -253,15 +253,15 @@ export default function DashboardScreen() {
         </div>
       )}
 
-      <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+      <div className="mb-6 md:mb-8">
+        <div className="flex items-start sm:items-center justify-between gap-3 mb-2 md:mb-3">
           <h1 className="text-2xl md:text-4xl font-bold text-primary">Welcome back, {getFirstName(user?.name) || user?.username}!</h1>
-          <p className="text-muted mt-1 md:mt-2 text-sm md:text-base">Here's your commit activity for today</p>
+          <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-2 sm:p-3 rounded-lg hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors disabled:opacity-50 group relative shrink-0" title="Refresh commits" aria-label="Refresh commits">
+            <RefreshCw size={18} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="absolute bottom-full mb-2 right-0 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
+          </button>
         </div>
-        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-3 rounded-lg hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors disabled:opacity-50 group relative self-start sm:self-auto" title="Refresh commits" aria-label="Refresh commits">
-          <RefreshCw size={18} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
-        </button>
+        <p className="text-muted mt-2 text-sm md:text-base">Here's your commit activity for today</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8">
