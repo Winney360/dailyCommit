@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getStreakData, setStreakData, setTotalAllTimeCommits } from '@/lib/storage';
 import { getGitHubCommits, getTotalAllTimeCommits as fetchTotalCommits } from '@/lib/api';
@@ -124,8 +124,26 @@ export default function DashboardScreen() {
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  const getRemainingTimeInDay = () => {
+    const now = new Date();
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const msRemaining = endOfDay - now;
+    const hoursRemaining = Math.ceil(msRemaining / (1000 * 60 * 60));
+    return hoursRemaining;
+  };
+
   return (
     <div className="flex-1 bg-base p-4 md:p-8">
+      {streakData.todayCommits === 0 && (
+        <div className="mb-6 md:mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-3">
+          <AlertCircle size={20} className="text-warning shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-warning font-semibold mb-1">No commits yet today</h3>
+            <p className="text-warning/90 text-sm">You have {getRemainingTimeInDay()} hours left to make your first commit today and keep your streak alive! 🔥</p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-4xl font-bold text-primary">Welcome back, {user?.name || user?.username}!</h1>
