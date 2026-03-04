@@ -91,47 +91,48 @@ export default function StatsScreen() {
   const nextBadge = BADGES.find((badge) => streakData.longestStreak < badge.requirement);
 
   return (
-    <div className="flex-1 bg-base p-8">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-4xl font-bold text-primary">Statistics & Achievements</h1>
+    <div className="flex-1 bg-base p-4 md:p-8">
+      <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl md:text-4xl font-bold text-primary">Statistics & Achievements</h1>
         <button
           onClick={syncAllTimeCommits}
           disabled={isRefreshing}
-          className="p-3 rounded-lg hover:bg-hover transition-colors disabled:opacity-50 group relative"
+          className="p-3 rounded-lg hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors disabled:opacity-50 group relative"
           title="Refresh all-time commits"
+          aria-label="Refresh all-time commits"
         >
           <RefreshCw size={20} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
+          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <h3 className="text-muted font-semibold mb-2">Total All-Time</h3>
-          <p className="text-4xl font-bold text-success">{totalAllTimeCommits.toLocaleString()}</p>
-          <span className="text-sm text-muted">commits</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+        <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6">
+          <h3 className="text-muted font-semibold mb-2 text-sm md:text-base">Total All-Time</h3>
+          <p className="text-3xl md:text-4xl font-bold text-success">{totalAllTimeCommits.toLocaleString()}</p>
+          <span className="text-xs md:text-sm text-muted">commits</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <h3 className="text-muted font-semibold mb-2">This Year</h3>
-          <p className="text-4xl font-bold text-warning">{streakData.yearlyCommits}</p>
-          <span className="text-sm text-muted">commits</span>
+        <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6">
+          <h3 className="text-muted font-semibold mb-2 text-sm md:text-base">This Year</h3>
+          <p className="text-3xl md:text-4xl font-bold text-warning">{streakData.yearlyCommits}</p>
+          <span className="text-xs md:text-sm text-muted">commits</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <h3 className="text-muted font-semibold mb-2">Longest Streak</h3>
-          <p className="text-4xl font-bold text-accent">{streakData.longestStreak}</p>
-          <span className="text-sm text-muted">days</span>
+        <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6">
+          <h3 className="text-muted font-semibold mb-2 text-sm md:text-base">Longest Streak</h3>
+          <p className="text-3xl md:text-4xl font-bold text-accent">{streakData.longestStreak}</p>
+          <span className="text-xs md:text-sm text-muted">days</span>
         </div>
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold text-primary mb-2">Achievements</h2>
-        <p className="text-muted mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-primary mb-2">Achievements</h2>
+        <p className="text-muted mb-4 md:mb-6 text-sm md:text-base">
           {earnedBadges.length} of {BADGES.length} badges earned
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           {BADGES.map((badge) => {
             const isEarned = earnedBadges.some((b) => b.id === badge.id);
             return (

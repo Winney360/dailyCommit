@@ -4,8 +4,9 @@ import { Home, BarChart3, Settings } from 'lucide-react';
 
 export default function MainLayout() {
   return (
-    <div className="flex h-screen w-full bg-base">
-      <nav className="w-60 bg-secondary border-r border-custom flex flex-col p-0">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-base">
+      {/* Desktop Sidebar */}
+      <nav className="hidden md:flex w-60 bg-secondary border-r border-custom flex-col p-0">
         <div className="px-6 py-8 border-b border-custom">
           <h1 className="text-2xl font-bold text-accent">DailyCommit</h1>
         </div>
@@ -30,9 +31,38 @@ export default function MainLayout() {
           </NavLink>
         </div>
       </nav>
-      <main className="flex-1 overflow-y-auto bg-base">
+
+      {/* Mobile Header */}
+      <div className="md:hidden bg-secondary border-b border-custom px-4 py-4">
+        <h1 className="text-xl font-bold text-accent">DailyCommit</h1>
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto bg-base pb-16 md:pb-0">
         <Outlet />
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-secondary border-t border-custom flex items-center justify-around py-3 px-2">
+        <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+          isActive ? 'text-primary' : 'text-muted'
+        }`}>
+          <Home size={22} />
+          <span className="text-xs font-medium">Home</span>
+        </NavLink>
+        <NavLink to="/stats" className={({ isActive }) => `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+          isActive ? 'text-primary' : 'text-muted'
+        }`}>
+          <BarChart3 size={22} />
+          <span className="text-xs font-medium">Stats</span>
+        </NavLink>
+        <NavLink to="/settings" className={({ isActive }) => `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+          isActive ? 'text-primary' : 'text-muted'
+        }`}>
+          <Settings size={22} />
+          <span className="text-xs font-medium">Settings</span>
+        </NavLink>
+      </nav>
     </div>
   );
 }

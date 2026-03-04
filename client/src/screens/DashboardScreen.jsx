@@ -125,72 +125,77 @@ export default function DashboardScreen() {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="flex-1 bg-base p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="flex-1 bg-base p-4 md:p-8">
+      <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-primary">Welcome back, {user?.name || user?.username}!</h1>
-          <p className="text-muted mt-2">Here's your commit activity for today</p>
+          <h1 className="text-2xl md:text-4xl font-bold text-primary">Welcome back, {user?.name || user?.username}!</h1>
+          <p className="text-muted mt-1 md:mt-2 text-sm md:text-base">Here's your commit activity for today</p>
         </div>
-        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-3 rounded-lg hover:bg-hover transition-colors disabled:opacity-50 group relative" title="Refresh commits">
+        <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-3 rounded-lg hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors disabled:opacity-50 group relative self-start sm:self-auto" title="Refresh commits" aria-label="Refresh commits">
           <RefreshCw size={18} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
+          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <h3 className="text-muted font-semibold mb-2">Current Streak</h3>
-          <p className="text-4xl font-bold text-warning">{streakData.currentStreak}</p>
-          <span className="text-sm text-muted">days</span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+          <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Current Streak</h3>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.currentStreak}</p>
+          <span className="text-xs md:text-sm text-muted">days</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <h3 className="text-muted font-semibold mb-2">Longest Streak</h3>
-          <p className="text-4xl font-bold text-warning">{streakData.longestStreak}</p>
-          <span className="text-sm text-muted">days</span>
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+          <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Longest Streak</h3>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.longestStreak}</p>
+          <span className="text-xs md:text-sm text-muted">days</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <h3 className="text-muted font-semibold mb-2">Today's Commits</h3>
-          <p className="text-4xl font-bold text-warning">{streakData.todayCommits}</p>
-          <span className="text-sm text-muted">commits</span>
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+          <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Today's Commits</h3>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.todayCommits}</p>
+          <span className="text-xs md:text-sm text-muted">commits</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <h3 className="text-muted font-semibold mb-2">This Year</h3>
-          <p className="text-4xl font-bold text-warning">{streakData.yearlyCommits}</p>
-          <span className="text-sm text-muted">commits</span>
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+          <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">This Year</h3>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.yearlyCommits}</p>
+          <span className="text-xs md:text-sm text-muted">commits</span>
         </div>
       </div>
 
-      <div className="bg-secondary border border-custom rounded-lg p-6">
-        <div className="mb-6 flex items-start justify-between">
+      <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6">
+        <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-primary mb-2">This Week</h2>
-            <p className="text-muted text-sm">Your daily commit activity</p>
+            <h2 className="text-xl md:text-2xl font-bold text-primary mb-1 md:mb-2">This Week</h2>
+            <p className="text-muted text-xs md:text-sm">Your daily commit activity</p>
           </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-warning">{streakData.weeklyCommits.reduce((sum, count) => sum + count, 0)}</p>
+          <div className="text-left sm:text-right">
+            <p className="text-2xl md:text-3xl font-bold text-warning">{streakData.weeklyCommits.reduce((sum, count) => sum + count, 0)}</p>
             <span className="text-xs text-muted">total commits</span>
           </div>
         </div>
-        <div className="flex items-end justify-between gap-6">
-          <div className="flex items-end justify-center gap-3 flex-1">
+        <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 md:gap-6">
+          <div className="flex items-end justify-center gap-1.5 sm:gap-2 md:gap-3 flex-1 w-full overflow-x-auto">
             {streakData.weeklyCommits.map((count, index) => {
               const maxCount = Math.max(...streakData.weeklyCommits, 1);
               const intensity = count === 0 ? 0.1 : Math.max(0.3, count / maxCount);
               const isBestDay = count > 0 && count === maxCount;
               
               return (
-                <div key={index} className="flex flex-col items-center">
+                <div key={index} className="flex flex-col items-center shrink-0">
                   <div 
-                    className={`w-12 h-12 rounded transition-all hover:ring-2 hover:ring-offset-2 hover:ring-primary group relative cursor-pointer mb-2 ${
-                      count === 0 ? 'bg-hover' : isBestDay ? 'bg-success' : 'bg-primary'
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded transition-all hover:ring-2 hover:ring-offset-2 hover:ring-primary group relative cursor-pointer mb-2 ${
+                      count === 0 ? 'bg-hover' : 'bg-primary'
                     }`}
                     style={{ opacity: intensity }}
                     title={`${dayNames[index]}: ${count} commit${count !== 1 ? 's' : ''}`}
                   >
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-accent text-white text-xs font-semibold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    {isBestDay && (
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-success text-lg">
+                        ★
+                      </div>
+                    )}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-accent text-white text-xs font-semibold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                       {dayNames[index]}: {count} {count === 1 ? 'commit' : 'commits'} {isBestDay && '🔥'}
                     </div>
                   </div>
@@ -199,15 +204,15 @@ export default function DashboardScreen() {
               );
             })}
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 mt-4 md:mt-0">
             <div className="flex items-center gap-1">
               <span className="text-xs text-muted">Less</span>
               <div className="flex gap-1">
-                <div className="w-3 h-3 rounded bg-hover opacity-30"></div>
-                <div className="w-3 h-3 rounded bg-primary opacity-50"></div>
-                <div className="w-3 h-3 rounded bg-primary opacity-75"></div>
-                <div className="w-3 h-3 rounded bg-primary opacity-100"></div>
-                <div className="w-3 h-3 rounded bg-success"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-hover opacity-30"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-50"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-75"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100"></div>
               </div>
               <span className="text-xs text-muted">More</span>
             </div>

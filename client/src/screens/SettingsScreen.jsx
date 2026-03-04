@@ -219,49 +219,53 @@ export default function SettingsScreen() {
   };
 
   return (
-    <div className="flex-1 bg-base p-8">
-      <h1 className="text-4xl font-bold text-primary mb-8">Settings</h1>
+    <div className="flex-1 bg-base p-4 md:p-8">
+      <h1 className="text-2xl md:text-4xl font-bold text-primary mb-6 md:mb-8">Settings</h1>
 
-      <div className="mb-8">
-        <h2 className="flex items-center gap-3 text-2xl font-bold text-primary mb-6">
-          <User size={20} />
+      <div className="mb-6 md:mb-8">
+        <h2 className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl font-bold text-primary mb-4 md:mb-6">
+          <User size={18} className="md:w-5 md:h-5" />
           Account Information
         </h2>
         <div className="bg-secondary border border-custom rounded-lg divide-y divide-custom">
-          <div className="px-6 py-4 flex justify-between items-center">
-            <span className="text-muted font-medium">Username</span>
-            <span className="text-primary">{user?.username || 'N/A'}</span>
+          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+            <span className="text-muted font-medium text-sm md:text-base">Username</span>
+            <span className="text-primary text-sm md:text-base break-all">{user?.username || 'N/A'}</span>
           </div>
-          <div className="px-6 py-4 flex justify-between items-center">
-            <span className="text-muted font-medium">Name</span>
-            <span className="text-primary">{user?.name || 'N/A'}</span>
+          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+            <span className="text-muted font-medium text-sm md:text-base">Name</span>
+            <span className="text-primary text-sm md:text-base break-all">{user?.name || 'N/A'}</span>
           </div>
-          <div className="px-6 py-4 flex justify-between items-center">
-            <span className="text-muted font-medium">User ID</span>
-            <span className="text-primary font-mono text-sm">{user?.id || 'N/A'}</span>
+          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+            <span className="text-muted font-medium text-sm md:text-base">User ID</span>
+            <span className="text-primary font-mono text-xs md:text-sm break-all">{user?.id || 'N/A'}</span>
           </div>
         </div>
       </div>
 
-      <div className="mb-8">
-        <h2 className="flex items-center gap-3 text-2xl font-bold text-primary mb-6">
-          <Bell size={20} />
+      <div className="mb-6 md:mb-8">
+        <h2 className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl font-bold text-primary mb-4 md:mb-6">
+          <Bell size={18} className="md:w-5 md:h-5" />
           Daily Reminders
         </h2>
-        <div className="bg-secondary border border-custom rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
             <div>
-              <h3 className="text-primary font-semibold mb-1">Enable Daily Reminder</h3>
-              <p className="text-muted text-sm">Get notified to make your daily commit</p>
+              <h3 className="text-primary font-semibold mb-1 text-sm md:text-base">Enable Daily Reminder</h3>
+              <p className="text-muted text-xs md:text-sm">Get notified to make your daily commit</p>
             </div>
             <button
+              type="button"
               onClick={handleReminderToggle}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+              role="switch"
+              aria-checked={reminderEnabled}
+              aria-label="Enable daily reminder"
+              className={`relative inline-flex h-8 w-14 items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors ${
                 reminderEnabled ? 'bg-primary' : 'bg-hover'
               }`}
             >
               <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform pointer-events-none ${
                   reminderEnabled ? 'translate-x-7' : 'translate-x-1'
                 }`}
               />
@@ -295,9 +299,9 @@ export default function SettingsScreen() {
         </div>
       </div>
 
-      <div className="mb-8">
-        <h2 className="flex items-center gap-3 text-2xl font-bold text-primary mb-6">
-          <Shield size={20} />
+      <div className="mb-6 md:mb-8">
+        <h2 className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl font-bold text-primary mb-4 md:mb-6">
+          <Shield size={18} className="md:w-5 md:h-5" />
           Actions
         </h2>
 
@@ -391,7 +395,7 @@ export default function SettingsScreen() {
 
       {/* Toast notification */}
       {toast.show && (
-        <div className="fixed bottom-8 right-8 z-50 animate-slide-up">
+        <div className="fixed bottom-20 md:bottom-8 right-4 md:right-8 left-4 md:left-auto z-50 animate-slide-up">
           <div className={`bg-secondary border rounded-lg shadow-lg p-4 min-w-[320px] max-w-md ${
             toast.type === 'error' ? 'border-red-500' : 
             toast.type === 'success' ? 'border-success' : 
