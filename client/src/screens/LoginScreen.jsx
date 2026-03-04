@@ -9,6 +9,8 @@ export default function LoginScreen() {
   const { login, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showAccountChoice, setShowAccountChoice] = useState(false);
+  const [pendingGitHubUser, setPendingGitHubUser] = useState(null);
 
   useEffect(() => {
     console.log('[LoginScreen] Component mounted, window.location.search:', window.location.search);
@@ -35,6 +37,35 @@ export default function LoginScreen() {
     }
   }, [user, navigate]);
 
+  const handleContinueWithExistingAccount = async () => {
+    if (!pendingGitHubUser) return;
+    
+    setIsLoading(true);
+    try {
+      login(pendingGitHubUser);
+      // Clear the deleted account markers
+      localStorage.removeItem('lastDeletedGitHubUsername');
+      localStorage.removeItem('lastDeletedGitHubName');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('[LoginScreen] Login error:', error);
+      setError('Failed to log in. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleDifferentAccount = () => {
+    // User wants to log in with different GitHub account
+    // Clear the choice modal and go back to login button
+    setPendingGitHubUser(null);
+    setShowAccountChoice(false);
+    setError(null);
+    // Clear the pending user from localStorage too
+    localStorage.removeItem('lastDeletedGitHubUsername');
+    localStorage.removeItem('lastDeletedGitHubName');
+  };
+
   const handleCallback = async (userParam, tokenParam) => {
     setIsLoading(true);
     console.log('[LoginScreen] Processing OAuth callback...');
@@ -51,6 +82,26 @@ export default function LoginScreen() {
       if (tokenParam) {
         userData.accessToken = decodeURIComponent(tokenParam);
         console.log('[LoginScreen] Token received');
+      }
+
+      // Check if this GitHub account was previously deleted
+      const lastDeletedUsername = localStorage.getItem('lastDeletedGitHubUsername');
+      const lastDeletedName = localStorage.getItem('lastDeletedGitHubName');
+      
+      console.log('[LoginScreen] Checking for deleted account:', {
+        lastDeletedUsername,
+        currentUsername: userData.username,
+        matches: lastDeletedUsername && userData.username === lastDeletedUsername
+      });
+      
+      if (lastDeletedUsername && userData.username === lastDeletedUsername) {
+        console.log('[LoginScreen] Detected returning deleted account - showing choice modal');
+        // Same GitHub account that was previously deleted - ask user to choose
+        setPendingGitHubUser(userData);
+        setShowAccountChoice(true);
+        setIsLoading(false);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
       }
 
       console.log('[LoginScreen] Calling login()...');
@@ -96,6 +147,37 @@ export default function LoginScreen() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
           </div>
           <p className="text-primary font-medium">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showAccountChoice && pendingGitHubUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-base px-6">
+        <div className="w-full max-w-md">
+          <div className="bg-secondary border border-custom rounded-lg p-8">
+            <p className="text-muted mb-2 text-sm">GitHub Account Detected</p>
+            <h2 className="text-2xl font-bold text-primary mb-1">@{pendingGitHubUser.username}</h2>
+            <p className="text-muted text-sm mb-6">Your account was previously deleted. What would you like to do?</p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={handleContinueWithExistingAccount}
+                disabled={isLoading}
+                className="w-full px-4 py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold rounded-lg transition-colors"
+              >
+                Continue with @{pendingGitHubUser.username}
+              </button>
+              <button
+                onClick={handleDifferentAccount}
+                disabled={isLoading}
+                className="w-full px-4 py-3 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-colors"
+              >
+                Use Different GitHub Account
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

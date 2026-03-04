@@ -206,8 +206,20 @@ export default function SettingsScreen() {
 
     setIsDeleting(true);
     try {
+      // Store GitHub username before any clears happen
+      const githubUsername = user?.username;
+      const githubName = user?.name || '';
+
       await deleteAccount();
       clearAllData();
+      
+      // Save GitHub account info AFTER clearing other data but BEFORE logout
+      if (githubUsername) {
+        localStorage.setItem('lastDeletedGitHubUsername', githubUsername);
+        localStorage.setItem('lastDeletedGitHubName', githubName);
+        console.log('[SettingsScreen] Saved deleted account info:', { username: githubUsername, name: githubName });
+      }
+      
       logout();
       navigate('/login', { replace: true });
     } catch (error) {
