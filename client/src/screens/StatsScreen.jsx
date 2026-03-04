@@ -166,10 +166,21 @@ export default function StatsScreen() {
 
         {nextBadge && (
           <div className="bg-secondary border border-custom rounded-lg p-6">
-            <h3 className="text-primary font-semibold mb-2">Next Achievement</h3>
-            <p className="text-primary">
+            <h3 className="text-primary font-semibold mb-4">Next Achievement</h3>
+            <p className="text-primary mb-4">
               <span className="font-semibold">{nextBadge.name}</span> — {nextBadge.requirement - streakData.currentStreak} more day{nextBadge.requirement - streakData.currentStreak > 1 ? 's' : ''} to go!
             </p>
+            <div className="space-y-3">
+              <div className="w-full h-4 bg-base border-2 border-accent rounded-lg overflow-hidden shadow-md">
+                <div 
+                  className="h-full bg-accent transition-all duration-500 ease-out"
+                  style={{ width: `${Math.min((streakData.currentStreak / nextBadge.requirement) * 100, 100)}%` }}
+                />
+              </div>
+              <div className="text-center">
+                <span className="text-sm font-semibold text-primary">{streakData.currentStreak}/{nextBadge.requirement} days</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
