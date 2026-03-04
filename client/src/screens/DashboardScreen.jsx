@@ -210,8 +210,14 @@ export default function DashboardScreen() {
     const now = new Date();
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     const msRemaining = endOfDay - now;
-    const hoursRemaining = Math.ceil(msRemaining / (1000 * 60 * 60));
-    return hoursRemaining;
+    const minutesRemaining = Math.ceil(msRemaining / (1000 * 60));
+    const hours = Math.floor(minutesRemaining / 60);
+    const minutes = minutesRemaining % 60;
+    
+    if (hours === 0) {
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    }
+    return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
   };
 
   return (
@@ -248,7 +254,7 @@ export default function DashboardScreen() {
           <AlertCircle size={20} className="text-warning shrink-0 mt-0.5" />
           <div>
             <h3 className="text-warning font-semibold mb-1">No commits yet today</h3>
-            <p className="text-warning/90 text-sm">You have {getRemainingTimeInDay()} hours left to make your first commit today and keep your streak alive! 🔥</p>
+            <p className="text-warning/90 text-sm">You have {getRemainingTimeInDay()} left to make your first commit today and keep your streak alive! 🔥</p>
           </div>
         </div>
       )}
