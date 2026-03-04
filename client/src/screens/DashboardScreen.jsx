@@ -7,6 +7,7 @@ import { getGitHubCommits, getTotalAllTimeCommits as fetchTotalCommits } from '@
 export default function DashboardScreen() {
   const { user } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasSyncedOnce, setHasSyncedOnce] = useState(false);
   const [streakData, setLocalStreakData] = useState({
     currentStreak: 0,
     longestStreak: 0,
@@ -19,6 +20,7 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     if (user?.id) {
+      setHasSyncedOnce(false);
       loadStreakData();
       syncCommitsFromGitHub();
     }
@@ -35,6 +37,7 @@ export default function DashboardScreen() {
 
     setIsRefreshing(true);
     try {
+      const totalsPromise = fetchTotalCommits().catch(() => null);
       const response = await getGitHubCommits();
       const { commitsByDay, totalCommits } = response;
 
@@ -117,11 +120,14 @@ export default function DashboardScreen() {
       setStreakData(user.id, updatedData);
       setLocalStreakData(updatedData);
 
-      const totalsResponse = await fetchTotalCommits();
-      setTotalAllTimeCommits(user.id, totalsResponse.totalAllTimeCommits || 0);
+      const totalsResponse = await totalsPromise;
+      if (totalsResponse) {
+        setTotalAllTimeCommits(user.id, totalsResponse.totalAllTimeCommits || 0);
+      }
     } catch (error) {
       console.error('Failed to sync commits:', error);
     } finally {
+      setHasSyncedOnce(true);
       setIsRefreshing(false);
     }
   };
@@ -144,7 +150,17 @@ export default function DashboardScreen() {
 
   return (
     <div className="flex-1 bg-base p-4 md:p-8">
-      {streakData.todayCommits === 0 && (
+      {!hasSyncedOnce && isRefreshing && (
+        <div className="mb-6 md:mb-8 p-4 bg-accent/10 border border-accent/30 rounded-lg flex items-start gap-3">
+          <RefreshCw size={20} className="text-accent shrink-0 mt-0.5 animate-spin" />
+          <div>
+            <h3 className="text-primary font-semibold mb-1">Fetching your commit data...</h3>
+            <p className="text-muted text-sm">We’re syncing from GitHub. Your stats will update automatically.</p>
+          </div>
+        </div>
+      )}
+
+      {hasSyncedOnce && streakData.todayCommits === 0 && (
         <div className="mb-6 md:mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-3">
           <AlertCircle size={20} className="text-warning shrink-0 mt-0.5" />
           <div>
