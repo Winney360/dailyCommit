@@ -222,9 +222,9 @@ export default function DashboardScreen() {
 
   return (
     <React.Fragment>
-      <div className="flex-1 bg-base p-4 md:p-8">
+      <div className="flex-1 bg-base p-4 md:p-8 animate-fade-in">
         {!hasSyncedOnce && isRefreshing && (
-          <div className="mb-6 md:mb-8 p-4 bg-accent/10 border border-accent/30 rounded-lg">
+          <div className="mb-6 md:mb-8 p-4 bg-accent/10 border border-accent/30 rounded-lg animate-slide-up">
             <h3 className="text-primary font-semibold mb-4">Fetching your commit data...</h3>
             
             <div className="space-y-2">
@@ -250,7 +250,7 @@ export default function DashboardScreen() {
         )}
 
       {hasSyncedOnce && streakData.todayCommits === 0 && (
-        <div className="mb-6 md:mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-3">
+        <div className="mb-6 md:mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-3 animate-slide-up">
           <AlertCircle size={20} className="text-warning shrink-0 mt-0.5" />
           <div>
             <h3 className="text-warning font-semibold mb-1">No commits yet today</h3>
@@ -259,10 +259,16 @@ export default function DashboardScreen() {
         </div>
       )}
 
-      <div className="mb-6 md:mb-8">
+      <div className="mb-6 md:mb-8 animate-slide-up">
         <div className="flex items-start sm:items-center justify-between gap-3 mb-2 md:mb-3">
           <h1 className="text-2xl md:text-4xl font-bold text-primary">Welcome back, {getFirstName(user?.name) || user?.username}!</h1>
-          <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-2 sm:p-3 rounded-lg hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors disabled:opacity-50 group relative shrink-0" title="Refresh commits" aria-label="Refresh commits">
+          <button 
+            onClick={syncCommitsFromGitHub} 
+            disabled={isRefreshing} 
+            className="p-2 sm:p-3 rounded-lg hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-200 disabled:opacity-50 group relative shrink-0 hover:scale-110 active:scale-95" 
+            title="Refresh commits" 
+            aria-label="Refresh commits"
+          >
             <RefreshCw size={18} className={`text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="absolute bottom-full mb-2 right-0 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
           </button>
@@ -270,33 +276,33 @@ export default function DashboardScreen() {
         <p className="text-muted mt-2 text-sm md:text-base">Here's your commit activity for today</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8">
-        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8 animate-stagger-children">
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105 cursor-default">
           <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Current Streak</h3>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.currentStreak}</p>
           <span className="text-xs md:text-sm text-muted">days</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105 cursor-default">
           <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Longest Streak</h3>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.longestStreak}</p>
           <span className="text-xs md:text-sm text-muted">days</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105 cursor-default">
           <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Today's Commits</h3>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.todayCommits}</p>
           <span className="text-xs md:text-sm text-muted">commits</span>
         </div>
 
-        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6">
+        <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105 cursor-default">
           <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">This Year</h3>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.yearlyCommits}</p>
           <span className="text-xs md:text-sm text-muted">commits</span>
         </div>
       </div>
 
-      <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6">
+      <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6 animate-slide-up hover:border-primary/50 transition-all duration-300">
         <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-primary mb-1 md:mb-2">This Week</h2>
@@ -315,16 +321,16 @@ export default function DashboardScreen() {
               const isBestDay = count > 0 && count === maxCount;
               
               return (
-                <div key={index} className="flex flex-col items-center shrink-0">
+                <div key={index} className="flex flex-col items-center shrink-0 animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
                   <div 
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded transition-all hover:ring-2 hover:ring-offset-2 hover:ring-primary group relative cursor-pointer mb-2 ${
-                      count === 0 ? 'bg-hover' : 'bg-primary'
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded transition-all duration-200 hover:ring-2 hover:ring-offset-2 hover:ring-primary hover:scale-110 active:scale-95 group relative cursor-pointer mb-2 ${
+                      count === 0 ? 'bg-hover' : 'bg-primary hover:shadow-lg hover:shadow-primary/40'
                     }`}
                     style={{ opacity: intensity }}
                     title={`${dayNames[index]}: ${count} commit${count !== 1 ? 's' : ''}`}
                   >
                     {isBestDay && (
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-success text-lg">
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-success text-lg animate-subtle-bounce">
                         ★
                       </div>
                     )}

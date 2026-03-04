@@ -231,36 +231,36 @@ export default function SettingsScreen() {
   };
 
   return (
-    <div className="flex-1 bg-base p-4 md:p-8">
-      <h1 className="text-2xl md:text-4xl font-bold text-primary mb-6 md:mb-8">Settings</h1>
+    <div className="flex-1 bg-base p-4 md:p-8 animate-fade-in">
+      <h1 className="text-2xl md:text-4xl font-bold text-primary mb-6 md:mb-8 animate-slide-up">Settings</h1>
 
-      <div className="mb-6 md:mb-8">
+      <div className="mb-6 md:mb-8 animate-slide-up" style={{ animationDelay: '0.05s' }}>
         <h2 className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl font-bold text-primary mb-4 md:mb-6">
           <User size={18} className="md:w-5 md:h-5" />
           Account Information
         </h2>
-        <div className="bg-secondary border border-custom rounded-lg divide-y divide-custom">
-          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+        <div className="bg-secondary border border-custom rounded-lg divide-y divide-custom hover:border-primary/50 transition-all duration-300">
+          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0 hover:bg-hover/50 transition-colors duration-200">
             <span className="text-muted font-medium text-sm md:text-base">Username</span>
             <span className="text-primary text-sm md:text-base break-all">{user?.username || 'N/A'}</span>
           </div>
-          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0 hover:bg-hover/50 transition-colors duration-200">
             <span className="text-muted font-medium text-sm md:text-base">Name</span>
             <span className="text-primary text-sm md:text-base break-all">{user?.name || 'N/A'}</span>
           </div>
-          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+          <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0 hover:bg-hover/50 transition-colors duration-200">
             <span className="text-muted font-medium text-sm md:text-base">User ID</span>
             <span className="text-primary font-mono text-xs md:text-sm break-all">{user?.id || 'N/A'}</span>
           </div>
         </div>
       </div>
 
-      <div className="mb-6 md:mb-8">
+      <div className="mb-6 md:mb-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <h2 className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl font-bold text-primary mb-4 md:mb-6">
           <Bell size={18} className="md:w-5 md:h-5" />
           Daily Reminders
         </h2>
-        <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6">
+        <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6 hover:border-accent/50 transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
             <div>
               <h3 className="text-primary font-semibold mb-1 text-sm md:text-base">Enable Daily Reminder</h3>
@@ -272,20 +272,20 @@ export default function SettingsScreen() {
               role="switch"
               aria-checked={reminderEnabled}
               aria-label="Enable daily reminder"
-              className={`relative inline-flex h-8 w-14 items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors ${
-                reminderEnabled ? 'bg-primary' : 'bg-hover'
+              className={`relative inline-flex h-8 w-14 items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-300 ${
+                reminderEnabled ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-hover'
               }`}
             >
               <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform pointer-events-none ${
-                  reminderEnabled ? 'translate-x-7' : 'translate-x-1'
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-all duration-300 pointer-events-none ${
+                  reminderEnabled ? 'translate-x-7 shadow-lg' : 'translate-x-1'
                 }`}
               />
             </button>
           </div>
 
           {reminderEnabled && (
-            <div className="pt-4 border-t border-custom">
+            <div className="pt-4 border-t border-custom animate-slide-up">
               <label className="flex items-center gap-2 mb-2">
                 <Clock size={18} className="text-accent" />
                 <span className="text-muted font-medium">Reminder Time</span>
@@ -294,13 +294,13 @@ export default function SettingsScreen() {
                 type="time"
                 value={reminderTime}
                 onChange={handleReminderTimeChange}
-                className="w-full px-4 py-2 bg-hover border border-custom text-primary rounded-lg focus:outline-none focus:border-primary"
+                className="w-full px-4 py-2 bg-hover border border-custom text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
               />
               <p className="text-muted text-sm mt-2">
                 You'll receive a notification at {reminderTime} every day
               </p>
               {notificationPermission !== 'granted' && (
-                <div className="mt-4 p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                <div className="mt-4 p-3 bg-warning/10 border border-warning/30 rounded-lg animate-slide-up">
                   <p className="text-warning text-sm">
                     ⚠️ Notification permission required. Click the toggle to enable.
                   </p>
@@ -311,16 +311,16 @@ export default function SettingsScreen() {
         </div>
       </div>
 
-      <div className="mb-6 md:mb-8">
+      <div className="mb-6 md:mb-8 animate-slide-up" style={{ animationDelay: '0.15s' }}>
         <h2 className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl font-bold text-primary mb-4 md:mb-6">
           <Shield size={18} className="md:w-5 md:h-5" />
           Actions
         </h2>
 
-        <div className="space-y-3">
+        <div className="space-y-3 animate-stagger-children">
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center gap-3 px-6 py-3 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-6 py-3 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
           >
             <LogOut size={20} />
             <span>Log Out</span>
@@ -328,7 +328,7 @@ export default function SettingsScreen() {
 
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="w-full flex items-center gap-3 px-6 py-3 bg-red-900 hover:bg-red-800 text-red-100 font-semibold rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-6 py-3 bg-red-900 hover:bg-red-800 text-red-100 font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-red-900/50"
           >
             <Trash2 size={20} />
             <span>Delete Account</span>
@@ -338,25 +338,25 @@ export default function SettingsScreen() {
 
       {showLogoutModal && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in"
           onClick={() => setShowLogoutModal(false)}
         >
           <div
-            className="bg-secondary border border-custom rounded-lg p-8 max-w-sm w-full"
+            className="bg-secondary border border-custom rounded-lg p-8 max-w-sm w-full animate-scale-in shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-bold text-primary mb-2">Confirm Logout</h3>
             <p className="text-muted mb-6">Are you sure you want to log out?</p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 animate-stagger-children">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 px-4 py-2 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 Cancel
               </button>
               <button
                 onClick={handleLogout}
-                className="flex-1 px-4 py-2 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/40"
               >
                 Log Out
               </button>
@@ -367,11 +367,11 @@ export default function SettingsScreen() {
 
       {showDeleteModal && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in"
           onClick={() => setShowDeleteModal(false)}
         >
           <div
-            className="bg-secondary border border-custom rounded-lg p-8 max-w-sm w-full"
+            className="bg-secondary border border-custom rounded-lg p-8 max-w-sm w-full animate-scale-in shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-bold text-primary mb-4">Delete Account</h3>
@@ -384,19 +384,19 @@ export default function SettingsScreen() {
               value={deleteInput}
               onChange={(e) => setDeleteInput(e.target.value)}
               placeholder="Type DELETE"
-              className="w-full px-4 py-2 bg-hover border border-custom text-primary rounded-lg focus:outline-none focus:border-primary mb-6"
+              className="w-full px-4 py-2 bg-hover border border-custom text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 mb-6"
             />
-            <div className="flex gap-3">
+            <div className="flex gap-3 animate-stagger-children">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-2 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleteInput !== 'DELETE' || isDeleting}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-red-900/50"
               >
                 {isDeleting ? 'Deleting...' : 'Delete Account'}
               </button>
@@ -408,10 +408,10 @@ export default function SettingsScreen() {
       {/* Toast notification */}
       {toast.show && (
         <div className="fixed bottom-20 md:bottom-8 right-4 md:right-8 left-4 md:left-auto z-50 animate-slide-up">
-          <div className={`bg-secondary border rounded-lg shadow-lg p-4 min-w-[320px] max-w-md ${
-            toast.type === 'error' ? 'border-red-500' : 
-            toast.type === 'success' ? 'border-success' : 
-            toast.type === 'confirm' ? 'border-primary' : 
+          <div className={`bg-secondary border rounded-lg shadow-lg p-4 min-w-[320px] max-w-md transition-all duration-300 ${
+            toast.type === 'error' ? 'border-red-500 bg-red-950/20' : 
+            toast.type === 'success' ? 'border-success bg-success/10' : 
+            toast.type === 'confirm' ? 'border-primary bg-primary/10' : 
             'border-custom'
           }`}>
             <div className="flex items-start gap-3">
@@ -421,7 +421,7 @@ export default function SettingsScreen() {
               {!toast.action && (
                 <button
                   onClick={hideToast}
-                  className="text-muted hover:text-primary transition-colors"
+                  className="text-muted hover:text-primary transition-colors duration-200 hover:scale-110"
                 >
                   <X size={18} />
                 </button>
@@ -429,16 +429,16 @@ export default function SettingsScreen() {
             </div>
             
             {toast.action && (
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2 mt-3 animate-stagger-children">
                 <button
                   onClick={toast.action.onDeny}
-                  className="flex-1 px-3 py-2 bg-hover hover:bg-tertiary text-muted text-sm font-medium rounded transition-colors"
+                  className="flex-1 px-3 py-2 bg-hover hover:bg-tertiary text-muted text-sm font-medium rounded transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   Deny
                 </button>
                 <button
                   onClick={toast.action.onAccept}
-                  className="flex-1 px-3 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded transition-colors flex items-center justify-center gap-1"
+                  className="flex-1 px-3 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-1"
                 >
                   <Check size={16} />
                   Accept

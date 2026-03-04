@@ -141,7 +141,7 @@ export default function LoginScreen() {
 
   if (isLoading && !error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-base">
+      <div className="flex items-center justify-center min-h-screen bg-base animate-fade-in">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 mb-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
@@ -154,25 +154,25 @@ export default function LoginScreen() {
 
   if (showAccountChoice && pendingGitHubUser) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-base px-6">
+      <div className="flex items-center justify-center min-h-screen bg-base px-6 animate-fade-in">
         <div className="w-full max-w-md">
-          <div className="bg-secondary border border-custom rounded-lg p-8">
+          <div className="bg-secondary border border-custom rounded-lg p-8 animate-scale-in shadow-xl">
             <p className="text-muted mb-2 text-sm">GitHub Account Detected</p>
             <h2 className="text-2xl font-bold text-primary mb-1">@{pendingGitHubUser.username}</h2>
             <p className="text-muted text-sm mb-6">Your account was previously deleted. What would you like to do?</p>
             
-            <div className="space-y-3">
+            <div className="space-y-3 animate-stagger-children">
               <button
                 onClick={handleContinueWithExistingAccount}
                 disabled={isLoading}
-                className="w-full px-4 py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold rounded-lg transition-colors"
+                className="w-full px-4 py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95"
               >
                 Continue with @{pendingGitHubUser.username}
               </button>
               <button
                 onClick={handleDifferentAccount}
                 disabled={isLoading}
-                className="w-full px-4 py-3 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-colors"
+                className="w-full px-4 py-3 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 Use Different GitHub Account
               </button>
@@ -184,25 +184,31 @@ export default function LoginScreen() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-base px-6">
+    <div className="flex items-center justify-center min-h-screen bg-base px-6 animate-fade-in">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-5xl font-bold text-accent mb-3">DailyCommit</h1>
+        <div className="mb-8 text-center animate-slide-up">
+          <h1 className="text-5xl font-bold text-accent mb-3 hover:text-primary transition-colors duration-300">DailyCommit</h1>
           <p className="text-muted text-lg">Track your GitHub commits and maintain your daily coding streak</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-950 border border-red-800 rounded-lg">
+          <div className="mb-6 p-4 bg-red-950 border border-red-800 rounded-lg animate-slide-up">
             <p className="text-red-200">{error}</p>
           </div>
         )}
 
-        <button onClick={handleGitHubLogin} disabled={isLoading} className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-primary hover:bg-primary-hover disabled:bg-primary-hover disabled:opacity-50 text-white font-semibold rounded-lg transition-colors mb-8">
-          <Github size={24} />
-          <span>Continue with GitHub</span>
-        </button>
+        <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <button 
+            onClick={handleGitHubLogin} 
+            disabled={isLoading} 
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-primary hover:bg-primary-hover disabled:bg-primary-hover disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-200 mb-8 hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 group"
+          >
+            <Github size={24} className="group-hover:animate-subtle-bounce" />
+            <span>Continue with GitHub</span>
+          </button>
+        </div>
 
-        <p className="text-center text-muted text-sm">
+        <p className="text-center text-muted text-sm animate-fade-in" style={{ animationDelay: '0.2s' }}>
           Sign in to access your GitHub commit history and track your progress
         </p>
       </div>

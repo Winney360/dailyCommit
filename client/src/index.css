@@ -61,6 +61,7 @@
 	
 	.divide-custom > * + * { border-color: var(--color-border); }
 	
+	/* Entrance Animations */
 	@keyframes slide-up {
 		from {
 			opacity: 0;
@@ -71,8 +72,176 @@
 			transform: translateY(0);
 		}
 	}
-	
+
+	@keyframes slide-down {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes slide-in-right {
+		from {
+			opacity: 0;
+			transform: translateX(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	@keyframes slide-in-left {
+		from {
+			opacity: 0;
+			transform: translateX(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	@keyframes scale-in {
+		from {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	/* Hover & Interactive Animations */
+	@keyframes subtle-bounce {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-2px); }
+	}
+
+	@keyframes glow-pulse {
+		0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.1); }
+		50% { box-shadow: 0 0 0 4px rgba(124, 58, 237, 0); }
+	}
+
+	@keyframes shimmer {
+		0% { background-position: -1000px 0; }
+		100% { background-position: 1000px 0; }
+	}
+
+	/* Animation Utilities */
 	.animate-slide-up {
-		animation: slide-up 0.3s ease-out;
+		animation: slide-up 0.4s ease-out;
+	}
+
+	.animate-slide-down {
+		animation: slide-down 0.4s ease-out;
+	}
+
+	.animate-fade-in {
+		animation: fade-in 0.3s ease-out;
+	}
+
+	.animate-slide-in-right {
+		animation: slide-in-right 0.4s ease-out;
+	}
+
+	.animate-slide-in-left {
+		animation: slide-in-left 0.4s ease-out;
+	}
+
+	.animate-scale-in {
+		animation: scale-in 0.3s ease-out;
+	}
+
+	.animate-pulse {
+		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	@keyframes pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.5; }
+	}
+
+	.group:hover .group-hover\:animate-subtle-bounce {
+		animation: subtle-bounce 0.6s ease-in-out;
+	}
+
+	.hover\:animate-glow {
+		transition: box-shadow 0.3s ease;
+	}
+
+	.hover\:animate-glow:hover {
+		animation: glow-pulse 2s ease-in-out infinite;
+	}
+
+	/* Stagger Animation for List Items */
+	@keyframes stagger {
+		0% {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.animate-stagger-children > * {
+		animation: stagger 0.3s ease-out forwards;
+	}
+
+	.animate-stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+	.animate-stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+	.animate-stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+	.animate-stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+	.animate-stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+	.animate-stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+	.animate-stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+	.animate-stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+	.animate-stagger-children > *:nth-child(n+9) { animation-delay: 0.45s; }
+
+	/* Smooth Transitions */
+	button, a, input, select, textarea {
+		@apply transition-all duration-200;
+	}
+
+	/* Loading Skeleton */
+	.skeleton {
+		background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-bg-tertiary) 50%, var(--color-bg-secondary) 75%);
+		background-size: 1000px 100%;
+		animation: shimmer 2s infinite;
+	}
+
+	/* Button Interactions */
+	button:not(:disabled):active {
+		@apply scale-95;
+	}
+
+	button:focus-visible {
+		@apply outline-none ring-2 ring-offset-2 ring-primary ring-offset-base;
+	}
+
+	/* Input Interactions */
+	input:focus-visible, textarea:focus-visible, select:focus-visible {
+		@apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-base;
+	}
+
+	/* Smooth Scrolling */
+	html {
+		scroll-behavior: smooth;
 	}
 }
