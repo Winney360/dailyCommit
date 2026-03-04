@@ -124,6 +124,12 @@ export default function DashboardScreen() {
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  const getFirstName = (fullName) => {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    return parts[0];
+  };
+
   const getRemainingTimeInDay = () => {
     const now = new Date();
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
@@ -146,7 +152,7 @@ export default function DashboardScreen() {
 
       <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-4xl font-bold text-primary">Welcome back, {user?.name || user?.username}!</h1>
+          <h1 className="text-2xl md:text-4xl font-bold text-primary">Welcome back, {getFirstName(user?.name) || user?.username}!</h1>
           <p className="text-muted mt-1 md:mt-2 text-sm md:text-base">Here's your commit activity for today</p>
         </div>
         <button onClick={syncCommitsFromGitHub} disabled={isRefreshing} className="p-3 rounded-lg hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors disabled:opacity-50 group relative self-start sm:self-auto" title="Refresh commits" aria-label="Refresh commits">
