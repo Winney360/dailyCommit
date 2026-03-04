@@ -176,7 +176,7 @@ export default function StatsScreen() {
             <div className="space-y-3">
               <div className="w-full h-4 bg-base border-2 border-accent rounded-lg overflow-hidden shadow-md">
                 <div 
-                  className="h-full bg-linear-to-r from-primary to-accent transition-all duration-500 ease-out shadow-lg shadow-primary/50"
+                  className="h-full bg-accent transition-all duration-500 ease-out shadow-lg shadow-primary/50"
                   style={{ width: `${Math.min((streakData.currentStreak / nextBadge.requirement) * 100, 100)}%` }}
                 />
               </div>
