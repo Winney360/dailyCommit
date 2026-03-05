@@ -161,7 +161,7 @@ export default function StatsScreen() {
                 </div>
                 <h3 className="text-primary font-semibold mb-1 text-xs sm:text-sm md:text-base">{badge.name}</h3>
                 <p className="text-muted text-xs sm:text-xs md:text-sm mb-2">{formatRequirement(badge.requirement)} streak</p>
-                {isEarned && <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 bg-success text-white text-xs font-semibold rounded-full animate-pulse">Earned!</span>}
+                {isEarned && <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 bg-success text-white text-xs font-semibold rounded-full">Earned!</span>}
               </div>
             );
           })}
