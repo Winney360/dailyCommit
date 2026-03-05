@@ -316,15 +316,28 @@ export default function DashboardScreen() {
         <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 md:gap-6">
           <div className="flex items-end justify-center gap-1.5 sm:gap-2 md:gap-3 flex-1 w-full overflow-x-auto">
             {streakData.weeklyCommits.map((count, index) => {
+              // Define intensity levels based on commit count ranges
+              let intensity;
+              if (count === 0) {
+                intensity = 0.15;
+              } else if (count <= 2) {
+                intensity = 0.4;
+              } else if (count <= 5) {
+                intensity = 0.6;
+              } else if (count <= 10) {
+                intensity = 0.8;
+              } else {
+                intensity = 1.0;
+              }
+              
               const maxCount = Math.max(...streakData.weeklyCommits, 1);
-              const intensity = count === 0 ? 0.1 : Math.max(0.3, count / maxCount);
               const isBestDay = count > 0 && count === maxCount;
               
               return (
                 <div key={index} className="flex flex-col items-center shrink-0 animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
                   <div 
                     className={`w-10 h-10 sm:w-12 sm:h-12 rounded transition-all duration-200 hover:ring-2 hover:ring-offset-2 hover:ring-primary hover:scale-110 active:scale-95 group relative cursor-pointer mb-2 ${
-                      count === 0 ? 'bg-hover' : 'bg-primary hover:shadow-lg hover:shadow-primary/40'
+                      count === 0 ? 'bg-hover border border-accent/50' : 'bg-primary border border-primary hover:shadow-lg hover:shadow-primary/40'
                     }`}
                     style={{ opacity: intensity }}
                     title={`${dayNames[index]}: ${count} commit${count !== 1 ? 's' : ''}`}
@@ -347,11 +360,11 @@ export default function DashboardScreen() {
             <div className="flex items-center gap-1">
               <span className="text-xs text-muted">Less</span>
               <div className="flex gap-1">
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-hover opacity-30"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-50"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-75"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-hover border border-accent/50" title="0 commits"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-40 border border-primary/60" title="1-2 commits"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-60 border border-primary/80" title="3-5 commits"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-80 border border-primary" title="6-10 commits"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100 border border-primary" title="11+ commits"></div>
               </div>
               <span className="text-xs text-muted">More</span>
             </div>
