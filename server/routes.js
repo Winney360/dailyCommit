@@ -247,7 +247,10 @@ export async function registerRoutes(app) {
     commitEmail === `${username}@users.noreply.github.com`;
 
   if (isUserCommit) {
-    const commitDate = commit.commit.author.date.split("T")[0];
+    // Convert UTC date to local date using the author's date
+    const commitDateUTC = new Date(commit.commit.author.date);
+    const commitDateLocal = new Date(commitDateUTC.getTime() - commitDateUTC.getTimezoneOffset() * 60000);
+    const commitDate = commitDateLocal.toISOString().split("T")[0];
 
     if (!commitsByDay[commitDate]) {
       commitsByDay[commitDate] = 0;
@@ -257,7 +260,10 @@ export async function registerRoutes(app) {
     repoCommitCount++;
     pageCommitCount++;
   } else {
-    const skippedDate = commit.commit.committer.date.split("T")[0];
+    // For skipped commits, also use local timezone
+    const skippedDateUTC = new Date(commit.commit.committer.date);
+    const skippedDateLocal = new Date(skippedDateUTC.getTime() - skippedDateUTC.getTimezoneOffset() * 60000);
+    const skippedDate = skippedDateLocal.toISOString().split("T")[0];
     console.log(
       `  SKIP: ${skippedDate} author=${commitUsername || "N/A"} email=${commitEmail || "N/A"} msg="${message}"`
     );
