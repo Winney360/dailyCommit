@@ -25,27 +25,41 @@ const app = express();
 const log = console.log;
 
 // ------------------------ CORS ------------------------
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5000',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5000',
-];
+const normalizeOrigin = (value) => {
+  if (!value) return null;
+  try {
+    return new URL(value).origin; // strips trailing slash/path
+  } catch {
+    return String(value).replace(/\/+$/, "");
+  }
+};
 
-// Add production origin from environment if available
-if (process.env.CLIENT_URL) {
-  allowedOrigins.push(process.env.CLIENT_URL);
-}
+const allowedOrigins = new Set(
+  [
+    "http://localhost:5173",
+    "http://localhost:5000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5000",
+    "https://daily-commit-theta.vercel.app",
+    process.env.CLIENT_URL,
+    process.env.WEB_FRONTEND_URL,
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean)
+);
 
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  const requestOrigin = normalizeOrigin(req.headers.origin);
+
+  if (requestOrigin && allowedOrigins.has(requestOrigin)) {
+    res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.setHeader("Access-Control-Allow-Credentials", "true");
   }
-  if (req.method === "OPTIONS") return res.sendStatus(200);
+
+  if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
 
