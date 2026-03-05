@@ -1,5 +1,6 @@
 import { getApiUrl } from './query-client';
-import { getToken, setToken } from './token-storage';
+import { getToken, setToken, deleteToken } from './token-storage';
+import { removeUser } from './storage';
 
 /**
  * Make an authenticated API request
@@ -28,12 +29,15 @@ export async function fetchAuthenticated(endpoint, options = {}) {
 
     if (response.status === 401) {
       const data = await response.json().catch(() => ({}));
-      // Clear invalid token
-      const { deleteToken } = await import('./token-storage');
-      const { removeUser } = await import('./storage');
+
+      // Clear invalid token and user data
+      console.log('[API] Token expired, clearing auth data and redirecting...');
       deleteToken();
       removeUser();
-      
+
+      // Redirect to login page
+      window.location.href = '/';
+
       throw new Error(data.error || 'Authentication expired. Please log in again.');
     }
 
@@ -100,11 +104,11 @@ export async function refreshToken() {
     const data = await fetchAuthenticated('api/auth/refresh', {
       method: 'POST',
     });
-    
+
     if (data.token) {
       setToken(data.token);
     }
-    
+
     return data;
   } catch (error) {
     console.error('Failed to refresh token:', error);
