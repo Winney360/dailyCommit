@@ -11,17 +11,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  server: {
-    hmr: {
-      host: 'localhost',
-      port: 5173,
-      protocol: 'ws',
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-      },
-    },
+  build: {
+    outDir: 'dist',
+    base: './', // ensures assets load correctly on Vercel
   },
 })
