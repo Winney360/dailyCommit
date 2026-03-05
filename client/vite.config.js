@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  base: '/', // for Vercel root deployment
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -13,6 +14,5 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    base: './', // ensures assets load correctly on Vercel
   },
 })
