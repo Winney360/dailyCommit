@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Award, RefreshCw } from 'lucide-react';
+import FlameIcon from '@/components/FlameIcon';
 import { useAuth } from '@/context/AuthContext';
 import { getStreakData, getTotalAllTimeCommits, setTotalAllTimeCommits } from '@/lib/storage';
 import { getTotalAllTimeCommits as fetchTotalCommits } from '@/lib/api';
 
 const BADGES = [
-  { id: 'first-commit', name: 'Getting Started', requirement: 1, color: '#34D399' },
-  { id: 'week-streak', name: 'Week Warrior', requirement: 7, color: '#F59E0B' },
-  { id: 'two-weeks', name: 'Fortnight Force', requirement: 14, color: '#7C3AED' },
-  { id: 'month-streak', name: 'Monthly Master', requirement: 30, color: '#9F7AEA' },
-  { id: 'hundred-days', name: 'Centurion', requirement: 100, color: '#34D399' },
-  { id: 'six-months', name: 'Half-Year Hero', requirement: 180, color: '#8B5CF6' },
-  { id: 'nine-months', name: 'Nine-Month Streak', requirement: 270, color: '#EC4899' },
-  { id: 'full-year', name: 'Year Warrior', requirement: 365, color: '#F59E0B' },
+  { id: 'first-commit', name: 'Getting Started', requirement: 1, color: '#34D399', flameColor: '#F97316' },
+  { id: 'week-streak', name: 'Week Warrior', requirement: 7, color: '#F59E0B', flameColor: '#F59E0B' },
+  { id: 'two-weeks', name: 'Fortnight Force', requirement: 14, color: '#7C3AED', flameColor: '#7C3AED' },
+  { id: 'month-streak', name: 'Monthly Master', requirement: 30, color: '#9F7AEA', flameColor: '#9F7AEA' },
+  { id: 'hundred-days', name: 'Centurion', requirement: 100, color: '#34D399', flameColor: '#3B82F6' },
+  { id: 'six-months', name: 'Half-Year Hero', requirement: 180, color: '#8B5CF6', flameColor: '#EC4899' },
+  { id: 'nine-months', name: 'Nine-Month Streak', requirement: 270, color: '#EC4899', flameColor: '#F472B6' },
+  { id: 'full-year', name: 'Year Warrior', requirement: 365, color: '#F59E0B', flameColor: '#FBBF24' },
 ];
 
 export default function StatsScreen() {
@@ -161,7 +162,15 @@ export default function StatsScreen() {
                 </div>
                 <h3 className="text-primary font-semibold mb-1 text-xs sm:text-sm md:text-base">{badge.name}</h3>
                 <p className="text-muted text-xs sm:text-xs md:text-sm mb-2">{formatRequirement(badge.requirement)} streak</p>
-                {isEarned && <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 bg-success text-white text-xs font-semibold rounded-full">Earned!</span>}
+                {isEarned && (
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full" style={{ 
+                    background: `linear-gradient(135deg, ${badge.flameColor}20, ${badge.flameColor}10)`,
+                    boxShadow: `0 0 8px ${badge.flameColor}40`
+                  }}>
+                    <span className="text-white text-xs font-semibold">Earned</span>
+                    <FlameIcon color={badge.flameColor} size={16} />
+                  </div>
+                )}
               </div>
             );
           })}
