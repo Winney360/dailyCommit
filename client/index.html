@@ -8,6 +8,8 @@
     <meta name="author" content="DailyCommit" />
     <meta name="theme-color" content="#1a1a2e" />
     <meta name="robots" content="index, follow" />
+    <link rel="icon" type="image/png" href="/favicon.png" id="app-favicon" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     
     <!-- Open Graph Tags -->
     <meta property="og:type" content="website" />
@@ -20,6 +22,35 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="DailyCommit - Your Daily GitHub Streak Tracker" />
     <meta name="twitter:description" content="Track your GitHub commits, maintain daily streaks, and earn achievement badges." />
+    <script>
+      (function makeCircularFavicon() {
+        const img = new Image();
+        img.src = '/favicon.png';
+        img.onload = () => {
+          const size = 64;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+
+          const sourceSize = Math.min(img.width, img.height);
+          const sx = (img.width - sourceSize) / 2;
+          const sy = (img.height - sourceSize) / 2;
+          ctx.drawImage(img, sx, sy, sourceSize, sourceSize, 0, 0, size, size);
+
+          const link = document.getElementById('app-favicon');
+          if (link) {
+            link.href = canvas.toDataURL('image/png');
+          }
+        };
+      })();
+    </script>
     
     <title>DailyCommit - GitHub Commit Streak Tracker</title>
   </head>
