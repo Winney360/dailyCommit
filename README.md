@@ -1,6 +1,6 @@
 # DailyCommit 🔥
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-daily--commit-7c3aed?style=for-the-badge)](https://daily-commit-theta.vercel.app/)
+🔗 **Live Demo:** [https://daily-commit-theta.vercel.app/](https://daily-commit-theta.vercel.app/)
 
 > Turn your GitHub commits into a daily habit tracker.
 
