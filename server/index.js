@@ -22,7 +22,7 @@ import { registerRoutes } from "./routes.js";
 import { connectDB, closeDB } from "./db.js";
 
 const app = express();
-const log = //console.log;
+const log = console.log;
 
 // ------------------------ CORS ------------------------
 const normalizeOrigin = (value) => {
