@@ -1,10 +1,42 @@
-# DailyCommit
+# DailyCommit 🔥
 
-A premium-quality habit-forming productivity app that helps developers maintain a daily coding habit by tracking GitHub commit activity and visualizing progress with daily streaks and statistics.
+> Turn your GitHub commits into a daily habit tracker.
 
-## Project Overview
+## The Problem
 
-DailyCommit is built with React for the web frontend and Express.js for the backend. The app uses a calming, minimal design with an Emerald/Teal green color scheme and warm orange accents.
+Developers want to code consistently, but life gets in the way. GitHub shows activity, but it doesn't make you _feel_ your streak or celebrate milestones. Without clear feedback and accountability, motivation fades and coding gaps grow.
+
+## The Solution
+
+**DailyCommit** transforms raw commit history into a motivational habit tracker:
+
+- **Daily Streaks**: See your current and longest coding streaks at a glance
+- **Weekly Heatmap**: Visualize commit intensity with a color-coded calendar
+- **Achievement Badges**: Unlock milestones (7-day warrior, 30-day master, year warrior, etc.)
+- **Real-time Stats**: Track all-time commits, yearly totals, and progress to your next badge
+- **GitHub Integration**: Syncs automatically with your GitHub account via OAuth
+
+Built for developers who want to move from "I code sometimes" to "I code consistently."
+
+## How It Works
+
+1. **Connect GitHub** – Log in securely with GitHub OAuth
+2. **Sync Commits** – DailyCommit fetches your commit history and groups by local timezone
+3. **Track Streaks** – See current and longest streaks update in real-time
+4. **Visualize Progress** – Weekly heatmap shows commit intensity (0 to 11+ commits/day)
+5. **Unlock Badges** – Earn achievements at 1, 7, 14, 30, 100, 180, 270, and 365-day streaks
+6. **Stay Consistent** – Check your dashboard daily to maintain momentum
+
+## Features
+
+✨ **Streak Tracking** – Current and longest streaks with day-by-day accuracy  
+📊 **Weekly Visualization** – GitHub-style commit heatmap with 5-tier intensity colors  
+🏆 **8 Achievement Badges** – From "Getting Started" (1 day) to "Year Warrior" (365 days)  
+🔄 **Auto-Sync** – Fetch latest commits from GitHub with one click  
+🎨 **Clean UI** – Minimal, professional design with smooth animations  
+🌙 **Dark Mode** – Purple-themed interface optimized for focus  
+💾 **Offline-First** – Local data persistence with smart caching  
+🔐 **Secure Auth** – GitHub OAuth login (no credentials stored)
 
 ## Tech Stack
 
@@ -61,12 +93,14 @@ DailyCommit is built with React for the web frontend and Express.js for the back
 
 ## Color Palette
 
-- **Primary**: #10B981 (Emerald Green)
+- **Primary Purple**: #7C3AED (Vibrant Purple)
+- **Accent Purple**: #9F7AEA (Light Purple)
+- **Success**: #10B981 (Emerald Green)
+- **Warning**: #F59E0B (Amber)
 - **Background**: #0A071B (Deep Purple-Black)
-- **Card**: #1A142C (Dark Purple)
+- **Secondary**: #1A142C (Dark Purple Card)
 - **Border**: #2D2440 (Purple-Gray)
 - **Text**: #E9E2F5 (Light Purple-White)
-- **Accent**: #F97316 (Warm Orange)
 
 ## Getting Started
 
@@ -130,22 +164,16 @@ DailyCommit is built with React for the web frontend and Express.js for the back
 
 3. Open your browser to `http://localhost:5000`
 
-## Features
+## Screenshots
 
-- GitHub OAuth login (or demo mode)
-- Daily commit tracking with streak counter
-- Weekly activity visualization
-- Statistics and achievements
-- Badge/milestone system
-- Dark mode design
-- Local data persistence
+> Add screenshots of Dashboard, Stats, and Weekly Heatmap here
 
-## User Preferences
+## Design Philosophy
 
-- Minimalist, calm design
-- Premium feel without clutter
-- Focus on productivity
-- No childish gamification
+- **Minimalist & Calm**: Premium feel without clutter
+- **Professional Animations**: Smooth transitions (200-400ms) that enhance UX without distraction
+- **Focus on Productivity**: Data-driven insights, not childish gamification
+- **Accessible**: Clear typography, high contrast, keyboard navigation support
 
 ## API Routes
 
