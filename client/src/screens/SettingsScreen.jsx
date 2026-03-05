@@ -49,11 +49,11 @@ export default function SettingsScreen() {
     //console.log('[Reminder] Checking:', { enabled, time, permission: Notification?.permission });
     
     if (!enabled || !('Notification' in window) || Notification.permission !== 'granted') {
-      //console.log('[Reminder] Check failed:', { 
+      /*console.log('[Reminder] Check failed:', { 
         enabled, 
         hasNotificationAPI: 'Notification' in window, 
         permission: Notification?.permission 
-      });
+      });*/
       return;
     }
 
@@ -62,11 +62,11 @@ export default function SettingsScreen() {
     const currentHours = now.getHours();
     const currentMinutes = now.getMinutes();
 
-    //console.log('[Reminder] Time check:', { 
+    /*console.log('[Reminder] Time check:', { 
       currentTime: `${currentHours}:${currentMinutes}`, 
       reminderTime: `${hours}:${minutes}`,
       matches: currentHours === hours && currentMinutes === minutes
-    });
+    });*/
 
     // Check if it's the reminder time (within the current minute)
     if (currentHours === hours && currentMinutes === minutes) {
@@ -98,10 +98,10 @@ export default function SettingsScreen() {
       });
       //console.log('[Reminder] Notification sent successfully');
     } else {
-      //console.log('[Reminder] Cannot send notification:', {
+      /*console.log('[Reminder] Cannot send notification:', {
         hasAPI: 'Notification' in window,
         permission: Notification?.permission
-      });
+      });*/
     }
   };
 
