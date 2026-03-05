@@ -31,7 +31,7 @@ export async function fetchAuthenticated(endpoint, options = {}) {
       const data = await response.json().catch(() => ({}));
 
       // Clear invalid token and user data
-      console.log('[API] Token expired, clearing auth data and redirecting...');
+      //console.log('[API] Token expired, clearing auth data and redirecting...');
       deleteToken();
       removeUser();
 

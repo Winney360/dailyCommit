@@ -84,13 +84,13 @@ export async function registerRoutes(app) {
 
       const userData = await userResponse.json();
       
-      console.log("[OAuth] GitHub user data received:", {
+      /*console.log("[OAuth] GitHub user data received:", {
         id: userData.id,
         login: userData.login,
         name: userData.name,
         email: userData.email,
         avatar_url: userData.avatar_url
-      });
+      });*/
 
       let email = userData.email;
       if (!email) {
@@ -121,24 +121,24 @@ export async function registerRoutes(app) {
         createdAt: new Date().toISOString(),
       };
 
-      console.log("[OAuth] User object prepared:", user);
+      //console.log("[OAuth] User object prepared:", user);
 
       try {
-        console.log("[OAuth] Checking if user exists:", user.id);
+        //console.log("[OAuth] Checking if user exists:", user.id);
         const existingUser = await getUserById(user.id);
         if (!existingUser) {
-          console.log("[OAuth] User does not exist, creating...");
+          //console.log("[OAuth] User does not exist, creating...");
           await createUser(user);
-          console.log(`[OAuth SUCCESS] New user created: ${user.username}`);
+          //console.log(`[OAuth SUCCESS] New user created: ${user.username}`);
         } else {
-          console.log(`[OAuth] User already exists, updating info: ${user.username}`);
+          //console.log(`[OAuth] User already exists, updating info: ${user.username}`);
           await updateUser(user.id, {
             username: user.username,
             name: user.name,
             email: user.email,
             avatarUrl: user.avatarUrl
           });
-          console.log(`[OAuth SUCCESS] User info updated: ${user.username}`);
+          //console.log(`[OAuth SUCCESS] User info updated: ${user.username}`);
         }
       } catch (dbError) {
         console.error("[OAuth ERROR] Database error:", dbError.message);
@@ -150,7 +150,7 @@ export async function registerRoutes(app) {
       const webFrontendUrl = process.env.WEB_FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
       const redirectUrl = `${webFrontendUrl}?user=${userParam}&token=${tokenParam}`;
       
-      console.log("Redirecting to:", redirectUrl);
+      //console.log("Redirecting to:", redirectUrl);
       res.redirect(redirectUrl);
       
     } catch (error) {
@@ -197,7 +197,7 @@ export async function registerRoutes(app) {
       const yearStart = new Date(Date.UTC(currentYear, 0, 1));
       const sinceDate = yearStart.toISOString();
 
-      console.log(`\n=== Fetching commits for ${username} since ${sinceDate} ===`);
+      //console.log(`\n=== Fetching commits for ${username} since ${sinceDate} ===`);
 
       // ENHANCED: Fetch all user's repositories (owned + forked + collaborations)
       const reposResponse = await fetch(
@@ -215,7 +215,7 @@ export async function registerRoutes(app) {
       }
 
       const repos = await reposResponse.json();
-      console.log(`Found ${repos.length} repositories`);
+      //console.log(`Found ${repos.length} repositories`);
 
       const commitsByDay = {};
       let totalCommitsFetched = 0;
@@ -272,15 +272,15 @@ export async function registerRoutes(app) {
     const skippedDateUTC = new Date(commit.commit.committer.date);
     const skippedDateLocal = new Date(skippedDateUTC.getTime() - skippedDateUTC.getTimezoneOffset() * 60000);
     const skippedDate = skippedDateLocal.toISOString().split("T")[0];
-    console.log(
+    /*console.log(
       `  SKIP: ${skippedDate} author=${commitUsername || "N/A"} email=${commitEmail || "N/A"} msg="${message}"`
-    );
+    );*/
   }
 });
 
             
             if (pageCommitCount > 0) {
-              console.log(`  Page: ${pageCommitCount} commits (total so far: ${totalCommitsFetched})`);
+              //console.log(`  Page: ${pageCommitCount} commits (total so far: ${totalCommitsFetched})`);
             }
 
             // Check for next page
@@ -294,18 +294,18 @@ export async function registerRoutes(app) {
             }
           }
           
-          console.log(`Repo: ${repo.name} - ${repoCommitCount} commits`);
+          //console.log(`Repo: ${repo.name} - ${repoCommitCount} commits`);
         } catch (repoError) {
           console.error(`Error fetching commits for ${repo.name}:`, repoError.message);
           // Continue with other repos even if one fails
         }
       }
 
-      console.log("\n=== Commits by day ===");
+      //console.log("\n=== Commits by day ===");
       Object.keys(commitsByDay).sort().forEach(date => {
-        console.log(`${date}: ${commitsByDay[date]} commits`);
+        //console.log(`${date}: ${commitsByDay[date]} commits`);
       });
-      console.log(`Total commits: ${totalCommitsFetched}\n`);
+      //console.log(`Total commits: ${totalCommitsFetched}\n`);
 
       res.json({ 
         commitsByDay, 
@@ -357,7 +357,7 @@ export async function registerRoutes(app) {
       const yearStart = `${currentYear}-01-01`;
       const allTimeStart = "2008-01-01";
 
-      console.log(`\n=== Fast commit totals for ${username} ===`);
+      //console.log(`\n=== Fast commit totals for ${username} ===`);
 
       const searchHeaders = {
         Authorization: `Bearer ${token}`,
@@ -382,8 +382,8 @@ export async function registerRoutes(app) {
         fetchCommitSearchCount(allTimeQuery),
       ]);
 
-      console.log(`Yearly commits: ${yearlyCommits}`);
-      console.log(`Total all-time commits: ${totalAllTimeCommits}\n`);
+      //console.log(`Yearly commits: ${yearlyCommits}`);
+      //console.log(`Total all-time commits: ${totalAllTimeCommits}\n`);
 
       res.json({
         totalAllTimeCommits,
@@ -407,7 +407,7 @@ export async function registerRoutes(app) {
     const token = authHeader.replace("Bearer ", "");
 
     try {
-      console.log("[DELETE] Starting account deletion...");
+      //console.log("[DELETE] Starting account deletion...");
       
       const userResponse = await fetch("https://api.github.com/user", {
         headers: {
@@ -423,11 +423,11 @@ export async function registerRoutes(app) {
       const userData = await userResponse.json();
       const userId = String(userData.id);
       
-      console.log(`[DELETE] GitHub user ID: ${userId}`);
+      //console.log(`[DELETE] GitHub user ID: ${userId}`);
       
       await deleteUserById(userId);
       
-      console.log(`[DELETE] Account deletion completed`);
+      //console.log(`[DELETE] Account deletion completed`);
 
       return res.json({ status: "deleted" });
     } catch (error) {
@@ -453,7 +453,7 @@ export async function registerRoutes(app) {
     }
 
     try {
-      console.log("[REVOKE] Attempting to revoke GitHub OAuth token...");
+      //console.log("[REVOKE] Attempting to revoke GitHub OAuth token...");
 
       const response = await fetch(
         `https://api.github.com/applications/${clientId}/token`,
@@ -467,12 +467,12 @@ export async function registerRoutes(app) {
         }
       );
 
-      console.log("[REVOKE] GitHub API response:", response.status);
+      //console.log("[REVOKE] GitHub API response:", response.status);
 
       if (!response.ok) {
         console.error("[REVOKE] Failed:", response.status, await response.text());
       } else {
-        console.log("[REVOKE] Token revoked successfully");
+        //console.log("[REVOKE] Token revoked successfully");
       }
 
       return res.json({ status: "revoked", success: response.ok });

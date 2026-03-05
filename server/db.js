@@ -10,14 +10,14 @@ let cachedDb = null;
 
 export async function connectDB() {
   if (cachedClient && cachedDb) {
-    console.log("[MongoDB] Using cached connection");
+    //console.log("[MongoDB] Using cached connection");
     return cachedDb;
   }
 
   try {
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
-    console.log("[MongoDB] Connected successfully");
+    //console.log("[MongoDB] Connected successfully");
 
     cachedClient = client;
     cachedDb = client.db();
@@ -44,7 +44,7 @@ async function createIndexes(db) {
     const usersCollection = db.collection("users");
     await usersCollection.createIndex({ username: 1 }, { unique: true });
     await usersCollection.createIndex({ id: 1 }, { unique: true });
-    console.log("[MongoDB] Indexes created");
+    //console.log("[MongoDB] Indexes created");
   } catch (error) {
     console.error("[MongoDB] Index creation error:", error.message);
   }
@@ -53,7 +53,7 @@ async function createIndexes(db) {
 export async function closeDB() {
   if (cachedClient) {
     await cachedClient.close();
-    console.log("[MongoDB] Connection closed");
+    //console.log("[MongoDB] Connection closed");
     cachedClient = null;
     cachedDb = null;
   }

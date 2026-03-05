@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
   }
 
   function login(userData) {
-    console.log('[AuthContext] login() called with:', { id: userData?.id, username: userData?.username });
+    //console.log('[AuthContext] login() called with:', { id: userData?.id, username: userData?.username });
     
     if (!userData?.id || !userData?.username) {
       console.error('[AuthContext] Invalid user data:', userData);
@@ -43,29 +43,29 @@ export function AuthProvider({ children }) {
     }
 
     const { accessToken, ...userWithoutToken } = userData;
-    console.log('[AuthContext] Saving user to localStorage...');
+    //console.log('[AuthContext] Saving user to localStorage...');
 
     saveUser(userWithoutToken);
     setUserState(userWithoutToken);
-    console.log('[AuthContext] User state updated');
+    //console.log('[AuthContext] User state updated');
 
     if (accessToken) {
-      console.log('[AuthContext] Saving token to localStorage...');
+      //console.log('[AuthContext] Saving token to localStorage...');
       saveToken(accessToken);
       setToken(accessToken);
-      console.log('[AuthContext] Token saved');
+      //console.log('[AuthContext] Token saved');
     }
     
-    console.log('[AuthContext] Login complete');
+    //console.log('[AuthContext] Login complete');
   }
 
   function logout() {
-    console.log("Logging out...");
+    //console.log("Logging out...");
     removeUser();
     deleteToken();
     setUserState(null);
     setToken(null);
-    console.log("Logout complete");
+    //console.log("Logout complete");
   }
 
   function updateUser(userData) {

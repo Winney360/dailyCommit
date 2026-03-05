@@ -19,11 +19,11 @@ export async function createUser(user) {
       updatedAt: new Date(),
     };
 
-    console.log(`[MongoDB] Creating user ${user.username} with GitHub ID ${user.id}`);
+    //console.log(`[MongoDB] Creating user ${user.username} with GitHub ID ${user.id}`);
 
     const result = await usersCollection.insertOne(userData);
 
-    console.log(`[MongoDB] User created successfully with _id: ${result.insertedId}`);
+    //console.log(`[MongoDB] User created successfully with _id: ${result.insertedId}`);
     return { id: result.insertedId, ...userData };
   } catch (error) {
     console.error("Error in createUser:", error.message);
@@ -36,16 +36,16 @@ export async function getUserById(id) {
     const db = getDB();
     const usersCollection = db.collection("users");
 
-    console.log(`[MongoDB] Fetching user with GitHub ID ${id}`);
+    //console.log(`[MongoDB] Fetching user with GitHub ID ${id}`);
 
     const user = await usersCollection.findOne({ id: String(id) });
 
     if (user) {
-      console.log(`[MongoDB] User found: ${user.username}`);
+      //console.log(`[MongoDB] User found: ${user.username}`);
       return user;
     }
 
-    console.log(`[MongoDB] User not found with GitHub ID ${id}`);
+    //console.log(`[MongoDB] User not found with GitHub ID ${id}`);
     return null;
   } catch (error) {
     console.error("Error in getUserById:", error.message);
@@ -58,16 +58,16 @@ export async function getUserByUsername(username) {
     const db = getDB();
     const usersCollection = db.collection("users");
 
-    console.log(`[MongoDB] Fetching user by username: ${username}`);
+    //console.log(`[MongoDB] Fetching user by username: ${username}`);
 
     const user = await usersCollection.findOne({ username: username });
 
     if (user) {
-      console.log(`[MongoDB] User found: ${user.username}`);
+      //console.log(`[MongoDB] User found: ${user.username}`);
       return user;
     }
 
-    console.log(`[MongoDB] User not found with username ${username}`);
+    //console.log(`[MongoDB] User not found with username ${username}`);
     return null;
   } catch (error) {
     console.error("Error in getUserByUsername:", error.message);
@@ -80,16 +80,16 @@ export async function deleteUserById(githubId) {
     const db = getDB();
     const usersCollection = db.collection("users");
 
-    console.log(`[MongoDB] Deleting user with GitHub ID ${githubId}`);
+    //console.log(`[MongoDB] Deleting user with GitHub ID ${githubId}`);
 
     const result = await usersCollection.deleteOne({ id: String(githubId) });
 
     if (result.deletedCount === 0) {
-      console.log(`[MongoDB] User not found for deletion`);
+      //console.log(`[MongoDB] User not found for deletion`);
       return { success: false };
     }
 
-    console.log(`[MongoDB] User deleted successfully`);
+    //console.log(`[MongoDB] User deleted successfully`);
     return { success: true, deletedCount: result.deletedCount };
   } catch (error) {
     console.error("Error in deleteUserById:", error.message);
@@ -102,7 +102,7 @@ export async function updateUser(githubId, updates) {
     const db = getDB();
     const usersCollection = db.collection("users");
 
-    console.log(`[MongoDB] Updating user with GitHub ID ${githubId}`);
+    //console.log(`[MongoDB] Updating user with GitHub ID ${githubId}`);
 
     const result = await usersCollection.updateOne(
       { id: String(githubId) },
@@ -115,12 +115,12 @@ export async function updateUser(githubId, updates) {
     );
 
     if (result.matchedCount === 0) {
-      console.log(`[MongoDB] User not found for update`);
+      //console.log(`[MongoDB] User not found for update`);
       return null;
     }
 
     const updatedUser = await usersCollection.findOne({ id: String(githubId) });
-    console.log(`[MongoDB] User updated successfully`);
+    //console.log(`[MongoDB] User updated successfully`);
     return updatedUser;
   } catch (error) {
     console.error("Error in updateUser:", error.message);

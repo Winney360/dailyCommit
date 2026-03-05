@@ -46,10 +46,10 @@ export default function SettingsScreen() {
     const enabled = localStorage.getItem('reminderEnabled') === 'true';
     const time = localStorage.getItem('reminderTime') || '20:00';
     
-    console.log('[Reminder] Checking:', { enabled, time, permission: Notification?.permission });
+    //console.log('[Reminder] Checking:', { enabled, time, permission: Notification?.permission });
     
     if (!enabled || !('Notification' in window) || Notification.permission !== 'granted') {
-      console.log('[Reminder] Check failed:', { 
+      //console.log('[Reminder] Check failed:', { 
         enabled, 
         hasNotificationAPI: 'Notification' in window, 
         permission: Notification?.permission 
@@ -62,7 +62,7 @@ export default function SettingsScreen() {
     const currentHours = now.getHours();
     const currentMinutes = now.getMinutes();
 
-    console.log('[Reminder] Time check:', { 
+    //console.log('[Reminder] Time check:', { 
       currentTime: `${currentHours}:${currentMinutes}`, 
       reminderTime: `${hours}:${minutes}`,
       matches: currentHours === hours && currentMinutes === minutes
@@ -73,21 +73,21 @@ export default function SettingsScreen() {
       const lastNotification = localStorage.getItem('lastReminderSent');
       const today = now.toDateString();
 
-      console.log('[Reminder] Time matched!', { lastNotification, today });
+      //console.log('[Reminder] Time matched!', { lastNotification, today });
 
       // Only send one notification per day
       if (lastNotification !== today) {
-        console.log('[Reminder] Sending notification...');
+        //console.log('[Reminder] Sending notification...');
         sendNotification();
         localStorage.setItem('lastReminderSent', today);
       } else {
-        console.log('[Reminder] Already sent today');
+        //console.log('[Reminder] Already sent today');
       }
     }
   };
 
   const sendNotification = () => {
-    console.log('[Reminder] sendNotification called');
+    //console.log('[Reminder] sendNotification called');
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('DailyCommit Reminder', {
         body: 'Don\'t forget to make your daily commit! Keep your streak alive! 🔥',
@@ -96,9 +96,9 @@ export default function SettingsScreen() {
         tag: 'daily-commit-reminder',
         requireInteraction: false,
       });
-      console.log('[Reminder] Notification sent successfully');
+      //console.log('[Reminder] Notification sent successfully');
     } else {
-      console.log('[Reminder] Cannot send notification:', {
+      //console.log('[Reminder] Cannot send notification:', {
         hasAPI: 'Notification' in window,
         permission: Notification?.permission
       });
@@ -217,7 +217,7 @@ export default function SettingsScreen() {
       if (githubUsername) {
         localStorage.setItem('lastDeletedGitHubUsername', githubUsername);
         localStorage.setItem('lastDeletedGitHubName', githubName);
-        console.log('[SettingsScreen] Saved deleted account info:', { username: githubUsername, name: githubName });
+        //console.log('[SettingsScreen] Saved deleted account info:', { username: githubUsername, name: githubName });
       }
       
       logout();

@@ -8,9 +8,9 @@ const envResult = dotenv.config({ path: path.resolve(__dirname, ".env") });
 if (envResult.error) {
   console.warn('[dotenv] Error loading .env file:', envResult.error.message);
 } else {
-  console.log('[dotenv] Successfully loaded .env file');
+  //console.log('[dotenv] Successfully loaded .env file');
   if (process.env.MONGODB_URI) {
-    console.log(`[dotenv] MONGODB_URI loaded`);
+    //console.log(`[dotenv] MONGODB_URI loaded`);
   } else {
     console.warn('[dotenv] MONGODB_URI is not set!');
   }
@@ -22,7 +22,7 @@ import { registerRoutes } from "./routes.js";
 import { connectDB, closeDB } from "./db.js";
 
 const app = express();
-const log = console.log;
+const log = //console.log;
 
 // ------------------------ CORS ------------------------
 const normalizeOrigin = (value) => {
@@ -122,7 +122,7 @@ if (fs.existsSync(clientBuildPath)) {
 
     // Graceful shutdown
     process.on("SIGINT", async () => {
-      console.log("\n[Server] Shutting down gracefully...");
+      //console.log("\n[Server] Shutting down gracefully...");
       await closeDB();
       process.exit(0);
     });
