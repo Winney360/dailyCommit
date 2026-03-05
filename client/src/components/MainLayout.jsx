@@ -6,23 +6,40 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [touchStart, setTouchStart] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const minSwipeDistance = 50;
+  const minSwipeDistance = 80; // Increased threshold
+  const maxVerticalDistance = 50; // Max vertical movement allowed for horizontal swipe
   const pageOrder = ['/', '/stats', '/settings'];
   const currentPageIndex = pageOrder.indexOf(location.pathname);
 
   const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
   };
 
   const handleTouchEnd = (e) => {
-    if (!touchStart) return;
+    if (touchStart === null || touchStartY === null) return;
     
-    const touchEndPos = e.changedTouches[0].clientX;
-    const distance = touchStart - touchEndPos;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const distanceX = touchStart - touchEndX;
+    const distanceY = Math.abs(touchStartY - touchEndY);
+    
+    // Only trigger swipe if horizontal movement is significant
+    // AND vertical movement is minimal (not scrolling)
+    const isHorizontalSwipe = Math.abs(distanceX) > minSwipeDistance && distanceY < maxVerticalDistance;
+    
+    if (!isHorizontalSwipe) {
+      setTouchStart(null);
+      setTouchStartY(null);
+      return;
+    }
+
+    const isLeftSwipe = distanceX > 0;
+    const isRightSwipe = distanceX < 0;
 
     if ((isLeftSwipe && currentPageIndex < pageOrder.length - 1) || 
         (isRightSwipe && currentPageIndex > 0)) {
@@ -37,6 +54,7 @@ export default function MainLayout() {
     }
     
     setTouchStart(null);
+    setTouchStartY(null);
   };
 
   const navLinkClass = ({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 ${

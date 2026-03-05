@@ -147,7 +147,7 @@ export default function StatsScreen() {
             return (
               <div 
                 key={badge.id} 
-                className={`rounded-lg p-2 sm:p-4 md:p-6 text-center border transition-all duration-300 hover:scale-110 active:scale-95 ${
+                className={`rounded-lg p-2 sm:p-4 md:p-6 text-center border transition-all duration-300 hover:scale-110 active:scale-95 flex flex-col ${
                   isLast2 ? 'col-span-3 sm:col-span-3 lg:col-span-3' : 'col-span-2 sm:col-span-3 lg:col-span-3'
                 } ${
                   isEarned 
@@ -162,15 +162,21 @@ export default function StatsScreen() {
                 </div>
                 <h3 className="text-primary font-semibold mb-1 text-xs sm:text-sm md:text-base">{badge.name}</h3>
                 <p className="text-muted text-xs sm:text-xs md:text-sm mb-2">{formatRequirement(badge.requirement)} streak</p>
-                {isEarned && (
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full" style={{ 
-                    background: `linear-gradient(135deg, ${badge.flameColor}20, ${badge.flameColor}10)`,
-                    boxShadow: `0 0 8px ${badge.flameColor}40`
-                  }}>
-                    <span className="text-white text-xs font-semibold">Earned</span>
-                    <FlameIcon color={badge.flameColor} size={16} />
-                  </div>
-                )}
+                <div className="mt-auto pt-2">
+                  {isEarned ? (
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full" style={{ 
+                      background: `linear-gradient(135deg, ${badge.flameColor}20, ${badge.flameColor}10)`,
+                      boxShadow: `0 0 8px ${badge.flameColor}40`
+                    }}>
+                      <span className="text-white text-xs font-semibold">Earned</span>
+                      <FlameIcon color={badge.flameColor} size={16} />
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-hover/50">
+                      <span className="text-muted text-xs font-semibold">Locked</span>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
