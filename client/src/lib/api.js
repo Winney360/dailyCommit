@@ -27,7 +27,14 @@ export async function fetchAuthenticated(endpoint, options = {}) {
     });
 
     if (response.status === 401) {
-      throw new Error('Authentication expired. Please log in again.');
+      const data = await response.json().catch(() => ({}));
+      // Clear invalid token
+      const { deleteToken } = await import('./token-storage');
+      const { removeUser } = await import('./storage');
+      deleteToken();
+      removeUser();
+      
+      throw new Error(data.error || 'Authentication expired. Please log in again.');
     }
 
     if (!response.ok) {

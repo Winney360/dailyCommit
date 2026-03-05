@@ -174,11 +174,19 @@ export async function registerRoutes(app) {
       const userResponse = await fetch("https://api.github.com/user", {
         headers: {
           Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
         },
       });
 
+      if (userResponse.status === 401) {
+        return res.status(401).json({ 
+          error: "GitHub token expired or invalid. Please log in again.",
+          code: "TOKEN_EXPIRED"
+        });
+      }
+
       if (!userResponse.ok) {
-        throw new Error("Failed to authenticate with GitHub");
+        throw new Error(`GitHub API error: ${userResponse.status}`);
       }
 
       const userData = await userResponse.json();
@@ -325,11 +333,19 @@ export async function registerRoutes(app) {
       const userResponse = await fetch("https://api.github.com/user", {
         headers: {
           Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
         },
       });
 
+      if (userResponse.status === 401) {
+        return res.status(401).json({ 
+          error: "GitHub token expired or invalid. Please log in again.",
+          code: "TOKEN_EXPIRED"
+        });
+      }
+
       if (!userResponse.ok) {
-        throw new Error("Failed to authenticate with GitHub");
+        throw new Error(`GitHub API error: ${userResponse.status}`);
       }
 
       const userData = await userResponse.json();
