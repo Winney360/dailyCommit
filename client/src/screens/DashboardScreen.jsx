@@ -50,6 +50,7 @@ export default function DashboardScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasSyncedOnce, setHasSyncedOnce] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [activeWeekDayIndex, setActiveWeekDayIndex] = useState(null);
   const [streakData, setLocalStreakData] = useState({
     currentStreak: 0,
     longestStreak: 0,
@@ -341,13 +342,25 @@ export default function DashboardScreen() {
                     }`}
                     style={{ opacity: intensity }}
                     title={`${dayNames[index]}: ${count} commit${count !== 1 ? 's' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${dayNames[index]}: ${count} ${count === 1 ? 'commit' : 'commits'}`}
+                    onClick={() => setActiveWeekDayIndex(activeWeekDayIndex === index ? null : index)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setActiveWeekDayIndex(activeWeekDayIndex === index ? null : index);
+                      }
+                    }}
                   >
                     {isBestDay && (
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-success text-lg animate-subtle-bounce">
                         ★
                       </div>
                     )}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-accent text-white text-xs font-semibold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-accent text-white text-xs font-semibold px-2 py-1 rounded transition-opacity pointer-events-none z-10 ${
+                      activeWeekDayIndex === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
+                    }`}>
                       {dayNames[index]}: {count} {count === 1 ? 'commit' : 'commits'} {isBestDay && '🔥'}
                     </div>
                   </div>
