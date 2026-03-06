@@ -13,11 +13,11 @@ export default function LoginScreen() {
   const [pendingGitHubUser, setPendingGitHubUser] = useState(null);
 
   useEffect(() => {
-    //console.log('[LoginScreen] Component mounted, window.location.search:', window.location.search);
+    console.log('[LoginScreen] Component mounted, window.location.search:', window.location.search);
     
     // If already logged in, redirect to dashboard
     if (user) {
-      //console.log('[LoginScreen] User already logged in, redirecting to dashboard');
+      console.log('[LoginScreen] User already logged in, redirecting to dashboard');
       navigate('/', { replace: true });
       return;
     }
@@ -27,13 +27,13 @@ export default function LoginScreen() {
     const userParam = urlParams.get('user');
     const tokenParam = urlParams.get('token');
 
-    //console.log('[LoginScreen] URL params:', { userParam: !!userParam, tokenParam: !!tokenParam });
+    console.log('[LoginScreen] URL params:', { userParam: !!userParam, tokenParam: !!tokenParam });
 
     if (userParam) {
-      //console.log('[LoginScreen] Found user param, processing callback...');
+      console.log('[LoginScreen] Found user param, processing callback...');
       handleCallback(userParam, tokenParam);
     } else {
-      //console.log('[LoginScreen] No user param found, staying on login page');
+      console.log('[LoginScreen] No user param found, staying on login page');
     }
   }, [user, navigate]);
 
@@ -57,45 +57,45 @@ export default function LoginScreen() {
 
   const handleDifferentAccount = () => {
     // User wants to log in with different GitHub account
-    // Clear the choice modal and go back to login button
+    // Restart the OAuth flow with GitHub to choose a different account
     setPendingGitHubUser(null);
     setShowAccountChoice(false);
     setError(null);
-    // Clear the pending user from localStorage too
-    localStorage.removeItem('lastDeletedGitHubUsername');
-    localStorage.removeItem('lastDeletedGitHubName');
+    // Don't clear the markers yet - let the user log in with a different account first
+    // The markers will be cleared when they successfully log in with a new account
+    handleGitHubLogin();
   };
 
   const handleCallback = async (userParam, tokenParam) => {
     setIsLoading(true);
-    //console.log('[LoginScreen] Processing OAuth callback...');
+    console.log('[LoginScreen] Processing OAuth callback...');
     
     try {
       const userData = JSON.parse(decodeURIComponent(userParam));
-      /*console.log('[LoginScreen] Parsed user data:', { 
+      console.log('[LoginScreen] Parsed user data:', { 
         id: userData.id, 
         username: userData.username,
         name: userData.name,
         email: userData.email 
-      }); */
+      });
 
       if (tokenParam) {
         userData.accessToken = decodeURIComponent(tokenParam);
-        //console.log('[LoginScreen] Token received');
+        console.log('[LoginScreen] Token received');
       }
 
       // Check if this GitHub account was previously deleted
       const lastDeletedUsername = localStorage.getItem('lastDeletedGitHubUsername');
       const lastDeletedName = localStorage.getItem('lastDeletedGitHubName');
       
-      /*console.log('[LoginScreen] Checking for deleted account:', {
+      console.log('[LoginScreen] Checking for deleted account:', {
         lastDeletedUsername,
         currentUsername: userData.username,
         matches: lastDeletedUsername && userData.username === lastDeletedUsername
-      }); */
+      });
       
       if (lastDeletedUsername && userData.username === lastDeletedUsername) {
-        //console.log('[LoginScreen] Detected returning deleted account - showing choice modal');
+        console.log('[LoginScreen] Detected returning deleted account - showing choice modal');
         // Same GitHub account that was previously deleted - ask user to choose
         setPendingGitHubUser(userData);
         setShowAccountChoice(true);
@@ -104,16 +104,23 @@ export default function LoginScreen() {
         return;
       }
 
-      //console.log('[LoginScreen] Calling login()...');
+      // Different GitHub account or first login - clear any deleted account markers
+      if (lastDeletedUsername && userData.username !== lastDeletedUsername) {
+        console.log('[LoginScreen] Different GitHub account detected, clearing deleted account markers');
+        localStorage.removeItem('lastDeletedGitHubUsername');
+        localStorage.removeItem('lastDeletedGitHubName');
+      }
+
+      console.log('[LoginScreen] Calling login()...');
       login(userData);
-      //console.log('[LoginScreen] Login successful, user saved to storage');
+      console.log('[LoginScreen] Login successful, user saved to storage');
 
       // Clear the URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
-      //console.log('[LoginScreen] URL params cleared');
+      console.log('[LoginScreen] URL params cleared');
 
       navigate('/', { replace: true });
-      //console.log('[LoginScreen] Navigating to dashboard');
+      console.log('[LoginScreen] Navigating to dashboard');
     } catch (error) {
       console.error('[LoginScreen] Callback error:', error);
       setError(error.message);
