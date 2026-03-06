@@ -57,13 +57,33 @@ export default function LoginScreen() {
 
   const handleDifferentAccount = () => {
     // User wants to log in with different GitHub account
-    // Restart the OAuth flow with GitHub to choose a different account
+    // Clear the choice modal state
     setPendingGitHubUser(null);
     setShowAccountChoice(false);
     setError(null);
-    // Don't clear the markers yet - let the user log in with a different account first
-    // The markers will be cleared when they successfully log in with a new account
-    handleGitHubLogin();
+    // Clear the deleted account markers so we don't show this modal again
+    localStorage.removeItem('lastDeletedGitHubUsername');
+    localStorage.removeItem('lastDeletedGitHubName');
+    // Restart the OAuth flow with prompt=login to force GitHub account selection
+    handleGitHubLoginWithAccountSelection();
+  };
+
+  const handleGitHubLoginWithAccountSelection = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const baseUrl = getApiUrl();
+      // Add prompt=login to force GitHub to show account selection
+      const authUrl = `${baseUrl}api/auth/github?prompt=login`;
+      
+      console.log('[LoginScreen] Redirecting to GitHub OAuth with account selection forced');
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error.message);
+      setIsLoading(false);
+    }
   };
 
   const handleCallback = async (userParam, tokenParam) => {
