@@ -16,22 +16,15 @@ export async function registerRoutes(app) {
   // GitHub OAuth redirect
   app.get("/api/auth/github", (req, res) => {
     const clientId = process.env.GITHUB_CLIENT_ID;
-    const prompt = req.query.prompt; // Get prompt parameter if provided
 
     if (!clientId) {
       return res.status(500).json({ error: "GitHub OAuth not configured" });
     }
 
-    let authUrl =
+    const authUrl =
       `https://github.com/login/oauth/authorize` +
       `?client_id=${clientId}` +
       `&scope=user:email,read:user`;
-    
-    // Add prompt=login to force account selection if requested
-    if (prompt === 'login') {
-      authUrl += `&prompt=login`;
-      console.log('[OAuth] Forcing GitHub account selection with prompt=login');
-    }
 
     res.redirect(authUrl);
   });

@@ -206,31 +206,13 @@ export default function SettingsScreen() {
 
     setIsDeleting(true);
     try {
-      // Store GitHub username FIRST, before any API calls
-      const githubUsername = user?.username;
-      const githubName = user?.name || '';
-
-      // Save deleted account markers BEFORE making the delete API call
-      // This ensures they persist even if something goes wrong
-      if (githubUsername) {
-        localStorage.setItem('lastDeletedGitHubUsername', githubUsername);
-        localStorage.setItem('lastDeletedGitHubName', githubName);
-        console.log('[SettingsScreen] Saved deleted account markers:', { username: githubUsername, name: githubName });
-      }
-
-      // Now call the delete API
+      // Delete the account via API
       await deleteAccount();
       console.log('[SettingsScreen] Account deleted from server');
       
-      // Clear all data except the deleted account markers
+      // Clear all local data
       clearAllData();
-      
-      // Restore the deleted account markers after clearAllData
-      if (githubUsername) {
-        localStorage.setItem('lastDeletedGitHubUsername', githubUsername);
-        localStorage.setItem('lastDeletedGitHubName', githubName);
-        console.log('[SettingsScreen] Restored deleted account markers after data clear');
-      }
+      console.log('[SettingsScreen] All local data cleared');
       
       logout();
       navigate('/login', { replace: true });

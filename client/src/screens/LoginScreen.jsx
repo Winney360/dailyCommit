@@ -9,8 +9,6 @@ export default function LoginScreen() {
   const { login, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showAccountChoice, setShowAccountChoice] = useState(false);
-  const [pendingGitHubUser, setPendingGitHubUser] = useState(null);
 
   useEffect(() => {
     console.log('[LoginScreen] Component mounted, window.location.search:', window.location.search);
@@ -37,55 +35,6 @@ export default function LoginScreen() {
     }
   }, [user, navigate]);
 
-  const handleContinueWithExistingAccount = async () => {
-    if (!pendingGitHubUser) return;
-    
-    setIsLoading(true);
-    try {
-      login(pendingGitHubUser);
-      // Clear the deleted account markers
-      localStorage.removeItem('lastDeletedGitHubUsername');
-      localStorage.removeItem('lastDeletedGitHubName');
-      window.history.replaceState({}, document.title, window.location.pathname);
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error('[LoginScreen] Login error:', error);
-      setError('Failed to log in. Please try again.');
-      setIsLoading(false);
-    }
-  };
-
-  const handleDifferentAccount = () => {
-    // User wants to log in with different GitHub account
-    // Clear the choice modal state
-    setPendingGitHubUser(null);
-    setShowAccountChoice(false);
-    setError(null);
-    // Clear the deleted account markers so we don't show this modal again
-    localStorage.removeItem('lastDeletedGitHubUsername');
-    localStorage.removeItem('lastDeletedGitHubName');
-    // Restart the OAuth flow with prompt=login to force GitHub account selection
-    handleGitHubLoginWithAccountSelection();
-  };
-
-  const handleGitHubLoginWithAccountSelection = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const baseUrl = getApiUrl();
-      // Add prompt=login to force GitHub to show account selection
-      const authUrl = `${baseUrl}api/auth/github?prompt=login`;
-      
-      console.log('[LoginScreen] Redirecting to GitHub OAuth with account selection forced');
-      window.location.href = authUrl;
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message);
-      setIsLoading(false);
-    }
-  };
-
   const handleCallback = async (userParam, tokenParam) => {
     setIsLoading(true);
     console.log('[LoginScreen] Processing OAuth callback...');
@@ -104,32 +53,9 @@ export default function LoginScreen() {
         console.log('[LoginScreen] Token received');
       }
 
-      // Check if this GitHub account was previously deleted
-      const lastDeletedUsername = localStorage.getItem('lastDeletedGitHubUsername');
-      const lastDeletedName = localStorage.getItem('lastDeletedGitHubName');
-      
-      console.log('[LoginScreen] Checking for deleted account:', {
-        lastDeletedUsername,
-        currentUsername: userData.username,
-        matches: lastDeletedUsername && userData.username === lastDeletedUsername
-      });
-      
-      if (lastDeletedUsername && userData.username === lastDeletedUsername) {
-        console.log('[LoginScreen] Detected returning deleted account - showing choice modal');
-        // Same GitHub account that was previously deleted - ask user to choose
-        setPendingGitHubUser(userData);
-        setShowAccountChoice(true);
-        setIsLoading(false);
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
-      }
-
-      // Different GitHub account or first login - clear any deleted account markers
-      if (lastDeletedUsername && userData.username !== lastDeletedUsername) {
-        console.log('[LoginScreen] Different GitHub account detected, clearing deleted account markers');
-        localStorage.removeItem('lastDeletedGitHubUsername');
-        localStorage.removeItem('lastDeletedGitHubName');
-      }
+      // Clear any old deleted account markers
+      localStorage.removeItem('lastDeletedGitHubUsername');
+      localStorage.removeItem('lastDeletedGitHubName');
 
       console.log('[LoginScreen] Calling login()...');
       login(userData);
@@ -174,37 +100,6 @@ export default function LoginScreen() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
           </div>
           <p className="text-primary font-medium">Authenticating...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (showAccountChoice && pendingGitHubUser) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-base px-6 animate-fade-in">
-        <div className="w-full max-w-md">
-          <div className="bg-secondary border border-custom rounded-lg p-8 animate-scale-in shadow-xl">
-            <p className="text-muted mb-2 text-sm">GitHub Account Detected</p>
-            <h2 className="text-2xl font-bold text-primary mb-1">@{pendingGitHubUser.username}</h2>
-            <p className="text-muted text-sm mb-6">Your account was previously deleted. What would you like to do?</p>
-            
-            <div className="space-y-3 animate-stagger-children">
-              <button
-                onClick={handleContinueWithExistingAccount}
-                disabled={isLoading}
-                className="w-full px-4 py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95"
-              >
-                Continue with @{pendingGitHubUser.username}
-              </button>
-              <button
-                onClick={handleDifferentAccount}
-                disabled={isLoading}
-                className="w-full px-4 py-3 bg-hover hover:bg-tertiary text-primary font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
-              >
-                Use Different GitHub Account
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );
