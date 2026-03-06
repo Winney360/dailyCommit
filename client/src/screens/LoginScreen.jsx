@@ -81,7 +81,7 @@ export default function LoginScreen() {
 
     try {
       const baseUrl = getApiUrl();
-      const authUrl = `${baseUrl}api/auth/github`;
+      const authUrl = `${baseUrl}api/auth/github?fresh=1&ts=${Date.now()}`;
       
       // Redirect to OAuth flow
       window.location.href = authUrl;
@@ -128,6 +128,18 @@ export default function LoginScreen() {
             <Github size={24} className="group-hover:animate-subtle-bounce" />
             <span>Continue with GitHub</span>
           </button>
+
+          <p className="text-center text-xs text-muted -mt-5 mb-7">
+            Using a different account on mobile?{' '}
+            <a
+              href="https://github.com/logout"
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent hover:text-primary underline underline-offset-2"
+            >
+              Sign out of GitHub in browser
+            </a>
+          </p>
         </div>
 
         <p className="text-center text-muted text-sm animate-fade-in" style={{ animationDelay: '0.2s' }}>

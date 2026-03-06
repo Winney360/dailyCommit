@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { createUser, getUserById, getUserByUsername, deleteUserById, updateUser } from "./storage.js";
+import crypto from "node:crypto";
 
 /**
  * @param {import("express").Express} app
@@ -16,15 +17,34 @@ export async function registerRoutes(app) {
   // GitHub OAuth redirect
   app.get("/api/auth/github", (req, res) => {
     const clientId = process.env.GITHUB_CLIENT_ID;
+    const fresh = req.query.fresh === "1";
+    const loginHint = typeof req.query.login === "string" ? req.query.login.trim() : "";
 
     if (!clientId) {
       return res.status(500).json({ error: "GitHub OAuth not configured" });
     }
 
-    const authUrl =
-      `https://github.com/login/oauth/authorize` +
-      `?client_id=${clientId}` +
-      `&scope=user:email,read:user`;
+    const state = crypto.randomBytes(16).toString("hex");
+    const params = new URLSearchParams({
+      client_id: clientId,
+      scope: "user:email,read:user",
+      allow_signup: "true",
+      state,
+    });
+
+    if (loginHint) {
+      params.set("login", loginHint);
+    }
+
+    const authorizePath = `/login/oauth/authorize?${params.toString()}`;
+    const authUrl = fresh
+      ? `https://github.com/login?return_to=${encodeURIComponent(authorizePath)}`
+      : `https://github.com${authorizePath}`;
+
+    // Prevent browser/proxy caching of OAuth redirects, especially on mobile browsers.
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
 
     res.redirect(authUrl);
   });
