@@ -302,19 +302,19 @@ export default function DashboardScreen() {
         </div>
       </div>
 
-      <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6 animate-slide-up hover:border-primary/50 transition-all duration-300">
+      <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6 animate-slide-up hover:border-primary/50 transition-all duration-300">
         <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-primary mb-1 md:mb-2">This Week</h2>
-            <p className="text-muted text-xs md:text-sm">Your daily commit activity</p>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary mb-1 md:mb-2">This Week</h2>
+            <p className="text-muted text-xs sm:text-sm">Your daily commit activity</p>
           </div>
           <div className="text-left sm:text-right">
-            <p className="text-2xl md:text-3xl font-bold text-warning">{streakData.weeklyCommits.reduce((sum, count) => sum + count, 0)}</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-warning">{streakData.weeklyCommits.reduce((sum, count) => sum + count, 0)}</p>
             <span className="text-xs text-muted">total commits</span>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 md:gap-6">
-          <div className="flex items-end justify-center gap-1.5 sm:gap-2 md:gap-3 flex-1 w-full overflow-x-auto">
+        <div className="flex flex-col items-stretch gap-4 md:gap-6">
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2 md:gap-3 w-full">
             {streakData.weeklyCommits.map((count, index) => {
               // Define intensity levels based on commit count ranges
               let intensity;
@@ -334,9 +334,9 @@ export default function DashboardScreen() {
               const isBestDay = count > 0 && count === maxCount;
               
               return (
-                <div key={index} className="flex flex-col items-center shrink-0 animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                <div key={index} className="flex flex-col items-center min-w-0 animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
                   <div 
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded transition-all duration-200 hover:ring-2 hover:ring-offset-2 hover:ring-primary hover:scale-110 active:scale-95 group relative cursor-pointer mb-2 ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded transition-all duration-200 hover:ring-2 hover:ring-offset-2 hover:ring-primary hover:scale-110 active:scale-95 group relative cursor-pointer mb-1.5 sm:mb-2 ${
                       count === 0 ? 'bg-hover border border-accent/50' : 'bg-primary border border-primary hover:shadow-lg hover:shadow-primary/40'
                     }`}
                     style={{ opacity: intensity }}
@@ -351,14 +351,14 @@ export default function DashboardScreen() {
                       {dayNames[index]}: {count} {count === 1 ? 'commit' : 'commits'} {isBestDay && '🔥'}
                     </div>
                   </div>
-                  <span className="text-xs text-muted">{dayNames[index]}</span>
+                  <span className="text-[10px] sm:text-xs text-muted leading-none">{dayNames[index]}</span>
                 </div>
               );
             })}
           </div>
-          <div className="flex flex-col items-center gap-2 mt-4 md:mt-0">
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-muted">Less</span>
+          <div className="flex flex-col items-center gap-2 mt-1 sm:mt-2 md:mt-0">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+              <span className="text-[10px] sm:text-xs text-muted">Less</span>
               <div className="flex gap-1">
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-hover border border-accent/50" title="0 commits"></div>
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-40 border border-primary/60" title="1-2 commits"></div>
@@ -366,7 +366,7 @@ export default function DashboardScreen() {
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-80 border border-primary" title="6-10 commits"></div>
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100 border border-primary" title="11+ commits"></div>
               </div>
-              <span className="text-xs text-muted">More</span>
+              <span className="text-[10px] sm:text-xs text-muted">More</span>
             </div>
           </div>
         </div>
