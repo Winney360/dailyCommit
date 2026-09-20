@@ -61,6 +61,7 @@ export default function DashboardScreen() {
     yearlyCommits: 0,
     yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
     yearlyRestricted: 0,
+    yearlySource: 'fallback',
   });
 
   useEffect(() => {
@@ -214,6 +215,7 @@ export default function DashboardScreen() {
           reviews: totals.reviews,
         },
         yearlyRestricted: totals.restricted || 0,
+        yearlySource: contributionsResponse?.source || 'fallback',
       };
 
       setStreakData(user.id, updatedData);
@@ -345,6 +347,11 @@ export default function DashboardScreen() {
           {streakData.yearlyRestricted > 0 && (
             <div className="mt-2 text-[10px] sm:text-xs text-warning/90">
               GitHub counts {streakData.yearlyRestricted} more contributions you haven't granted access to — log out and log in again to include them.
+            </div>
+          )}
+          {streakData.yearlySource === 'fallback' && (
+            <div className="mt-2 text-[10px] sm:text-xs text-muted" title="GitHub GraphQL was unavailable; numbers estimated from GitHub search">
+              Estimated from GitHub search (not exact)
             </div>
           )}
         </div>
