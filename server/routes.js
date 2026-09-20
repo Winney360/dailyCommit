@@ -383,8 +383,11 @@ export async function registerRoutes(app) {
 
       const username = userData.login;
       const currentYear = new Date().getFullYear();
-      const from = `${currentYear}-01-01T00:00:00Z`;
-      const to = `${currentYear + 1}-01-01T00:00:00Z`;
+      // Use a wide UTC window so contributions near the local-timezone year edges
+      // are bucketed into both ends, then filter by the calendar's date (which is
+      // already in the user's timezone) to match the profile's per-year total exactly.
+      const from = `${currentYear - 1}-12-31T00:00:00Z`;
+      const to = `${currentYear + 2}-01-01T00:00:00Z`;
 
       const query = `
         query($from: DateTime!, $to: DateTime!) {
@@ -484,22 +487,28 @@ export async function registerRoutes(app) {
         });
       }
 
+      const yearStart = `${currentYear}-01-01`;
+      const yearEnd = `${currentYear}-12-31`;
+      let calendarTotal = 0;
       const contributionsByDay = {};
       for (const week of collection.contributionCalendar.weeks || []) {
         for (const day of week.contributionDays || []) {
-          contributionsByDay[day.date] = day.contributionCount;
+          if (day.date >= yearStart && day.date <= yearEnd) {
+            contributionsByDay[day.date] = day.contributionCount;
+            calendarTotal += day.contributionCount;
+          }
         }
       }
 
       console.log(
-        `[contributions] GraphQL OK for ${username}: total=${collection.contributionCalendar.totalCount} commits=${collection.totalCommitContributions} prs=${collection.totalPullRequestContributions} issues=${collection.totalIssueContributions} reviews=${collection.totalPullRequestReviewContributions} restricted=${collection.restrictedContributionsCount}`
+        `[contributions] GraphQL OK for ${username}: total=${calendarTotal} commits=${collection.totalCommitContributions} prs=${collection.totalPullRequestContributions} issues=${collection.totalIssueContributions} reviews=${collection.totalPullRequestReviewContributions} restricted=${collection.restrictedContributionsCount}`
       );
 
       res.json({
         year: currentYear,
         username,
         totals: {
-          total: collection.contributionCalendar.totalCount,
+          total: calendarTotal,
           commits: collection.totalCommitContributions,
           pullRequests: collection.totalPullRequestContributions,
           issues: collection.totalIssueContributions,
