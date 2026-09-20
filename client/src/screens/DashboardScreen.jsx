@@ -103,6 +103,9 @@ export default function DashboardScreen() {
     try {
       const totalsPromise = fetchTotalCommits().catch(() => null);
       const contributionsResponse = await getYearContributions().catch(() => null);
+      if (contributionsResponse) {
+        console.log('[contributions] source:', contributionsResponse.source, contributionsResponse.graphqlError || '');
+      }
 
       const getLocalDateString = (isoDateString) => {
         if (/^\d{4}-\d{2}-\d{2}$/.test(isoDateString)) {

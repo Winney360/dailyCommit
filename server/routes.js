@@ -358,18 +358,21 @@ export async function registerRoutes(app) {
       });
 
       if (userResponse.status === 401) {
-        return null;
+        return { data: null, scopes: userResponse.headers.get("x-oauth-scopes") };
       }
 
       if (!userResponse.ok) {
         throw new Error(`GitHub API error: ${userResponse.status}`);
       }
 
-      return userResponse.json();
+      return {
+        data: await userResponse.json(),
+        scopes: userResponse.headers.get("x-oauth-scopes"),
+      };
     };
 
     try {
-      const userData = await getUser();
+      const { data: userData, scopes: grantedScopes } = await getUser();
 
       if (!userData) {
         return res.status(401).json({
@@ -415,11 +418,24 @@ export async function registerRoutes(app) {
         body: JSON.stringify({ query, variables: { from, to } }),
       });
 
-      const graphQLData = await graphQLResponse.json();
+      const graphQLText = await graphQLResponse.text();
+      let graphQLData;
+      try {
+        graphQLData = JSON.parse(graphQLText);
+      } catch (parseError) {
+        graphQLData = { parseError: parseError.message, raw: graphQLText.slice(0, 500) };
+      }
+
       const collection = graphQLData.data?.viewer?.contributionsCollection;
 
       if (!graphQLResponse.ok || !collection) {
-        // GraphQL unavailable (e.g. insufficient token scopes) — approximate via REST search.
+        // GraphQL unavailable — log the actual reason so we can diagnose.
+        console.error(
+          `[contributions] GraphQL failed for ${username} (status ${graphQLResponse.status}, scopes: ${grantedScopes || "none"})`,
+          JSON.stringify(graphQLData.errors || graphQLData).slice(0, 1000)
+        );
+
+        // Approximate via REST search.
         const searchHeaders = {
           Authorization: `Bearer ${token}`,
           Accept: "application/vnd.github.cloak-preview+json",
@@ -462,6 +478,8 @@ export async function registerRoutes(app) {
           },
           contributionsByDay: null,
           source: "fallback",
+          grantedScopes,
+          graphqlError: graphQLData.errors || null,
         });
       }
 
@@ -471,6 +489,10 @@ export async function registerRoutes(app) {
           contributionsByDay[day.date] = day.contributionCount;
         }
       }
+
+      console.log(
+        `[contributions] GraphQL OK for ${username}: total=${collection.contributionCalendar.totalCount} commits=${collection.totalCommitContributions} prs=${collection.totalPullRequestContributions} issues=${collection.totalIssueContributions} reviews=${collection.totalPullRequestReviewContributions}`
+      );
 
       res.json({
         year: currentYear,
@@ -484,6 +506,7 @@ export async function registerRoutes(app) {
         },
         contributionsByDay,
         source: "graphql",
+        grantedScopes,
       });
     } catch (error) {
       console.error("GitHub API error:", error);
