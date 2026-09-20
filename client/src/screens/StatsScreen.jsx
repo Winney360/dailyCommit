@@ -23,6 +23,7 @@ export default function StatsScreen() {
     longestStreak: 0,
     totalCommits: 0,
     yearlyCommits: 0,
+    yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
   });
   const [totalAllTimeCommits, setTotalAllTimeCommitsState] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -123,8 +124,14 @@ export default function StatsScreen() {
 
         <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6 hover:border-warning/50 transition-all duration-300 hover:shadow-lg hover:shadow-warning/20 hover:scale-105 cursor-default">
           <h3 className="text-muted font-semibold mb-2 text-sm md:text-base">This Year</h3>
-          <p className="text-3xl md:text-4xl font-bold text-warning">{streakData.yearlyCommits}</p>
-          <span className="text-xs md:text-sm text-muted">commits</span>
+          <p className="text-3xl md:text-4xl font-bold text-warning">{streakData.yearlyCommits.toLocaleString()}</p>
+          <span className="text-xs md:text-sm text-muted">contributions</span>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Commits">✓ {streakData.yearlyBreakdown?.commits ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Pull requests">PR {streakData.yearlyBreakdown?.pullRequests ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Issues opened"># {streakData.yearlyBreakdown?.issues ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Reviews submitted">◎ {streakData.yearlyBreakdown?.reviews ?? 0}</span>
+          </div>
         </div>
 
         <div className="bg-secondary border border-custom rounded-lg p-4 md:p-6 hover:border-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 hover:scale-105 cursor-default">
