@@ -46,6 +46,7 @@ export function getStreakData(userId) {
       weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
       totalCommits: 0,
       yearlyCommits: 0,
+      yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
     };
   }
   try {
@@ -58,6 +59,7 @@ export function getStreakData(userId) {
       weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
       totalCommits: 0,
       yearlyCommits: 0,
+      yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
     };
   } catch (error) {
     console.error("Error getting streak data:", error);
@@ -69,6 +71,7 @@ export function getStreakData(userId) {
       weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
       totalCommits: 0,
       yearlyCommits: 0,
+      yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
     };
   }
 }
