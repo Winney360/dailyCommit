@@ -397,6 +397,7 @@ export async function registerRoutes(app) {
               totalPullRequestContributions
               totalIssueContributions
               totalPullRequestReviewContributions
+              totalRepositoryContributions
               contributionCalendar {
                 totalCount
                 weeks {
@@ -461,24 +462,34 @@ export async function registerRoutes(app) {
           return data.total_count || 0;
         };
 
+        const searchRepos = async (q) => {
+          const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&per_page=1`;
+          const response = await fetch(url, { headers: searchHeaders });
+          if (!response.ok) throw new Error(`Repo search failed: ${response.status}`);
+          const data = await response.json();
+          return data.total_count || 0;
+        };
+
         const dateRange = `${currentYear}-01-01..${currentYear}-12-31`;
 
-        const [commits, pullRequests, issues, reviews] = await Promise.all([
+        const [commits, pullRequests, issues, reviews, repositories] = await Promise.all([
           searchCommits(`author:${username} committer-date:${dateRange}`),
           searchIssues(`author:${username} type:pr created:${dateRange}`),
           searchIssues(`author:${username} type:issue created:${dateRange}`),
           searchIssues(`reviewed-by:${username} type:pr created:${dateRange}`),
+          searchRepos(`user:${username} created:${dateRange}`),
         ]);
 
         return res.json({
           year: currentYear,
           username,
           totals: {
-            total: commits + pullRequests + issues + reviews,
+            total: commits + pullRequests + issues + reviews + repositories,
             commits,
             pullRequests,
             issues,
             reviews,
+            repositories,
           },
           contributionsByDay: null,
           source: "fallback",
@@ -501,7 +512,7 @@ export async function registerRoutes(app) {
       }
 
       console.log(
-        `[contributions] GraphQL OK for ${username}: total=${calendarTotal} commits=${collection.totalCommitContributions} prs=${collection.totalPullRequestContributions} issues=${collection.totalIssueContributions} reviews=${collection.totalPullRequestReviewContributions} restricted=${collection.restrictedContributionsCount}`
+        `[contributions] GraphQL OK for ${username}: total=${calendarTotal} commits=${collection.totalCommitContributions} prs=${collection.totalPullRequestContributions} issues=${collection.totalIssueContributions} reviews=${collection.totalPullRequestReviewContributions} repos=${collection.totalRepositoryContributions} restricted=${collection.restrictedContributionsCount}`
       );
 
       res.json({
@@ -513,6 +524,7 @@ export async function registerRoutes(app) {
           pullRequests: collection.totalPullRequestContributions,
           issues: collection.totalIssueContributions,
           reviews: collection.totalPullRequestReviewContributions,
+          repositories: collection.totalRepositoryContributions,
           restricted: collection.restrictedContributionsCount,
         },
         contributionsByDay,

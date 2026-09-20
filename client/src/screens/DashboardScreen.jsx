@@ -143,6 +143,7 @@ export default function DashboardScreen() {
             pullRequests: 0,
             issues: 0,
             reviews: 0,
+            repositories: 0,
           };
         }
       }
@@ -151,7 +152,7 @@ export default function DashboardScreen() {
         contributionsByDay = {};
       }
       if (!totals) {
-        totals = { total: 0, commits: 0, pullRequests: 0, issues: 0, reviews: 0 };
+        totals = { total: 0, commits: 0, pullRequests: 0, issues: 0, reviews: 0, repositories: 0 };
       }
 
       const today = getLocalDateString(new Date().toISOString());
@@ -215,6 +216,7 @@ export default function DashboardScreen() {
           pullRequests: totals.pullRequests,
           issues: totals.issues,
           reviews: totals.reviews,
+          repositories: totals.repositories || 0,
         },
         yearlyRestricted: totals.restricted || 0,
         yearlySource: contributionsResponse?.source || 'fallback',
@@ -349,6 +351,7 @@ export default function DashboardScreen() {
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Pull requests">PR {streakData.yearlyBreakdown?.pullRequests ?? 0}</span>
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Issues opened"># {streakData.yearlyBreakdown?.issues ?? 0}</span>
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Reviews submitted">◎ {streakData.yearlyBreakdown?.reviews ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Repositories created">+ {streakData.yearlyBreakdown?.repositories ?? 0}</span>
           </div>
           {streakData.yearlyRestricted > 0 && (
             <div className="mt-2 text-[10px] sm:text-xs text-warning/90">
