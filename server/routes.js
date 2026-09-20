@@ -339,6 +339,158 @@ export async function registerRoutes(app) {
     }
   });
 
+  // Get exact contribution totals + calendar for the current year (matches GitHub profile)
+  app.get("/api/github/contributions", async (req, res) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+
+    const getUser = async () => {
+      const userResponse = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      });
+
+      if (userResponse.status === 401) {
+        return null;
+      }
+
+      if (!userResponse.ok) {
+        throw new Error(`GitHub API error: ${userResponse.status}`);
+      }
+
+      return userResponse.json();
+    };
+
+    try {
+      const userData = await getUser();
+
+      if (!userData) {
+        return res.status(401).json({
+          error: "GitHub token expired or invalid. Please log in again.",
+          code: "TOKEN_EXPIRED"
+        });
+      }
+
+      const username = userData.login;
+      const currentYear = new Date().getFullYear();
+      const from = `${currentYear}-01-01T00:00:00Z`;
+      const to = `${currentYear + 1}-01-01T00:00:00Z`;
+
+      const query = `
+        query($from: DateTime!, $to: DateTime!) {
+          viewer {
+            contributionsCollection(from: $from, to: $to) {
+              totalCommitContributions
+              totalPullRequestContributions
+              totalIssueContributions
+              totalPullRequestReviewContributions
+              contributionCalendar {
+                totalCount
+                weeks {
+                  contributionDays {
+                    date
+                    contributionCount
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const graphQLResponse = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ query, variables: { from, to } }),
+      });
+
+      const graphQLData = await graphQLResponse.json();
+      const collection = graphQLData.data?.viewer?.contributionsCollection;
+
+      if (!graphQLResponse.ok || !collection) {
+        // GraphQL unavailable (e.g. insufficient token scopes) — approximate via REST search.
+        const searchHeaders = {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.cloak-preview+json",
+        };
+
+        const searchCommits = async (q) => {
+          const url = `https://api.github.com/search/commits?q=${encodeURIComponent(q)}&per_page=1`;
+          const response = await fetch(url, { headers: searchHeaders });
+          if (!response.ok) throw new Error(`Commit search failed: ${response.status}`);
+          const data = await response.json();
+          return data.total_count || 0;
+        };
+
+        const searchIssues = async (q) => {
+          const url = `https://api.github.com/search/issues?q=${encodeURIComponent(q)}&per_page=1`;
+          const response = await fetch(url, { headers: searchHeaders });
+          if (!response.ok) throw new Error(`Issue search failed: ${response.status}`);
+          const data = await response.json();
+          return data.total_count || 0;
+        };
+
+        const dateRange = `${currentYear}-01-01..${currentYear}-12-31`;
+
+        const [commits, pullRequests, issues, reviews] = await Promise.all([
+          searchCommits(`author:${username} committer-date:${dateRange}`),
+          searchIssues(`author:${username} type:pr created:${dateRange}`),
+          searchIssues(`author:${username} type:issue created:${dateRange}`),
+          searchIssues(`reviewed-by:${username} type:pr created:${dateRange}`),
+        ]);
+
+        return res.json({
+          year: currentYear,
+          username,
+          totals: {
+            total: commits + pullRequests + issues + reviews,
+            commits,
+            pullRequests,
+            issues,
+            reviews,
+          },
+          contributionsByDay: null,
+          source: "fallback",
+        });
+      }
+
+      const contributionsByDay = {};
+      for (const week of collection.contributionCalendar.weeks || []) {
+        for (const day of week.contributionDays || []) {
+          contributionsByDay[day.date] = day.contributionCount;
+        }
+      }
+
+      res.json({
+        year: currentYear,
+        username,
+        totals: {
+          total: collection.contributionCalendar.totalCount,
+          commits: collection.totalCommitContributions,
+          pullRequests: collection.totalPullRequestContributions,
+          issues: collection.totalIssueContributions,
+          reviews: collection.totalPullRequestReviewContributions,
+        },
+        contributionsByDay,
+        source: "graphql",
+      });
+    } catch (error) {
+      console.error("GitHub API error:", error);
+      res.status(500).json({ error: "Failed to fetch contributions: " + error.message });
+    }
+  });
+
   // Get total all-time commits (for badge display)
   app.get("/api/github/total-commits", async (req, res) => {
     const authHeader = req.headers.authorization;
