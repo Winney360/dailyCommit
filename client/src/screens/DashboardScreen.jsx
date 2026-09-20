@@ -60,6 +60,7 @@ export default function DashboardScreen() {
     totalCommits: 0,
     yearlyCommits: 0,
     yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
+    yearlyRestricted: 0,
   });
 
   useEffect(() => {
@@ -212,6 +213,7 @@ export default function DashboardScreen() {
           issues: totals.issues,
           reviews: totals.reviews,
         },
+        yearlyRestricted: totals.restricted || 0,
       };
 
       setStreakData(user.id, updatedData);
@@ -340,6 +342,11 @@ export default function DashboardScreen() {
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Issues opened"># {streakData.yearlyBreakdown?.issues ?? 0}</span>
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Reviews submitted">◎ {streakData.yearlyBreakdown?.reviews ?? 0}</span>
           </div>
+          {streakData.yearlyRestricted > 0 && (
+            <div className="mt-2 text-[10px] sm:text-xs text-warning/90">
+              GitHub counts {streakData.yearlyRestricted} more contributions you haven't granted access to — log out and log in again to include them.
+            </div>
+          )}
         </div>
       </div>
 

@@ -27,7 +27,7 @@ export async function registerRoutes(app) {
     const state = crypto.randomBytes(16).toString("hex");
     const params = new URLSearchParams({
       client_id: clientId,
-      scope: "user:email,read:user",
+      scope: "user:email,read:user,repo",
       allow_signup: "true",
       state,
     });
@@ -403,6 +403,7 @@ export async function registerRoutes(app) {
                   }
                 }
               }
+              restrictedContributionsCount
             }
           }
         }
@@ -491,7 +492,7 @@ export async function registerRoutes(app) {
       }
 
       console.log(
-        `[contributions] GraphQL OK for ${username}: total=${collection.contributionCalendar.totalCount} commits=${collection.totalCommitContributions} prs=${collection.totalPullRequestContributions} issues=${collection.totalIssueContributions} reviews=${collection.totalPullRequestReviewContributions}`
+        `[contributions] GraphQL OK for ${username}: total=${collection.contributionCalendar.totalCount} commits=${collection.totalCommitContributions} prs=${collection.totalPullRequestContributions} issues=${collection.totalIssueContributions} reviews=${collection.totalPullRequestReviewContributions} restricted=${collection.restrictedContributionsCount}`
       );
 
       res.json({
@@ -503,6 +504,7 @@ export async function registerRoutes(app) {
           pullRequests: collection.totalPullRequestContributions,
           issues: collection.totalIssueContributions,
           reviews: collection.totalPullRequestReviewContributions,
+          restricted: collection.restrictedContributionsCount,
         },
         contributionsByDay,
         source: "graphql",
