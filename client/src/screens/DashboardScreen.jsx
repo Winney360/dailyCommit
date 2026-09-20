@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getStreakData, setStreakData, setTotalAllTimeCommits } from '@/lib/storage';
-import { getGitHubCommits, getTotalAllTimeCommits as fetchTotalCommits } from '@/lib/api';
+import { getGitHubCommits, getYearContributions, getTotalAllTimeCommits as fetchTotalCommits } from '@/lib/api';
 
 const liquidStyles = `
   @keyframes liquidWave {
@@ -59,6 +59,7 @@ export default function DashboardScreen() {
     weeklyCommits: [0, 0, 0, 0, 0, 0, 0],
     totalCommits: 0,
     yearlyCommits: 0,
+    yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
   });
 
   useEffect(() => {
@@ -101,8 +102,7 @@ export default function DashboardScreen() {
 
     try {
       const totalsPromise = fetchTotalCommits().catch(() => null);
-      const response = await getGitHubCommits();
-      const { commitsByDay, totalCommits } = response;
+      const contributionsResponse = await getYearContributions().catch(() => null);
 
       const getLocalDateString = (isoDateString) => {
         if (/^\d{4}-\d{2}-\d{2}$/.test(isoDateString)) {
@@ -116,14 +116,39 @@ export default function DashboardScreen() {
         return `${year}-${month}-${day}`;
       };
 
-      const localCommitsByDay = {};
-      Object.entries(commitsByDay).forEach(([timestamp, count]) => {
-        const localDate = getLocalDateString(timestamp);
-        localCommitsByDay[localDate] = (localCommitsByDay[localDate] || 0) + count;
-      });
+      let contributionsByDay = contributionsResponse?.contributionsByDay || null;
+      let totals = contributionsResponse?.totals || null;
+
+      if (!contributionsByDay) {
+        // GraphQL contributions calendar unavailable — fall back to commit-only data.
+        const fallback = await getGitHubCommits().catch(() => null);
+        if (fallback?.commitsByDay) {
+          contributionsByDay = {};
+          Object.entries(fallback.commitsByDay).forEach(([timestamp, count]) => {
+            const localDate = getLocalDateString(timestamp);
+            contributionsByDay[localDate] = (contributionsByDay[localDate] || 0) + count;
+          });
+        }
+        if (!totals && fallback?.totalCommits != null) {
+          totals = {
+            total: fallback.totalCommits,
+            commits: fallback.totalCommits,
+            pullRequests: 0,
+            issues: 0,
+            reviews: 0,
+          };
+        }
+      }
+
+      if (!contributionsByDay) {
+        contributionsByDay = {};
+      }
+      if (!totals) {
+        totals = { total: 0, commits: 0, pullRequests: 0, issues: 0, reviews: 0 };
+      }
 
       const today = getLocalDateString(new Date().toISOString());
-      const todayCommits = localCommitsByDay[today] || 0;
+      const todayContributions = contributionsByDay[today] || 0;
 
       const weeklyCommits = [0, 0, 0, 0, 0, 0, 0];
       const todayDate = new Date();
@@ -134,12 +159,12 @@ export default function DashboardScreen() {
       const sundayDate = new Date(todayDate);
       sundayDate.setDate(todayDate.getDate() - daysFromSunday);
       
-      // Fill in commits from Sunday to today only
+      // Fill in contributions from Sunday to today only
       for (let i = 0; i <= daysFromSunday; i++) {
         const date = new Date(sundayDate);
         date.setDate(sundayDate.getDate() + i);
         const dateStr = getLocalDateString(date.toISOString());
-        weeklyCommits[i] = localCommitsByDay[dateStr] || 0;
+        weeklyCommits[i] = contributionsByDay[dateStr] || 0;
       }
 
       let longestStreakValue = 0;
@@ -149,7 +174,7 @@ export default function DashboardScreen() {
       const streakYearStart = new Date(new Date().getFullYear(), 0, 1);
       for (let d = new Date(streakYearStart); d <= new Date(); d.setDate(d.getDate() + 1)) {
         const dateStr = getLocalDateString(d.toISOString());
-        if (localCommitsByDay[dateStr] && localCommitsByDay[dateStr] > 0) {
+        if (contributionsByDay[dateStr] && contributionsByDay[dateStr] > 0) {
           tempStreak++;
           longestStreakValue = Math.max(longestStreakValue, tempStreak);
         } else {
@@ -160,7 +185,7 @@ export default function DashboardScreen() {
       let checkDate = new Date();
       while (true) {
         const dateStr = getLocalDateString(checkDate.toISOString());
-        if (localCommitsByDay[dateStr] && localCommitsByDay[dateStr] > 0) {
+        if (contributionsByDay[dateStr] && contributionsByDay[dateStr] > 0) {
           currentStreak++;
           checkDate.setDate(checkDate.getDate() - 1);
         } else if (dateStr === today) {
@@ -174,10 +199,16 @@ export default function DashboardScreen() {
         currentStreak,
         longestStreak: longestStreakValue,
         lastCommitDate: today,
-        todayCommits,
+        todayCommits: todayContributions,
         weeklyCommits,
-        totalCommits,
-        yearlyCommits: totalCommits,
+        totalCommits: totals.total,
+        yearlyCommits: totals.total,
+        yearlyBreakdown: {
+          commits: totals.commits,
+          pullRequests: totals.pullRequests,
+          issues: totals.issues,
+          reviews: totals.reviews,
+        },
       };
 
       setStreakData(user.id, updatedData);
@@ -254,8 +285,8 @@ export default function DashboardScreen() {
         <div className="mb-6 md:mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-start gap-3 animate-slide-up">
           <AlertCircle size={20} className="text-warning shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-warning font-semibold mb-1">No commits yet today</h3>
-            <p className="text-warning/90 text-sm">You have {getRemainingTimeInDay()} left to make your first commit today and keep your streak alive! 🔥</p>
+            <h3 className="text-warning font-semibold mb-1">No contributions yet today</h3>
+            <p className="text-warning/90 text-sm">You have {getRemainingTimeInDay()} left to make your first contribution today and keep your streak alive! 🔥</p>
           </div>
         </div>
       )}
@@ -274,7 +305,7 @@ export default function DashboardScreen() {
             <span className="absolute bottom-full mb-2 right-0 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap pointer-events-none bg-secondary border border-custom rounded px-2 py-1">Refresh</span>
           </button>
         </div>
-        <p className="text-muted mt-2 text-sm md:text-base">Here's your commit activity for today</p>
+        <p className="text-muted mt-2 text-sm md:text-base">Here's your contribution activity for today</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8 animate-stagger-children">
@@ -291,15 +322,21 @@ export default function DashboardScreen() {
         </div>
 
         <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105 cursor-default">
-          <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Today's Commits</h3>
+          <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">Today's Contributions</h3>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.todayCommits}</p>
-          <span className="text-xs md:text-sm text-muted">commits</span>
+          <span className="text-xs md:text-sm text-muted">contributions</span>
         </div>
 
         <div className="bg-secondary border border-custom rounded-lg p-3 sm:p-4 md:p-6 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105 cursor-default">
           <h3 className="text-muted font-semibold mb-1.5 text-xs sm:text-sm md:text-base">This Year</h3>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-warning leading-tight">{streakData.yearlyCommits}</p>
-          <span className="text-xs md:text-sm text-muted">commits</span>
+          <span className="text-xs md:text-sm text-muted">contributions</span>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Commits">✓ {streakData.yearlyBreakdown?.commits ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Pull requests">PR {streakData.yearlyBreakdown?.pullRequests ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Issues opened"># {streakData.yearlyBreakdown?.issues ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Reviews submitted">◎ {streakData.yearlyBreakdown?.reviews ?? 0}</span>
+          </div>
         </div>
       </div>
 
@@ -307,11 +344,11 @@ export default function DashboardScreen() {
         <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary mb-1 md:mb-2">This Week</h2>
-            <p className="text-muted text-xs sm:text-sm">Your daily commit activity</p>
+            <p className="text-muted text-xs sm:text-sm">Your daily contributions</p>
           </div>
           <div className="text-left sm:text-right">
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-warning">{streakData.weeklyCommits.reduce((sum, count) => sum + count, 0)}</p>
-            <span className="text-xs text-muted">total commits</span>
+            <span className="text-xs text-muted">total contributions</span>
           </div>
         </div>
         <div className="flex flex-col items-stretch gap-4 md:gap-6">
@@ -341,10 +378,10 @@ export default function DashboardScreen() {
                       count === 0 ? 'bg-hover border border-accent/50' : 'bg-primary border border-primary hover:shadow-lg hover:shadow-primary/40'
                     }`}
                     style={{ opacity: intensity }}
-                    title={`${dayNames[index]}: ${count} commit${count !== 1 ? 's' : ''}`}
+                    title={`${dayNames[index]}: ${count} contribution${count !== 1 ? 's' : ''}`}
                     role="button"
                     tabIndex={0}
-                    aria-label={`${dayNames[index]}: ${count} ${count === 1 ? 'commit' : 'commits'}`}
+                    aria-label={`${dayNames[index]}: ${count} ${count === 1 ? 'contribution' : 'contributions'}`}
                     onClick={() => setActiveWeekDayIndex(activeWeekDayIndex === index ? null : index)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
@@ -361,7 +398,7 @@ export default function DashboardScreen() {
                     <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-accent text-white text-xs font-semibold px-2 py-1 rounded transition-opacity pointer-events-none z-10 ${
                       activeWeekDayIndex === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
                     }`}>
-                      {dayNames[index]}: {count} {count === 1 ? 'commit' : 'commits'} {isBestDay && '🔥'}
+                      {dayNames[index]}: {count} {count === 1 ? 'contribution' : 'contributions'} {isBestDay && '🔥'}
                     </div>
                   </div>
                   <span className="text-[10px] sm:text-xs text-muted leading-none">{dayNames[index]}</span>
@@ -373,11 +410,11 @@ export default function DashboardScreen() {
             <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
               <span className="text-[10px] sm:text-xs text-muted">Less</span>
               <div className="flex gap-1">
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-hover border border-accent/50" title="0 commits"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-40 border border-primary/60" title="1-2 commits"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-60 border border-primary/80" title="3-5 commits"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-80 border border-primary" title="6-10 commits"></div>
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100 border border-primary" title="11+ commits"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-hover border border-accent/50" title="0 contributions"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-40 border border-primary/60" title="1-2 contributions"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-60 border border-primary/80" title="3-5 contributions"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-80 border border-primary" title="6-10 contributions"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-primary opacity-100 border border-primary" title="11+ contributions"></div>
               </div>
               <span className="text-[10px] sm:text-xs text-muted">More</span>
             </div>
