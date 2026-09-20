@@ -69,6 +69,20 @@ export async function getGitHubCommits() {
 }
 
 /**
+ * Get exact contribution totals + calendar for the current year
+ * (commits + PRs + issues + reviews, matching the GitHub profile)
+ */
+export async function getYearContributions() {
+  try {
+    const data = await fetchAuthenticated('api/github/contributions');
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch year contributions:', error);
+    throw error;
+  }
+}
+
+/**
  * Get fast commit totals (all-time + current year) for the authenticated user
  */
 export async function getTotalAllTimeCommits() {
