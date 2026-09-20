@@ -62,6 +62,8 @@ export default function DashboardScreen() {
     yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
     yearlyRestricted: 0,
     yearlySource: 'fallback',
+    yearlyGraphQLError: '',
+    yearlyGrantedScopes: '',
   });
 
   useEffect(() => {
@@ -216,6 +218,10 @@ export default function DashboardScreen() {
         },
         yearlyRestricted: totals.restricted || 0,
         yearlySource: contributionsResponse?.source || 'fallback',
+        yearlyGraphQLError: contributionsResponse?.graphqlError
+          ? JSON.stringify(contributionsResponse.graphqlError).slice(0, 400)
+          : '',
+        yearlyGrantedScopes: contributionsResponse?.grantedScopes || '',
       };
 
       setStreakData(user.id, updatedData);
@@ -352,6 +358,12 @@ export default function DashboardScreen() {
           {streakData.yearlySource === 'fallback' && (
             <div className="mt-2 text-[10px] sm:text-xs text-muted" title="GitHub GraphQL was unavailable; numbers estimated from GitHub search">
               Estimated from GitHub search (not exact)
+              {streakData.yearlyGrantedScopes && (
+                <div className="mt-1 text-muted/80">scopes: {streakData.yearlyGrantedScopes}</div>
+              )}
+              {streakData.yearlyGraphQLError && (
+                <div className="mt-1 text-muted/80 break-words">{streakData.yearlyGraphQLError}</div>
+              )}
             </div>
           )}
         </div>

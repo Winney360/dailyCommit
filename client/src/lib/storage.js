@@ -49,6 +49,8 @@ export function getStreakData(userId) {
       yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
       yearlyRestricted: 0,
       yearlySource: 'fallback',
+      yearlyGraphQLError: '',
+      yearlyGrantedScopes: '',
     };
   }
   try {
@@ -64,6 +66,8 @@ export function getStreakData(userId) {
       yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
       yearlyRestricted: 0,
       yearlySource: 'fallback',
+      yearlyGraphQLError: '',
+      yearlyGrantedScopes: '',
     };
   } catch (error) {
     console.error("Error getting streak data:", error);
@@ -78,6 +82,8 @@ export function getStreakData(userId) {
       yearlyBreakdown: { commits: 0, pullRequests: 0, issues: 0, reviews: 0 },
       yearlyRestricted: 0,
       yearlySource: 'fallback',
+      yearlyGraphQLError: '',
+      yearlyGrantedScopes: '',
     };
   }
 }
