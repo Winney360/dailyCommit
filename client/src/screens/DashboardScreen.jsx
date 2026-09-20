@@ -351,22 +351,11 @@ export default function DashboardScreen() {
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Pull requests">PR {streakData.yearlyBreakdown?.pullRequests ?? 0}</span>
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Issues opened"># {streakData.yearlyBreakdown?.issues ?? 0}</span>
             <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Reviews submitted">◎ {streakData.yearlyBreakdown?.reviews ?? 0}</span>
-            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Repositories created">+ {streakData.yearlyBreakdown?.repositories ?? 0}</span>
+            <span className="text-[10px] sm:text-xs bg-hover border border-custom rounded px-1.5 py-0.5 text-muted" title="Repositories created">repos {streakData.yearlyBreakdown?.repositories ?? 0}</span>
           </div>
           {streakData.yearlyRestricted > 0 && (
             <div className="mt-2 text-[10px] sm:text-xs text-warning/90">
               GitHub counts {streakData.yearlyRestricted} more contributions you haven't granted access to — log out and log in again to include them.
-            </div>
-          )}
-          {streakData.yearlySource === 'fallback' && (
-            <div className="mt-2 text-[10px] sm:text-xs text-muted" title="GitHub GraphQL was unavailable; numbers estimated from GitHub search">
-              Estimated from GitHub search (not exact)
-              {streakData.yearlyGrantedScopes && (
-                <div className="mt-1 text-muted/80">scopes: {streakData.yearlyGrantedScopes}</div>
-              )}
-              {streakData.yearlyGraphQLError && (
-                <div className="mt-1 text-muted/80 break-words">{streakData.yearlyGraphQLError}</div>
-              )}
             </div>
           )}
         </div>
